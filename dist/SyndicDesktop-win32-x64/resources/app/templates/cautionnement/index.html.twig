@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cautionnement index{% endblock %}
+
+{% block body %}
+    <h1>Cautionnement index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Montant</th>
+                <th>Date_paiement</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for cautionnement in cautionnements %}
+            <tr>
+                <td>{{ cautionnement.id }}</td>
+                <td>{{ cautionnement.montant }}</td>
+                <td>{{ cautionnement.datePaiement ? cautionnement.datePaiement|date('Y-m-d') : '' }}</td>
+                <td>
+                    <a href="{{ path('app_cautionnement_show', {'id': cautionnement.id}) }}">show</a>
+                    <a href="{{ path('app_cautionnement_edit', {'id': cautionnement.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_cautionnement_new') }}">Create new</a>
+{% endblock %}

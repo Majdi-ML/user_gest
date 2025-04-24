@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Appartement index{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">🏠 Liste des Appartements</h1>
+
+<div class="mb-3 text-end">
+    <a href="{{ path('app_appartement_new') }}" class="btn btn-success">
+        ➕ Ajouter un Appartement
+    </a>
+</div>
+
+    <!-- Formulaire de filtrage -->
+    <form method="get">
+        <div class="form-group">
+            <label for="bloc">Bloc</label>
+            <select name="bloc" id="bloc" class="form-control">
+                <option value="">Sélectionner un bloc</option>
+                {% for bloc in blocs %}
+                    <option value="{{ bloc.nom }}" {% if bloc.nom == blocFilter %}selected{% endif %}>{{ bloc.nom }}</option>
+
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="etage">Étage</label>
+            <select name="etage" id="etage" class="form-control">
+                <option value="">Sélectionner un étage</option>
+                {% for etage in etages %}
+<option value="{{ etage.etage }}" {% if etage.etage == etageFilter %}selected{% endif %}>{{ etage.etage }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="locataire">Locataire</label>
+            <select name="locataire" id="locataire" class="form-control">
+                <option value="">Sélectionner un locataire</option>
+                {% for locataire in locataires %}
+                    <option value="{{ locataire.id }}" {% if locataire.id == locataireFilter %}selected{% endif %}>
+                        {{ locataire.nom }} {{ locataire.prenom }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="proprietaire">Propriétaire</label>
+            <select name="proprietaire" id="proprietaire" class="form-control">
+                <option value="">Sélectionner un propriétaire</option>
+                {% for proprietaire in proprietaires %}
+                    <option value="{{ proprietaire.id }}" {% if proprietaire.id == proprietaireFilter %}selected{% endif %}>
+                        {{ proprietaire.nom }} {{ proprietaire.prenom }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary mt-3">Appliquer les filtres</button>
+    </form>
+
+    <!-- Appartements Loués -->
+    <h2 class="mt-5 text-success">✅ Appartements Loués</h2>
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Numéro</th>
+                <th>Type</th>
+                <th>Étage</th>
+                <th>Occupé</th>
+                <th>Locataire</th>
+                <th>Propriétaire</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for appartement in appartementsLoues %}
+            <tr>
+                <td>{{ appartement.id }}</td>
+                <td>{{ appartement.numero }}</td>
+                <td>{{ appartement.type }}</td>
+                <td>{{ appartement.etage }}</td>
+                <td>
+                    {% if appartement.estHabite %}
+                        ✅ Oui
+                    {% else %}
+                        ❌ Non
+                    {% endif %}
+                </td>
+                <td>{{ appartement.locataire.nom }} {{ appartement.locataire.prenom }}</td>
+                <td>{{ appartement.proprietaire.nom }} {{ appartement.proprietaire.prenom }}</td>
+                <td>
+                    <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}">show</a>
+                    <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="8">Aucun appartement loué trouvé.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Appartements Non Loués -->
+    <h2 class="mt-5 text-danger">❌ Appartements Non Loués</h2>
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Numéro</th>
+                <th>Type</th>
+                <th>Étage</th>
+                <th>Occupé</th>
+                <th>Locataire</th>
+                <th>Propriétaire</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for appartement in appartementsNonLoues %}
+            <tr>
+                <td>{{ appartement.id }}</td>
+                <td>{{ appartement.numero }}</td>
+                <td>{{ appartement.type }}</td>
+                <td>{{ appartement.etage }}</td>
+                <td>
+                    {% if appartement.estHabite %}
+                        ✅ Oui
+                    {% else %}
+                        ❌ Non
+                    {% endif %}
+                </td>
+                <td><span class="text-muted">—</span></td>
+                <td>{{ appartement.proprietaire.nom }} {{ appartement.proprietaire.prenom }}</td>
+                <td>
+                    <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}">show</a>
+                    <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="8">Aucun appartement non loué trouvé.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Utilisateurs{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">👥 Liste des Utilisateurs</h1>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <td>{{ user.email }}</td>
+                <td>{{ user.telephone }}</td>
+                <td>
+                    {% if user.isValid %}
+                        ✅ Actif
+                    {% else %}
+                        ❌ Bloqué
+                    {% endif %}
+                </td>
+                <td>
+                    <!-- Bouton bloquer / débloquer -->
+                    <form method="post" action="{{ path('app_user_toggle_valid', {'id': user.id}) }}" style="display:inline-block;">
+                        <input type="hidden" name="_token" value="{{ csrf_token('toggle_valid' ~ user.id) }}">
+                        <button class="btn btn-sm {{ user.isValid ? 'btn-warning' : 'btn-success' }}">
+                            {{ user.isValid ? 'Bloquer' : 'Débloquer' }}
+                        </button>
+                    </form>
+
+                    <!-- Bouton suppression -->
+                    {{ include('user/_delete_form.html.twig') }}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4">Aucun utilisateur trouvé.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

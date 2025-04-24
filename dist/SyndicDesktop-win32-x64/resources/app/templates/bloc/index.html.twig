@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bloc index{% endblock %}
+
+{% block body %}
+    <h1>Bloc index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom</th>
+                <th>Nombre_etages</th>
+                <th>Nombre_appartement_etage</th>
+                <th>Nombre_totale_appartement</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for bloc in blocs %}
+            <tr>
+                <td>{{ bloc.id }}</td>
+                <td>{{ bloc.nom }}</td>
+                <td>{{ bloc.nombreEtages }}</td>
+                <td>{{ bloc.nombreAppartementEtage }}</td>
+                <td>{{ bloc.nombreTotaleAppartement }}</td>
+                <td>
+                    <a href="{{ path('app_bloc_show', {'id': bloc.id}) }}">show</a>
+                    <a href="{{ path('app_bloc_edit', {'id': bloc.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_bloc_new') }}">Create new</a>
+{% endblock %}

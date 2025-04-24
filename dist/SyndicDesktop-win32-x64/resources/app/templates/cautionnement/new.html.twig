@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Cautionnement{% endblock %}
+
+{% block body %}
+    <h1>Create new Cautionnement</h1>
+
+    {{ include('cautionnement/_form.html.twig') }}
+
+    <a href="{{ path('app_cautionnement_index') }}">back to list</a>
+{% endblock %}

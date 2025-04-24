@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Blocs{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="mb-4 text-center">Liste des Blocs</h1>
+
+    <div class="mb-3 text-end">
+        <a href="{{ path('app_bloc_new') }}" class="btn btn-primary">➕ Ajouter un bloc</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover align-middle text-center">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Nombre d'étages</th>
+                    <th>Appartements / étage</th>
+                    <th>Totale Appartements</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for bloc in blocs %}
+                <tr>
+                    <td>{{ bloc.id }}</td>
+                    <td>{{ bloc.nom }}</td>
+                    <td>{{ bloc.nombreEtages }}</td>
+                    <td>{{ bloc.nombreAppartementEtage }}</td>
+                    <td>{{ bloc.nombreTotaleAppartement }}</td>
+                    <td>
+                        <a href="{{ path('app_bloc_show', {'id': bloc.id}) }}" class="btn btn-sm btn-info me-1">👁️ Voir</a>
+                        <a href="{{ path('app_bloc_edit', {'id': bloc.id}) }}" class="btn btn-sm btn-warning">✏️ Modifier</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted">Aucun bloc trouvé.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

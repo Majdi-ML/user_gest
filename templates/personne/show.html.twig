@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de {{ personne.nom }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">👤 Détails de la personne</h1>
+
+    <div class="card shadow-sm mb-5">
+        <div class="card-body">
+            <table class="table table-striped mb-0">
+                <tbody>
+                    
+                    <tr>
+                        <th>👤 Nom</th>
+                        <td>{{ personne.nom }}</td>
+                    </tr>
+                    <tr>
+                        <th>🧑‍🎓 Prénom</th>
+                        <td>{{ personne.prenom }}</td>
+                    </tr>
+                    <tr>
+                        <th>📧 Email</th>
+                        <td>{{ personne.email }}</td>
+                    </tr>
+                    <tr>
+                        <th>📱 Téléphone</th>
+                        <td>{{ personne.telephone }}</td>
+                    </tr>
+                    <tr>
+                        <th>🏠 Adresse</th>
+                        <td>{{ personne.adresse }}</td>
+                    </tr>
+                    <tr>
+                        <th>📌 Statut</th>
+                        <td><span class="badge bg-info text-dark">{{ personne.status }}</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h2 class="mb-3">💰 Cautionnements</h2>
+
+    {% if personne.cautionnements is not empty %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Montant</th>
+                        <th>Date Paiement</th>
+                        <th>Mois</th>
+                        <th>Appartement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for cautionnement in personne.cautionnements %}
+                    <tr>
+                        <td>{{ cautionnement.montant }} DT</td>
+                        <td>{{ cautionnement.datePaiement ? cautionnement.datePaiement|date('d/m/Y') : '—' }}</td>
+                        <td>{{ cautionnement.mois }}</td>
+                        <td>{{ cautionnement.appartement }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">❌ Aucun cautionnement enregistré pour cette personne.</div>
+    {% endif %}
+
+    <div class="mt-4 d-flex gap-2">
+        <a href="{{ path('app_personne_index') }}" class="btn btn-secondary">
+            ⬅️ Retour à la liste
+        </a>
+
+        <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-primary">
+            ✏️ Modifier
+        </a>
+
+        {{ include('personne/_delete_form.html.twig') }}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Cautionnement{% endblock %}
+
+{% block body %}
+    <h1>Create new Cautionnement</h1>
+
+    {{ include('cautionnement/_form.html.twig') }}
+
+    <a href="{{ path('app_cautionnement_index') }}">back to list</a>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $('.personne-select').on('change', function () {
+    const personneId = $(this).val();
+    const appartementSelect = $('.appartement-select');
+
+    appartementSelect.empty();
+    appartementSelect.append('<option>Chargement...</option>');
+
+    if (personneId) {
+        $.ajax({
+            url: '/cautionnement/get-appartements/' + personneId,
+            method: 'GET',
+            success: function (data) {
+                appartementSelect.empty();
+                if (data.length > 0) {
+                    data.forEach(function (appartement) {
+                        appartementSelect.append(
+                            `<option value="${appartement.id}">${appartement.text}</option>`
+                        );
+                    });
+                } else {
+                    appartementSelect.append('<option>Aucun appartement</option>');
+                }
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

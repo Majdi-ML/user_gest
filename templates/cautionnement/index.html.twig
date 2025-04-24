@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Cautionnements{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">💰 Cautionnements</h1>
+
+    <!-- Filtres -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <label for="mois" class="form-label">Mois</label>
+            <select name="mois" id="mois" class="form-select">
+                <option value="">Tous les mois</option>
+                {% for m in ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'] %}
+                    <option value="{{ m }}" {% if m == mois %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="annee" class="form-label">Année</label>
+            <input type="number" name="annee" id="annee" class="form-control" value="{{ annee }}">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary me-2">Filtrer</button>
+            <a href="{{ path('app_cautionnement_index') }}" class="btn btn-secondary">Réinitialiser</a>
+        </div>
+    </form>
+
+    <!-- Total -->
+    <div class="alert alert-info">
+        💵 Total des cautionnements : <strong>{{ totalMontant }} TND</strong>
+    </div>
+
+    <!-- Tableau -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Montant</th>
+                    <th>Date de Paiement</th>
+                    <th>Mois</th>
+                    <th>Personne</th>
+                    <th>Utilisateur (email)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for c in cautionnements %}
+                <tr>
+                    <td>{{ c.id }}</td>
+                    <td>{{ c.montant }} TND</td>
+                    <td>{{ c.datePaiement ? c.datePaiement|date('d/m/Y') : '' }}</td>
+                    <td>{{ c.mois }}</td>
+                    <td>
+                        {% if c.personne %}
+                            {{ c.personne.nom }} {{ c.personne.prenom }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>{{ c.user ? c.user.email : '—' }}</td>
+                    <td>
+                        <a href="{{ path('app_cautionnement_show', {'id': c.id}) }}" class="btn btn-sm btn-outline-primary">Afficher</a>
+                        <a href="{{ path('app_cautionnement_edit', {'id': c.id}) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">Aucun cautionnement trouvé.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{{ path('app_cautionnement_new') }}" class="btn btn-success mt-3">➕ Nouveau cautionnement</a>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{
+  "name": "syndicdesktop",
+  "version": "1.0.0",
+  "description": "Application Desktop basée sur Symfony avec Electron",
+  "main": "main.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "electron .",
+    "package-win": "electron-packager . SyndicDesktop --platform=win32 --arch=x64 --out=dist --overwrite"
+  },
+  "keywords": [],
+  "author": "Majdi Melliti",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^34.3.0",
+    "electron-packager": "^17.1.1"
+  }
+}

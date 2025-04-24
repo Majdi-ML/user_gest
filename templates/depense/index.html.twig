@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Dépenses{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">💸 Liste des Dépenses</h1>
+
+    <div class="mb-3 text-end">
+        <a href="{{ path('app_depense_new') }}" class="btn btn-success">➕ Ajouter une Dépense</a>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Montant (DT)</th>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Type</th>
+                <th>Utilisateur</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% set total = 0 %}
+        {% for depense in depenses %}
+            <tr>
+                <td>{{ depense.id }}</td>
+                <td>{{ depense.montant }}</td>
+                <td>{{ depense.dateDepense ? depense.dateDepense|date('d/m/Y') : '' }}</td>
+                <td>{{ depense.description }}</td>
+                <td>{{ depense.type }}</td>
+                <td>
+                    {{ depense.user ? depense.user.email : '—' }}
+                </td>
+                <td>
+                    <a href="{{ path('app_depense_show', {'id': depense.id}) }}" class="btn btn-sm btn-primary">Voir</a>
+                    <a href="{{ path('app_depense_edit', {'id': depense.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                </td>
+            </tr>
+            {% set total = total + depense.montant %}
+        {% else %}
+            <tr>
+                <td colspan="7" class="text-center text-muted">Aucune dépense trouvée.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        {% if depenses|length > 0 %}
+            <tfoot>
+                <tr class="table-info fw-bold">
+                    <td colspan="1">Total</td>
+                    <td>{{ total|number_format(2, '.', ',') }} DT</td>
+                    <td colspan="5"></td>
+                </tr>
+            </tfoot>
+        {% endif %}
+    </table>
+</div>
+{% endblock %}

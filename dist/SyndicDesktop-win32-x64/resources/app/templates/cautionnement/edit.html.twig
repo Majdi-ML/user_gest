@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Cautionnement{% endblock %}
+
+{% block body %}
+    <h1>Edit Cautionnement</h1>
+
+    {{ include('cautionnement/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_cautionnement_index') }}">back to list</a>
+
+    {{ include('cautionnement/_delete_form.html.twig') }}
+{% endblock %}
