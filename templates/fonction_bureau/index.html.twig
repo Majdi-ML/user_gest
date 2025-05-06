@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}FonctionBureau index{% endblock %}
+
+{% block body %}
+    <h1>FonctionBureau index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Libelle</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for fonction_bureau in fonction_bureaus %}
+            <tr>
+                <td>{{ fonction_bureau.id }}</td>
+                <td>{{ fonction_bureau.libelle }}</td>
+                <td>
+                    <a href="{{ path('app_fonction_bureau_show', {'id': fonction_bureau.id}) }}">show</a>
+                    <a href="{{ path('app_fonction_bureau_edit', {'id': fonction_bureau.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_fonction_bureau_new') }}">Create new</a>
+{% endblock %}

@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Personne;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -36,6 +37,17 @@ class PersonneType extends AbstractType
                 ],
                 'attr' => ['class' => 'form-select'],
                 'placeholder' => 'Sélectionnez un statut',
+            ])
+            ->add('Date_location', DateType::class, [
+                'widget' => 'single_text',
+                'attr' => ['class' => 'form-control'],
+                'required' => false, // Since it's nullable in the entity
+                'label' => 'Date de location',
+            ])
+            ->add('date_achat', DateType::class, [
+                'widget' => 'single_text',
+                'attr' => ['class' => 'form-control'],
+                'label' => 'Date d\'achat',
             ]);
     }
 

@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Rassemblements{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">📅 Liste des Rassemblements</h1>
+
+    <div class="mb-3 text-end">
+        <a href="{{ path('app_rassemeblement_new') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Nouveau rassemblement
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Date</th>
+                    <th>PV</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for rassemeblement in rassemeblements %}
+                <tr>
+                    <td>{{ rassemeblement.id }}</td>
+                    <td>{{ rassemeblement.Type ? rassemeblement.Type.libelle : '—' }}</td>
+                    <td>{{ rassemeblement.date ? rassemeblement.date|date('d/m/Y') : '' }}</td>
+                    <td>
+                        {% if rassemeblement.Pv %}
+                            <span class="badge bg-success">PV disponible</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Aucun PV</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{{ path('app_rassemeblement_show', {'id': rassemeblement.id}) }}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ path('app_rassemeblement_edit', {'id': rassemeblement.id}) }}" 
+                               class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">Aucun rassemblement trouvé</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

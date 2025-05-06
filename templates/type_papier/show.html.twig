@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TypePapier{% endblock %}
+
+{% block body %}
+    <h1>TypePapier</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ type_papier.id }}</td>
+            </tr>
+            <tr>
+                <th>Libelle</th>
+                <td>{{ type_papier.libelle }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_type_papier_index') }}">back to list</a>
+
+    <a href="{{ path('app_type_papier_edit', {'id': type_papier.id}) }}">edit</a>
+
+    {{ include('type_papier/_delete_form.html.twig') }}
+{% endblock %}

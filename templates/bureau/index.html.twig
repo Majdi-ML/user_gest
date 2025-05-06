@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Membres du Bureau{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">👥 Liste des Membres du Bureau</h1>
+
+    <div class="mb-3 text-end">
+        <a href="{{ path('app_bureau_new') }}" class="btn btn-success">➕ Ajouter un Membre</a>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Téléphone</th>
+                <th>Statut</th>
+                <th>Fonction</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for bureau in bureaus %}
+            <tr>
+                <td>{{ bureau.id }}</td>
+                <td>{{ bureau.nom }}</td>
+                <td>{{ bureau.prenom }}</td>
+                <td>{{ bureau.telephone }}</td>
+                <td>{{ bureau.status ? bureau.status.libelle : '—' }}</td>
+                <td>{{ bureau.fonction ? bureau.fonction.libelle : '—' }}</td>
+                <td>
+                    <a href="{{ path('app_bureau_show', {'id': bureau.id}) }}" class="btn btn-sm btn-primary">Voir</a>
+                    <a href="{{ path('app_bureau_edit', {'id': bureau.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7" class="text-center text-muted">Aucun membre trouvé.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

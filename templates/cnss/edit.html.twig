@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Cnss{% endblock %}
+
+{% block body %}
+    <h1>Edit Cnss</h1>
+
+    {{ include('cnss/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_cnss_index') }}">back to list</a>
+
+    {{ include('cnss/_delete_form.html.twig') }}
+{% endblock %}

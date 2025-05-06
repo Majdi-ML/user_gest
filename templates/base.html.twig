@@ -155,50 +155,66 @@
           </a><!-- End Profile Iamge Icon -->
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
-            <li class="dropdown-header">
-              <h6>{{app.user.email}} </h6>
-              <span>{{ app.user.roles[0] }}</span>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
+    <li class="dropdown-header">
+        <h6>{{app.user.email}}</h6>
+        <span>{{ app.user.roles[0] }}</span>
+    </li>
+    <li>
+        <hr class="dropdown-divider">
+    </li>
 
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-                <i class="bi bi-person"></i>
-                <span>My Profile</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
+    <!-- Ajout des 4 boutons demandés -->
+    <li>
+        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_type_rassmblement_index') }}">
+            <i class="bi bi-people-fill"></i>
+            <span>Type Rassemblement</span>
+        </a>
+    </li>
 
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="users-profile.html">
-                <i class="bi bi-gear"></i>
-                <span>Account Settings</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
+    <li>
+        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_type_papier_index') }}">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Type Papier</span>
+        </a>
+    </li>
 
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="pages-faq.html">
-                <i class="bi bi-question-circle"></i>
-                <span>Need Help?</span>
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
+    <li>
+        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_status_bureau_index') }}">
+            <i class="bi bi-building-gear"></i>
+            <span>Status Bureau</span>
+        </a>
+    </li>
 
-            <li>
-              <a class="dropdown-item d-flex align-items-center" href="{{ path('app_logout') }}">
-                <i class="bi bi-box-arrow-right"></i>
-                <span >Sign Out</span>
-              </a>
-            </li>
+    <li>
+        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_fonction_bureau_index') }}">
+            <i class="bi bi-person-badge"></i>
+            <span>Fonction Bureau</span>
+        </a>
+    </li>
+
+    <li>
+        <hr class="dropdown-divider">
+    </li>
+
+    <!-- Conservation de Nature Paiement -->
+    <li>
+        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_nature_paiement_index') }}">
+            <i class="bi bi-currency-dollar"></i>
+            <span>Nature Paiement</span>
+        </a>
+    </li>
+
+    <li>
+        <hr class="dropdown-divider">
+    </li>
+
+    <!-- Conservation de Logout -->
+    <li>
+        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_logout') }}">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Sign Out</span>
+        </a>
+    </li>
 
           </ul><!-- End Profile Dropdown Items -->
         </li><!-- End Profile Nav -->
@@ -210,62 +226,99 @@
 
   <!-- ======= Sidebar ======= -->
   <aside id="sidebar" class="sidebar">
-
     <ul class="sidebar-nav" id="sidebar-nav">
 
-      <li class="nav-item">
-        <a class="nav-link " href="{{ path('app_dashboard') }}">
-          <i class="bi bi-grid"></i>
-          <span>Dashboard</span>
-        </a>
-      </li><!-- End Dashboard Nav -->
+        <li class="nav-item">
+            <a class="nav-link" href="{{ path('app_dashboard') }}">
+                <i class="bi bi-grid"></i>
+                <span>Dashboard</span>
+            </a>
+        </li><!-- End Dashboard Nav -->
 
-      
-    <li class="nav-item">
-        <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
-          <i class="bi bi-menu-button-wide"></i><span>Gérer vos : </span><i class="bi bi-chevron-down ms-auto"></i>
-        </a>
-        <ul id="components-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
-          <li>
-            <a href="{{ path('app_personne_index') }}">
-              <i class="bi bi-circle"></i><span>Personne:</span>
+        <!-- Première section : Gérer vos -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-menu-button-wide"></i><span>Gérer vos</span><i class="bi bi-chevron-down ms-auto"></i>
             </a>
-          </li>
-          <li>
-            <a href="{{ path('app_cautionnement_index') }}">
-              <i class="bi bi-circle"></i><span>Cautionnement:</span>
-            </a>
-          </li>
-          <li>
-            <a href="{{ path('app_depense_index') }}">
-              <i class="bi bi-circle"></i><span>Depense:</span>
-            </a>
-          </li>
-          <li>
-            <a href="{{ path('app_user_index') }}">
-              <i class="bi bi-circle"></i><span>Syndic:</span>
-            </a>
-          </li>
-          <li>
-            <a href="{{ path('app_appartement_index') }}">
-              <i class="bi bi-circle"></i><span>Appartement:</span>
-            </a>
-          </li>
-          <li>
-            <a href="{{ path('app_bloc_index') }}">
-              <i class="bi bi-circle"></i><span>Bloc:</span>
-            </a>
-          </li>
-          
-        </ul>
-      </li>
-<!-- End Components Nav -->
+            <ul id="components-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="{{ path('app_personne_index') }}">
+                        <i class="bi bi-circle"></i><span>Personne</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_cautionnement_index') }}">
+                        <i class="bi bi-circle"></i><span>Cautionnement</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_depense_index') }}">
+                        <i class="bi bi-circle"></i><span>Dépense</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_appartement_index') }}">
+                        <i class="bi bi-circle"></i><span>Appartement</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_bloc_index') }}">
+                        <i class="bi bi-circle"></i><span>Bloc</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End Gérer vos Nav -->
 
-      
-     
+        <!-- Deuxième section : Gestion des utilisateurs -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#users-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-people"></i><span>Utilisateurs</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="users-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="{{ path('app_user_index') }}">
+                        <i class="bi bi-circle"></i><span>Syndic</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_bureau_index') }}">
+                        <i class="bi bi-circle"></i><span>Membres du bureau</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_employe_index') }}">
+                        <i class="bi bi-circle"></i><span>Employés</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End Utilisateurs Nav -->
+
+        <!-- Troisième section : Documents administratifs -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#docs-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-folder"></i><span>Documents</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="docs-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="{{ path('app_cnss_index') }}">
+                        <i class="bi bi-circle"></i><span>CNSS</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_papier_index') }}">
+                        <i class="bi bi-circle"></i><span>Papiers du syndic</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_rassemeblement_index') }}">
+                        <i class="bi bi-circle"></i><span>Rassemblements</span>
+                    </a>
+                </li>
+            </ul>
+        </li><!-- End Documents Nav -->
+
     </ul>
-
-  </aside><!-- End Sidebar-->
+</aside><!-- End Sidebar-->
 
   <main id="main" class="main">
 {% block body%}
@@ -943,7 +996,8 @@
   <script src="{{asset('assetsback/vendor/simple-datatables/simple-datatables.js')}}"></script>
   <script src="{{asset('assetsback/vendor/tinymce/tinymce.min.js')}}"></script>
   <script src="{{asset('assetsback/vendor/php-email-form/validate.js')}}"></script>
-
+<!-- Dans le <head> de votre base.html.twig -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
   <!-- Template Main JS File -->
   <script src="{{asset('assetsback/js/main.js')}}"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -956,6 +1010,53 @@
             });
         });
     });
+</script>
+
+<!-- À placer dans le <head> -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+<!-- À placer avant la fermeture du </body> -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion unifiée pour tous les boutons de suppression
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            const entityName = this.closest('tr')?.querySelector('td:first-child')?.textContent?.trim() || 'cet élément';
+            
+            Swal.fire({
+                title: 'Confirmation de suppression',
+                html: `Voulez-vous vraiment supprimer <strong>${entityName}</strong> ?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler',
+                reverseButtons: true,
+                customClass: {
+                    confirmButton: 'btn btn-danger mx-2',
+                    cancelButton: 'btn btn-secondary mx-2'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Afficher un indicateur de chargement
+                    Swal.fire({
+                        title: 'Suppression en cours...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                            form.submit();
+                        }
+                    });
+                }
+            });
+        });
+    });
+});
 </script>
 {% endblock %}
 </body>

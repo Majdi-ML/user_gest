@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de la Déclaration CNSS{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📄 Détails de la Déclaration CNSS</h1>
+        <div>
+            <a href="{{ path('app_cnss_index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th class="w-25">ID</th>
+                        <td>{{ cnss.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Trimestre</th>
+                        <td>{{ cnss.trimstre }}ème trimestre</td>
+                    </tr>
+                    <tr>
+                        <th>Année</th>
+                        <td>{{ cnss.annee }}</td>
+                    </tr>
+                    <tr>
+                        <th>Montant total</th>
+                        <td>{{ cnss.montantTotale|number_format(3, '.', ' ') }} DT</td>
+                    </tr>
+                    <tr>
+                        <th>Responsable</th>
+                        <td>{{ cnss.bureau ? cnss.bureau.nom ~ ' ' ~ cnss.bureau.prenom : '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Document</th>
+                        <td>
+                            {% if cnss.attachedFile %}
+                                {% if cnss.attachedFile ends with '.pdf' %}
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-file-earmark-pdf-fill text-danger"></i>
+                                        <a href="{{ asset('uploads/cnss/' ~ cnss.attachedFile) }}" 
+                                           target="_blank" 
+                                           class="btn btn-sm btn-outline-primary ms-2">
+                                            Voir le document (PDF)
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center">
+                                        <img src="{{ asset('uploads/cnss/' ~ cnss.attachedFile) }}" 
+                                             class="img-thumbnail" 
+                                             style="max-height: 300px;"
+                                             alt="Document CNSS">
+                                        <div class="mt-2">
+                                            <a href="{{ asset('uploads/cnss/' ~ cnss.attachedFile) }}" 
+                                               download 
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-download"></i> Télécharger
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-warning">Aucun document joint</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex justify-content-end gap-2">
+        <a href="{{ path('app_cnss_edit', {'id': cnss.id}) }}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Modifier
+        </a>
+        {{ include('cnss/_delete_form.html.twig') }}
+    </div>
+</div>
+{% endblock %}

@@ -17,7 +17,7 @@ class PersonneController extends AbstractController
     #[Route('/', name: 'app_personne_index', methods: ['GET'])]
     public function index(PersonneRepository $personneRepository): Response
     {
-        $proprietaires = $personneRepository->findBy(['status' => 'propriétaire']);
+        $proprietaires = $personneRepository->findBy(['status' => 'proprietaire']);
         $locataires = $personneRepository->findBy(['status' => 'locataire']);
         return $this->render('personne/index.html.twig', [
         'proprietaires' => $proprietaires,

@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New FonctionBureau{% endblock %}
+
+{% block body %}
+    <h1>Create new FonctionBureau</h1>
+
+    {{ include('fonction_bureau/_form.html.twig') }}
+
+    <a href="{{ path('app_fonction_bureau_index') }}">back to list</a>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du Rassemblement{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>📝 Détails du Rassemblement</h1>
+        <div>
+            <a href="{{ path('app_rassemeblement_index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th class="w-25">ID</th>
+                        <td>{{ rassemeblement.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Type</th>
+                        <td>{{ rassemeblement.Type ? rassemeblement.Type.libelle : '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Date</th>
+                        <td>{{ rassemeblement.date ? rassemeblement.date|date('d/m/Y') : '' }}</td>
+                    </tr>
+                    <tr>
+                        <th>PV</th>
+                        <td>
+                            {% if rassemeblement.Pv %}
+                                {% if rassemeblement.Pv ends with '.pdf' %}
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-file-earmark-pdf-fill text-danger"></i>
+                                        <a href="{{ asset('uploads/rassemblements/' ~ rassemeblement.Pv) }}" 
+                                           target="_blank" 
+                                           class="btn btn-sm btn-outline-primary ms-2">
+                                            Voir le PV (PDF)
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center">
+                                        <img src="{{ asset('uploads/rassemblements/' ~ rassemeblement.Pv) }}" 
+                                             class="img-thumbnail" 
+                                             style="max-height: 300px;"
+                                             alt="PV du rassemblement">
+                                        <div class="mt-2">
+                                            <a href="{{ asset('uploads/rassemblements/' ~ rassemeblement.Pv) }}" 
+                                               download 
+                                               class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-download"></i> Télécharger
+                                            </a>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-warning">Aucun PV joint</div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex justify-content-end gap-2">
+        <a href="{{ path('app_rassemeblement_edit', {'id': rassemeblement.id}) }}" class="btn btn-warning">
+            <i class="bi bi-pencil"></i> Modifier
+        </a>
+        {{ include('rassemeblement/_delete_form.html.twig') }}
+    </div>
+</div>
+{% endblock %}

@@ -34,6 +34,9 @@ class Cautionnement
     #[ORM\ManyToOne(inversedBy: 'cautionnements')]
     private ?User $user = null;
 
+    #[ORM\ManyToOne(inversedBy: 'cautionnements')]
+    private ?NaturePaiement $Nature_Paiement = null;
+
 
 
     public function getId(): ?int
@@ -111,6 +114,18 @@ class Cautionnement
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function getNaturePaiement(): ?NaturePaiement
+    {
+        return $this->Nature_Paiement;
+    }
+
+    public function setNaturePaiement(?NaturePaiement $Nature_Paiement): static
+    {
+        $this->Nature_Paiement = $Nature_Paiement;
 
         return $this;
     }

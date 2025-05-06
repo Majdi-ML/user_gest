@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\PersonneRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PersonneRepository::class)]
@@ -39,12 +40,22 @@ class Personne
     #[ORM\OneToMany(mappedBy: 'Personne', targetEntity: Cautionnement::class)]
     private Collection $cautionnements;
 
+    #[ORM\OneToMany(mappedBy: 'proprietaire', targetEntity: Appartement::class)]
+    private Collection $appartementsProp;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $Date_location = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTimeInterface $date_achat = null;
+
     public function __construct()
     {
        
        
         $this->appartements = new ArrayCollection();
         $this->cautionnements = new ArrayCollection();
+        $this->appartementsProp = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -187,6 +198,60 @@ class Personne
                 $cautionnement->setPersonne(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Appartement>
+     */
+    public function getAppartementsProp(): Collection
+    {
+        return $this->appartementsProp;
+    }
+
+    public function addAppartementsProp(Appartement $appartementsProp): static
+    {
+        if (!$this->appartementsProp->contains($appartementsProp)) {
+            $this->appartementsProp->add($appartementsProp);
+            $appartementsProp->setProprietaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAppartementsProp(Appartement $appartementsProp): static
+    {
+        if ($this->appartementsProp->removeElement($appartementsProp)) {
+            // set the owning side to null (unless already changed)
+            if ($appartementsProp->getProprietaire() === $this) {
+                $appartementsProp->setProprietaire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getDateLocation(): ?\DateTimeInterface
+    {
+        return $this->Date_location;
+    }
+
+    public function setDateLocation(?\DateTimeInterface $Date_location): static
+    {
+        $this->Date_location = $Date_location;
+
+        return $this;
+    }
+
+    public function getDateAchat(): ?\DateTimeInterface
+    {
+        return $this->date_achat;
+    }
+
+    public function setDateAchat(\DateTimeInterface $date_achat): static
+    {
+        $this->date_achat = $date_achat;
 
         return $this;
     }

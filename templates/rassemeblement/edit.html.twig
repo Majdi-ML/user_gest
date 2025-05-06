@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Rassemeblement{% endblock %}
+
+{% block body %}
+    <h1>Edit Rassemeblement</h1>
+
+    {{ include('rassemeblement/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_rassemeblement_index') }}">back to list</a>
+
+    {{ include('rassemeblement/_delete_form.html.twig') }}
+{% endblock %}

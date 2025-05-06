@@ -63,88 +63,106 @@
     </form>
 
     <!-- Appartements Loués -->
-    <h2 class="mt-5 text-success">✅ Appartements Loués</h2>
-    <table class="table table-bordered table-striped">
-        <thead class="table-light">
-            <tr>
-                <th>ID</th>
-                <th>Numéro</th>
-                <th>Type</th>
-                <th>Étage</th>
-                <th>Occupé</th>
-                <th>Locataire</th>
-                <th>Propriétaire</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for appartement in appartementsLoues %}
-            <tr>
-                <td>{{ appartement.id }}</td>
-                <td>{{ appartement.numero }}</td>
-                <td>{{ appartement.type }}</td>
-                <td>{{ appartement.etage }}</td>
-                <td>
-                    {% if appartement.estHabite %}
-                        ✅ Oui
-                    {% else %}
-                        ❌ Non
-                    {% endif %}
-                </td>
-                <td>{{ appartement.locataire.nom }} {{ appartement.locataire.prenom }}</td>
-                <td>{{ appartement.proprietaire.nom }} {{ appartement.proprietaire.prenom }}</td>
-                <td>
-                    <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}">show</a>
-                    <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr><td colspan="8">Aucun appartement loué trouvé.</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
+<h2 class="mt-5 text-success">✅ Appartements Loués</h2>
+<table class="table table-bordered table-striped">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Numéro</th>
+            <th>Type</th>
+            <th>Étage</th>
+            <th>Occupé</th>
+            <th>Locataire</th>
+            <th>Propriétaire</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for appartement in appartementsLoues %}
+        <tr>
+            <td>{{ appartement.id }}</td>
+            <td>{{ appartement.numero }}</td>
+            <td>{{ appartement.type }}</td>
+            <td>{{ appartement.etage }}</td>
+            <td>
+                {% if appartement.estHabite %}
+                    ✅ Oui
+                {% else %}
+                    ❌ Non
+                {% endif %}
+            </td>
+            <td>
+                {% if appartement.locataire %}
+                    {{ appartement.locataire.nom }} {{ appartement.locataire.prenom }}
+                {% else %}
+                    <span class="text-muted">X</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if appartement.proprietaire %}
+                    {{ appartement.proprietaire.nom }} {{ appartement.proprietaire.prenom }}
+                {% else %}
+                    <span class="text-muted">X</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}" class="btn btn-sm btn-primary">Voir</a>
+                <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="8">Aucun appartement loué trouvé.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
 
-    <!-- Appartements Non Loués -->
-    <h2 class="mt-5 text-danger">❌ Appartements Non Loués</h2>
-    <table class="table table-bordered table-striped">
-        <thead class="table-light">
-            <tr>
-                <th>ID</th>
-                <th>Numéro</th>
-                <th>Type</th>
-                <th>Étage</th>
-                <th>Occupé</th>
-                <th>Locataire</th>
-                <th>Propriétaire</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for appartement in appartementsNonLoues %}
-            <tr>
-                <td>{{ appartement.id }}</td>
-                <td>{{ appartement.numero }}</td>
-                <td>{{ appartement.type }}</td>
-                <td>{{ appartement.etage }}</td>
-                <td>
-                    {% if appartement.estHabite %}
-                        ✅ Oui
-                    {% else %}
-                        ❌ Non
-                    {% endif %}
-                </td>
-                <td><span class="text-muted">—</span></td>
-                <td>{{ appartement.proprietaire.nom }} {{ appartement.proprietaire.prenom }}</td>
-                <td>
-                    <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}">show</a>
-                    <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr><td colspan="8">Aucun appartement non loué trouvé.</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
+<!-- Appartements Non Loués -->
+<h2 class="mt-5 text-danger">❌ Appartements Non Loués</h2>
+<table class="table table-bordered table-striped">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Numéro</th>
+            <th>Type</th>
+            <th>Étage</th>
+            <th>Occupé</th>
+            <th>Locataire</th>
+            <th>Propriétaire</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for appartement in appartementsNonLoues %}
+        <tr>
+            <td>{{ appartement.id }}</td>
+            <td>{{ appartement.numero }}</td>
+            <td>{{ appartement.type }}</td>
+            <td>{{ appartement.etage }}</td>
+            <td>
+                {% if appartement.estHabite %}
+                    ✅ Oui
+                {% else %}
+                    ❌ Non
+                {% endif %}
+            </td>
+            <td><span class="text-muted">X</span></td>
+            <td>
+                {% if appartement.proprietaire %}
+                    {{ appartement.proprietaire.nom }} {{ appartement.proprietaire.prenom }}
+                {% else %}
+                    <span class="text-muted">X</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}" class="btn btn-sm btn-primary">Voir</a>
+                <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="8">Aucun appartement non loué trouvé.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
 
 </div>
 {% endblock %}

@@ -32,16 +32,20 @@ class Appartement
     
 
     #[ORM\ManyToOne(inversedBy: 'appartements')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Personne $locataire = null;
 
-    #[ORM\ManyToOne(inversedBy: 'appartements')]
-    private ?Personne $proprietaire = null;
+    
 
     #[ORM\OneToMany(mappedBy: 'appartement', targetEntity: Cautionnement::class)]
     private Collection $cautionnements;
 
     #[ORM\ManyToOne(inversedBy: 'appartements')]
     private ?Bloc $bloc = null;
+
+    #[ORM\ManyToOne(inversedBy: 'appartementsProp')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Personne $proprietaire = null;
 
     public function __construct()
     {
@@ -129,18 +133,11 @@ class Appartement
         return $this;
     }
 
-    public function getProprietaire(): ?Personne
-    {
-        return $this->proprietaire;
-    }
+    
+    
 
-    public function setProprietaire(?Personne $proprietaire): static
-    {
-        $this->proprietaire = $proprietaire;
-
-        return $this;
-    }
-
+    
+    
     /**
      * @return Collection<int, Cautionnement>
      */
@@ -179,6 +176,18 @@ class Appartement
     public function setBloc(?Bloc $bloc): static
     {
         $this->bloc = $bloc;
+
+        return $this;
+    }
+
+    public function getProprietaire(): ?Personne
+    {
+        return $this->proprietaire;
+    }
+
+    public function setProprietaire(?Personne $proprietaire): static
+    {
+        $this->proprietaire = $proprietaire;
 
         return $this;
     }

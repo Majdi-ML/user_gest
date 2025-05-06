@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TypePapier index{% endblock %}
+
+{% block body %}
+    <h1>TypePapier index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Libelle</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for type_papier in type_papiers %}
+            <tr>
+                <td>{{ type_papier.id }}</td>
+                <td>{{ type_papier.libelle }}</td>
+                <td>
+                    <a href="{{ path('app_type_papier_show', {'id': type_papier.id}) }}">show</a>
+                    <a href="{{ path('app_type_papier_edit', {'id': type_papier.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_type_papier_new') }}">Create new</a>
+{% endblock %}

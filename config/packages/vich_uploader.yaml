@@ -1,0 +1,24 @@
+# config/packages/vich_uploader.yaml
+# config/packages/vich_uploader.yaml
+vich_uploader:
+    db_driver: orm
+    mappings:
+        depense_files:
+            uri_prefix: /uploads/depenses
+            upload_destination: '%kernel.project_dir%/public/uploads/depenses'
+            namer: Vich\UploaderBundle\Naming\OrignameNamer
+
+        rassemblement_files:
+            uri_prefix: /uploads/rassemblements
+            upload_destination: '%kernel.project_dir%/public/uploads/rassemblements'
+            namer: Vich\UploaderBundle\Naming\OrignameNamer
+
+        cnss_files:
+            uri_prefix: /uploads/cnss
+            upload_destination: '%kernel.project_dir%/public/uploads/cnss'
+            namer: Vich\UploaderBundle\Naming\OrignameNamer
+
+        papier_files:
+            uri_prefix: /uploads/papiers
+            upload_destination: '%kernel.project_dir%/public/uploads/papiers'
+            namer: Vich\UploaderBundle\Naming\OrignameNamer

@@ -9,64 +9,64 @@
     <table class="table table-bordered table-striped mb-5">
         <thead class="table-dark">
             <tr>
-               
                 <th>Nom</th>
                 <th>Prénom</th>
                 <th>Email</th>
                 <th>Téléphone</th>
                 <th>Adresse</th>
+                <th>Date d'achat</th>  {# Nouvelle colonne #}
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         {% for personne in proprietaires %}
             <tr>
-                
                 <td>{{ personne.nom }}</td>
                 <td>{{ personne.prenom }}</td>
                 <td>{{ personne.email }}</td>
                 <td>{{ personne.telephone }}</td>
                 <td>{{ personne.adresse }}</td>
+                <td>{{ personne.dateAchat ? personne.dateAchat|date('d/m/Y') : 'N/A' }}</td>
                 <td>
                     <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-sm btn-info">Voir</a>
                     <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
                 </td>
             </tr>
         {% else %}
-            <tr><td colspan="7" class="text-center">Aucun propriétaire trouvé</td></tr>
+            <tr><td colspan="8" class="text-center">Aucun propriétaire trouvé</td></tr>
         {% endfor %}
         </tbody>
     </table>
 
     <h2 class="mb-3">🏠 Locataires</h2>
     <table class="table table-bordered table-striped">
-        <thead >
+        <thead>
             <tr>
-                
                 <th>Nom</th>
                 <th>Prénom</th>
                 <th>Email</th>
                 <th>Téléphone</th>
                 <th>Adresse</th>
+                <th>Date de location</th>  {# Nouvelle colonne #}
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
         {% for personne in locataires %}
             <tr>
-                
                 <td>{{ personne.nom }}</td>
                 <td>{{ personne.prenom }}</td>
                 <td>{{ personne.email }}</td>
                 <td>{{ personne.telephone }}</td>
                 <td>{{ personne.adresse }}</td>
+                <td>{{ personne.DateLocation ? personne.DateLocation|date('d/m/Y') : 'N/A' }}</td>
                 <td>
                     <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-sm btn-info">Voir</a>
                     <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
                 </td>
             </tr>
         {% else %}
-            <tr><td colspan="7" class="text-center">Aucun locataire trouvé</td></tr>
+            <tr><td colspan="8" class="text-center">Aucun locataire trouvé</td></tr>
         {% endfor %}
         </tbody>
     </table>

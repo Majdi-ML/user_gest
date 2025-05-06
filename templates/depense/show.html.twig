@@ -26,6 +26,25 @@
             <tr>
                 <th>Type</th>
                 <td>{{ depense.type }}</td>
+            </tr><tr>
+                <th>Fichier joint</th>
+                <td>
+                    {% if depense.attachedFile %}
+                        {% if depense.attachedFile ends with '.pdf' %}
+                            <a href="{{ asset('uploads/depenses/' ~ depense.attachedFile) }}" target="_blank">
+                                <i class="fas fa-file-pdf"></i> Voir le PDF
+                            </a>
+                        {% else %}
+                            <a href="{{ asset('uploads/depenses/' ~ depense.attachedFile) }}" target="_blank">
+                                <img src="{{ asset('uploads/depenses/' ~ depense.attachedFile) }}" 
+                                     alt="Fichier joint" 
+                                     style="max-height: 200px;">
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        Aucun fichier joint
+                    {% endif %}
+                </td>
             </tr>
         </tbody>
     </table>

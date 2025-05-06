@@ -7,6 +7,7 @@ namespace App\Form;
 use App\Entity\Cautionnement;
 use App\Entity\Personne;
 use App\Entity\Appartement;
+use App\Entity\NaturePaiement; // Ajoutez cette ligne
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -54,6 +55,15 @@ class CautionnementType extends AbstractType
                 'placeholder' => 'Sélectionnez une personne',
                 'attr' => ['class' => 'form-select appartement-select'],
                 'query_builder' => fn(EntityRepository $er) => $er->createQueryBuilder('a'),
+            ])
+            // Ajoutez ce nouveau champ
+            ->add('Nature_Paiement', EntityType::class, [
+                'class' => NaturePaiement::class,
+                'choice_label' => 'nature', // Supposons que NaturePaiement a une propriété 'libelle'
+                'label' => 'Nature du paiement',
+                'attr' => ['class' => 'form-select'],
+                'placeholder' => 'Sélectionnez une nature de paiement',
+                'required' => false, // Si le champ peut être null
             ]);
     }
 

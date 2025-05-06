@@ -23,28 +23,27 @@ class DepenseController extends AbstractController
     }
 
     #[Route('/new', name: 'app_depense_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager,Security $security): Response
-    {
-        $depense = new Depense();
-        $form = $this->createForm(DepenseType::class, $depense);
-        $form->handleRequest($request);
-        $user = $security->getUser();
+public function new(Request $request, EntityManagerInterface $entityManager, Security $security): Response
+{
+    $depense = new Depense();
+    $form = $this->createForm(DepenseType::class, $depense);
+    $form->handleRequest($request);
+    $user = $security->getUser();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $depense->setDateDepense(new \DateTime());
-            $depense->setUser($user);
-            $entityManager->persist($depense);
-            $entityManager->flush();
-            
+    if ($form->isSubmitted() && $form->isValid()) {
+        $depense->setDateDepense(new \DateTime());
+        $depense->setUser($user);
+        $entityManager->persist($depense);
+        $entityManager->flush();
 
-            return $this->redirectToRoute('app_depense_index', [], Response::HTTP_SEE_OTHER);
-        }
-
-        return $this->renderForm('depense/new.html.twig', [
-            'depense' => $depense,
-            'form' => $form,
-        ]);
+        return $this->redirectToRoute('app_depense_index', [], Response::HTTP_SEE_OTHER);
     }
+
+    return $this->renderForm('depense/new.html.twig', [
+        'depense' => $depense,
+        'form' => $form,
+    ]);
+}
 
     #[Route('/{id}', name: 'app_depense_show', methods: ['GET'])]
     public function show(Depense $depense): Response

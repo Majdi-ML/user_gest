@@ -63,6 +63,22 @@ public function findDistinctValues(string $field)
 
     return $qb->getQuery()->getResult();
 }
+public function findAppartementsLoues(array $criteria = [], string $orderBy = 'etage', string $order = 'ASC'): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->where('a.locataire IS NOT NULL');
+        
+        // Ajoute les critères supplémentaires
+        foreach ($criteria as $field => $value) {
+            $qb->andWhere("a.$field = :$field")
+               ->setParameter($field, $value);
+        }
+        
+        // Ajoute le tri
+        $qb->orderBy("a.$orderBy", $order);
+        
+        return $qb->getQuery()->getResult();
+    }
 
 
 //    /**

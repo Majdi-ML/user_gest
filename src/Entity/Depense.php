@@ -5,8 +5,10 @@ namespace App\Entity;
 use App\Repository\DepenseRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 #[ORM\Entity(repositoryClass: DepenseRepository::class)]
+#[Vich\Uploadable]
 class Depense
 {
     #[ORM\Id]
@@ -29,7 +31,12 @@ class Depense
     #[ORM\ManyToOne(inversedBy: 'depenses')]
     private ?User $user = null;
 
-    
+    #[ORM\Column(length: 255)]
+    private ?string $Attached_file = null;
+
+    // NOTE: Ce n'est pas un champ mappé de la base de données, mais nécessaire pour le formulaire
+    #[Vich\UploadableField(mapping: 'depense_files', fileNameProperty: 'attachedFile')]
+    private ?File $file = null;
 
     public function getId(): ?int
     {
@@ -96,5 +103,25 @@ class Depense
         return $this;
     }
 
-    
+    public function getAttachedFile(): ?string
+    {
+        return $this->Attached_file;
+    }
+
+    public function setAttachedFile(string $Attached_file): static
+    {
+        $this->Attached_file = $Attached_file;
+
+        return $this;
+    }
+
+    public function getFile(): ?File
+    {
+        return $this->file;
+    }
+
+    public function setFile(?File $file = null): void
+    {
+        $this->file = $file;
+    }
 }

@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Cnss{% endblock %}
+
+{% block body %}
+    <h1>Create new Cnss</h1>
+
+    {{ include('cnss/_form.html.twig') }}
+
+    <a href="{{ path('app_cnss_index') }}">back to list</a>
+{% endblock %}

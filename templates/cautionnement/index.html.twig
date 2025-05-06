@@ -33,7 +33,7 @@
     </div>
 
     <!-- Tableau -->
-    <div class="table-responsive">
+   <div class="table-responsive">
         <table class="table table-bordered table-hover align-middle">
             <thead class="table-light">
                 <tr>
@@ -41,6 +41,7 @@
                     <th>Montant</th>
                     <th>Date de Paiement</th>
                     <th>Mois</th>
+                    <th>Nature Paiement</th> <!-- Nouvelle colonne -->
                     <th>Personne</th>
                     <th>Utilisateur (email)</th>
                     <th>Actions</th>
@@ -53,6 +54,7 @@
                     <td>{{ c.montant }} TND</td>
                     <td>{{ c.datePaiement ? c.datePaiement|date('d/m/Y') : '' }}</td>
                     <td>{{ c.mois }}</td>
+                    <td>{{ c.NaturePaiement ? c.NaturePaiement.nature : '—' }}</td> <!-- Nouvelle colonne -->
                     <td>
                         {% if c.personne %}
                             {{ c.personne.nom }} {{ c.personne.prenom }}
@@ -68,7 +70,7 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="7" class="text-center">Aucun cautionnement trouvé.</td>
+                    <td colspan="8" class="text-center">Aucun cautionnement trouvé.</td> <!-- Changé de 7 à 8 -->
                 </tr>
             {% endfor %}
             </tbody>

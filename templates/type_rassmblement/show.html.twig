@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}TypeRassmblement{% endblock %}
+
+{% block body %}
+    <h1>TypeRassmblement</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ type_rassmblement.id }}</td>
+            </tr>
+            <tr>
+                <th>Libelle</th>
+                <td>{{ type_rassmblement.libelle }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_type_rassmblement_index') }}">back to list</a>
+
+    <a href="{{ path('app_type_rassmblement_edit', {'id': type_rassmblement.id}) }}">edit</a>
+
+    {{ include('type_rassmblement/_delete_form.html.twig') }}
+{% endblock %}

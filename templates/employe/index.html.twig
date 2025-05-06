@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Employés{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">👷 Liste des Employés</h1>
+
+    <div class="mb-3 text-end">
+        <a href="{{ path('app_employe_new') }}" class="btn btn-success">➕ Ajouter un Employé</a>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>CIN</th>
+                <th>Salaire (DT)</th>
+                <th>CNSS (DT)</th>
+                <th>Couverture</th>
+                <th>Téléphone</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for employe in employes %}
+            <tr>
+                <td>{{ employe.id }}</td>
+                <td>{{ employe.nom }}</td>
+                <td>{{ employe.Prenom }}</td>
+                <td>{{ employe.cin }}</td>
+                <td>{{ employe.salaire|number_format(2, '.', ',') }}</td>
+                <td>{{ employe.montantCnss|number_format(2, '.', ',') }}</td>
+                <td>{{ employe.CouvertureSociale ? '✅' : '❌' }}</td>
+                <td>{{ employe.telephone }}</td>
+                <td>
+                    <a href="{{ path('app_employe_show', {'id': employe.id}) }}" class="btn btn-sm btn-primary">Voir</a>
+                    <a href="{{ path('app_employe_edit', {'id': employe.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="9" class="text-center text-muted">Aucun employé trouvé.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

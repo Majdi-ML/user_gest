@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de l'Employé{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">👤 Détails de l'Employé</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th class="w-25">ID</th>
+                        <td>{{ employe.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Nom</th>
+                        <td>{{ employe.nom }}</td>
+                    </tr>
+                    <tr>
+                        <th>Prénom</th>
+                        <td>{{ employe.Prenom }}</td>
+                    </tr>
+                    <tr>
+                        <th>CIN</th>
+                        <td>{{ employe.cin }}</td>
+                    </tr>
+                    <tr>
+                        <th>Salaire</th>
+                        <td>{{ employe.salaire|number_format(2, '.', ',') }} DT</td>
+                    </tr>
+                    <tr>
+                        <th>Montant CNSS</th>
+                        <td>{{ employe.montantCnss|number_format(2, '.', ',') }} DT</td>
+                    </tr>
+                    <tr>
+                        <th>Couverture sociale</th>
+                        <td>{{ employe.CouvertureSociale ? '✅ Oui' : '❌ Non' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Téléphone</th>
+                        <td>{{ employe.telephone }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="{{ path('app_employe_index') }}" class="btn btn-secondary">Retour à la liste</a>
+        <a href="{{ path('app_employe_edit', {'id': employe.id}) }}" class="btn btn-warning">Modifier</a>
+    </div>
+</div>
+{% endblock %}

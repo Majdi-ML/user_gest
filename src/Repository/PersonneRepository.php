@@ -24,7 +24,7 @@ class PersonneRepository extends ServiceEntityRepository
     {
         return $this->createQueryBuilder('p')
             ->where('p.status = :status')
-            ->setParameter('status', 'propriétaire')
+            ->setParameter('status', 'proprietaire')
             ->orderBy('p.nom', 'ASC')
             ->getQuery()
             ->getResult();

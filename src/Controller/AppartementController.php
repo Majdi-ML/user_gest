@@ -40,9 +40,10 @@ $proprietaireFilter = $request->query->get('proprietaire', '');
         }
     
         // Récupérer les appartements loués (avec locataire)
-        $appartementsLoues = $appartementRepository->findBy(
-            array_merge($criteria, ['locataire' => ['IS NOT NULL']]),
-            ['etage' => 'ASC']
+        $appartementsLoues = $appartementRepository->findAppartementsLoues(
+            $criteria, // vos critères supplémentaires
+            'etage',   // champ de tri
+            'ASC'      // ordre de tri
         );
     
         // Récupérer les appartements non loués (sans locataire)

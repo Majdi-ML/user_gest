@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du Membre du Bureau{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">👤 Détails du Membre du Bureau</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th class="w-25">ID</th>
+                        <td>{{ bureau.id }}</td>
+                    </tr>
+                    <tr>
+                        <th>Nom</th>
+                        <td>{{ bureau.nom }}</td>
+                    </tr>
+                    <tr>
+                        <th>Prénom</th>
+                        <td>{{ bureau.prenom }}</td>
+                    </tr>
+                    <tr>
+                        <th>Téléphone</th>
+                        <td>{{ bureau.telephone }}</td>
+                    </tr>
+                    <tr>
+                        <th>Statut</th>
+                        <td>{{ bureau.status ? bureau.status.libelle : '—' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Fonction</th>
+                        <td>{{ bureau.fonction ? bureau.fonction.libelle : '—' }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="{{ path('app_bureau_index') }}" class="btn btn-secondary">Retour à la liste</a>
+        <a href="{{ path('app_bureau_edit', {'id': bureau.id}) }}" class="btn btn-warning">Modifier</a>
+    </div>
+</div>
+{% endblock %}

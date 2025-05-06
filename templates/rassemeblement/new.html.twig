@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Rassemeblement{% endblock %}
+
+{% block body %}
+    <h1>Create new Rassemeblement</h1>
+
+    {{ include('rassemeblement/_form.html.twig') }}
+
+    <a href="{{ path('app_rassemeblement_index') }}">back to list</a>
+{% endblock %}
