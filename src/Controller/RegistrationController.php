@@ -30,7 +30,11 @@ class RegistrationController extends AbstractController
                 )
             );
             $user->setRoles(['ROLE_ADMIN']);
-            $user->setIsValid(true);
+            if ($user->getEmail() === 'admin@admin.com') {
+                $user->setIsValid(true);
+            } else {
+                $user->setIsValid(false);
+            }
 
             $entityManager->persist($user);
             $entityManager->flush();

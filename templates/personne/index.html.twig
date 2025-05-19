@@ -2,75 +2,563 @@
 
 {% block title %}Personnes (Propriétaires & Locataires){% endblock %}
 
+{% block css %}
+    {{ parent() }}
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <style>
+        .filter-row th {
+            padding: 8px 3px !important;
+            vertical-align: top;
+        }
+        .filter-container {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .filter-select {
+            width: 100%;
+            min-width: 120px;
+        }
+        .filter-input {
+            width: 100%;
+            min-width: 150px;
+        }
+        .btn-add-condition {
+            margin-top: 5px;
+        }
+        .date-filter {
+            display: none;
+        }
+        .logic-operator {
+            font-weight: bold;
+            margin: 0 10px;
+        }
+        .person-type-tabs {
+            margin-bottom: 20px;
+        }
+        .export-buttons {
+            margin-bottom: 20px;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
 <div class="container mt-4">
+    <h1 class="mb-4">👥 Personnes (Propriétaires & Locataires)</h1>
 
-    <h2 class="mb-3">📌 Propriétaires</h2>
-    <table class="table table-bordered table-striped mb-5">
-        <thead class="table-dark">
-            <tr>
-                <th>Nom</th>
-                <th>Prénom</th>
-                <th>Email</th>
-                <th>Téléphone</th>
-                <th>Adresse</th>
-                <th>Date d'achat</th>  {# Nouvelle colonne #}
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for personne in proprietaires %}
-            <tr>
-                <td>{{ personne.nom }}</td>
-                <td>{{ personne.prenom }}</td>
-                <td>{{ personne.email }}</td>
-                <td>{{ personne.telephone }}</td>
-                <td>{{ personne.adresse }}</td>
-                <td>{{ personne.dateAchat ? personne.dateAchat|date('d/m/Y') : 'N/A' }}</td>
-                <td>
-                    <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-sm btn-info">Voir</a>
-                    <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr><td colspan="8" class="text-center">Aucun propriétaire trouvé</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="mb-3 text-end">
+        <a href="{{ path('app_personne_new') }}" class="btn btn-success">➕ Ajouter une nouvelle personne</a>
+    </div>
 
-    <h2 class="mb-3">🏠 Locataires</h2>
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Nom</th>
-                <th>Prénom</th>
-                <th>Email</th>
-                <th>Téléphone</th>
-                <th>Adresse</th>
-                <th>Date de location</th>  {# Nouvelle colonne #}
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for personne in locataires %}
-            <tr>
-                <td>{{ personne.nom }}</td>
-                <td>{{ personne.prenom }}</td>
-                <td>{{ personne.email }}</td>
-                <td>{{ personne.telephone }}</td>
-                <td>{{ personne.adresse }}</td>
-                <td>{{ personne.DateLocation ? personne.DateLocation|date('d/m/Y') : 'N/A' }}</td>
-                <td>
-                    <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-sm btn-info">Voir</a>
-                    <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr><td colspan="8" class="text-center">Aucun locataire trouvé</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Filtres Avancés</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="filterLogic" id="filterLogicAnd" value="AND" checked>
+                    <label class="form-check-label" for="filterLogicAnd">Toutes les conditions (AND)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="filterLogic" id="filterLogicOr" value="OR">
+                    <label class="form-check-label" for="filterLogicOr">Au moins une condition (OR)</label>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Type de personne:</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input personne-type" type="radio" name="personneType" id="personneTypeAll" value="all" checked>
+                    <label class="form-check-label" for="personneTypeAll">Tous</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input personne-type" type="radio" name="personneType" id="personneTypeProprietaire" value="proprietaire">
+                    <label class="form-check-label" for="personneTypeProprietaire">Propriétaires</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input personne-type" type="radio" name="personneType" id="personneTypeLocataire" value="locataire">
+                    <label class="form-check-label" for="personneTypeLocataire">Locataires</label>
+                </div>
+            </div>
+            
+            <div id="filterBuilder">
+                <!-- Les filtres seront ajoutés ici dynamiquement -->
+            </div>
+            <button id="addFilterBtn" class="btn btn-primary btn-sm btn-add-condition mt-2">
+                <i class="bi bi-plus"></i> Ajouter une condition
+            </button>
+            <button id="applyFiltersBtn" class="btn btn-success btn-sm mt-2">
+                <i class="bi bi-funnel"></i> Appliquer les filtres
+            </button>
+            <button id="resetFiltersBtn" class="btn btn-danger btn-sm mt-2">
+                <i class="bi bi-x-circle"></i> Réinitialiser
+            </button>
+        </div>
+    </div>
 
-    <a href="{{ path('app_personne_new') }}" class="btn btn-primary mt-4">➕ Ajouter une nouvelle personne</a>
+    <div class="export-buttons text-end">
+        <button id="exportPdfBtn" class="btn btn-danger btn-sm me-2">
+            <i class="bi bi-file-pdf"></i> Exporter en PDF
+        </button>
+        <button id="exportExcelBtn" class="btn btn-success btn-sm">
+            <i class="bi bi-file-excel"></i> Exporter en Excel
+        </button>
+    </div>
+
+    <ul class="nav nav-tabs person-type-tabs" id="personneTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="proprietaires-tab" data-bs-toggle="tab" data-bs-target="#proprietaires" type="button" role="tab" aria-controls="proprietaires" aria-selected="true">📌 Propriétaires</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="locataires-tab" data-bs-toggle="tab" data-bs-target="#locataires" type="button" role="tab" aria-controls="locataires" aria-selected="false">🏠 Locataires</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="personneTabContent">
+        <div class="tab-pane fade show active" id="proprietaires" role="tabpanel" aria-labelledby="proprietaires-tab">
+            <table class="table table-bordered table-striped mb-5">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Nom</th>
+                        <th>Prénom</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Adresse</th>
+                        <th>Date d'achat</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for personne in proprietaires %}
+                    <tr data-id="{{ personne.id }}" 
+                        data-type="proprietaire"
+                        data-nom="{{ personne.nom }}"
+                        data-prenom="{{ personne.prenom }}"
+                        data-email="{{ personne.email }}"
+                        data-telephone="{{ personne.telephone }}"
+                        data-adresse="{{ personne.adresse }}"
+                        data-date-achat="{{ personne.dateAchat ? personne.dateAchat|date('Y-m-d') : '' }}"
+                        data-date-location="">
+                        <td>{{ personne.nom }}</td>
+                        <td>{{ personne.prenom }}</td>
+                        <td>{{ personne.email }}</td>
+                        <td>{{ personne.telephone }}</td>
+                        <td>{{ personne.adresse }}</td>
+                        <td>{{ personne.dateAchat ? personne.dateAchat|date('d/m/Y') : 'N/A' }}</td>
+                        <td>
+                            <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-sm btn-info">Voir</a>
+                            <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7" class="text-center">Aucun propriétaire trouvé</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="locataires" role="tabpanel" aria-labelledby="locataires-tab">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Nom</th>
+                        <th>Prénom</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Adresse</th>
+                        <th>Date de location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for personne in locataires %}
+                    <tr data-id="{{ personne.id }}" 
+                        data-type="locataire"
+                        data-nom="{{ personne.nom }}"
+                        data-prenom="{{ personne.prenom }}"
+                        data-email="{{ personne.email }}"
+                        data-telephone="{{ personne.telephone }}"
+                        data-adresse="{{ personne.adresse }}"
+                        data-date-achat=""
+                        data-date-location="{{ personne.DateLocation ? personne.DateLocation|date('Y-m-d') : '' }}">
+                        <td>{{ personne.nom }}</td>
+                        <td>{{ personne.prenom }}</td>
+                        <td>{{ personne.email }}</td>
+                        <td>{{ personne.telephone }}</td>
+                        <td>{{ personne.adresse }}</td>
+                        <td>{{ personne.DateLocation ? personne.DateLocation|date('d/m/Y') : 'N/A' }}</td>
+                        <td>
+                            <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-sm btn-info">Voir</a>
+                            <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7" class="text-center">Aucun locataire trouvé</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block js %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Données pour les colonnes
+            const columnData = {
+                type: { type: 'text' },
+                nom: { type: 'text' },
+                prenom: { type: 'text' },
+                email: { type: 'text' },
+                telephone: { type: 'text' },
+                adresse: { type: 'text' },
+                'date-achat': { type: 'date' },
+                'date-location': { type: 'date' }
+            };
+            
+            // Opérateurs par type de colonne
+            const textOperators = [
+                { id: 'equals', text: 'Égal à' },
+                { id: 'not_equals', text: 'Différent de' },
+                { id: 'contains', text: 'Contient' },
+                { id: 'not_contains', text: 'Ne contient pas' },
+                { id: 'starts_with', text: 'Commence par' },
+                { id: 'ends_with', text: 'Finit par' },
+                { id: 'empty', text: 'Est vide' },
+                { id: 'not_empty', text: "N'est pas vide" }
+            ];
+            
+            const dateOperators = [
+                { id: 'equals', text: 'Égal à' },
+                { id: 'not_equals', text: 'Différent de' },
+                { id: 'greater', text: 'Après le' },
+                { id: 'greater_equal', text: 'Après ou égal' },
+                { id: 'less', text: 'Avant le' },
+                { id: 'less_equal', text: 'Avant ou égal' },
+                { id: 'between', text: 'Entre' },
+                { id: 'empty', text: 'Est vide' },
+                { id: 'not_empty', text: "N'est pas vide" }
+            ];
+            
+            // Ajouter un nouveau filtre
+            function addFilter() {
+                const filterId = Date.now();
+                const filterHtml = `
+                <div class="filter-container" data-filter-id="${filterId}">
+                    <select class="form-select form-select-sm filter-column" style="width: 150px;">
+                        ${Object.keys(columnData).map(col => 
+                            `<option value="${col}">${col.replace('-', ' ').charAt(0).toUpperCase() + col.replace('-', ' ').slice(1)}</option>`
+                        ).join('')}
+                    </select>
+                    <select class="form-select form-select-sm filter-operator" style="width: 180px;">
+                        ${textOperators.map(op => `<option value="${op.id}">${op.text}</option>`).join('')}
+                    </select>
+                    <input type="text" class="form-control form-control-sm filter-value" placeholder="Valeur" style="display: none;">
+                    <input type="text" class="form-control form-control-sm filter-value-date date-filter" placeholder="Date" style="display: none;">
+                    <div class="date-range-filter" style="display: none; gap: 5px;">
+                        <input type="text" class="form-control form-control-sm filter-value-date-start" placeholder="Date début">
+                        <span>et</span>
+                        <input type="text" class="form-control form-control-sm filter-value-date-end" placeholder="Date fin">
+                    </div>
+                    <button class="btn btn-danger btn-sm remove-filter" type="button">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                `;
+                $('#filterBuilder').append(filterHtml);
+                
+                // Initialiser le datepicker
+                $(`[data-filter-id="${filterId}"] .date-filter`).flatpickr({
+                    dateFormat: "d/m/Y",
+                    locale: "fr"
+                });
+                
+                $(`[data-filter-id="${filterId}"] .filter-value-date-start, [data-filter-id="${filterId}"] .filter-value-date-end`).flatpickr({
+                    dateFormat: "d/m/Y",
+                    locale: "fr"
+                });
+                
+                // Mettre à jour les opérateurs et les champs de valeur quand la colonne change
+                $(`[data-filter-id="${filterId}"] .filter-column`).change(function() {
+                    updateFilterInputs(filterId);
+                }).trigger('change');
+                
+                // Mettre à jour le champ de valeur quand l'opérateur change
+                $(`[data-filter-id="${filterId}"] .filter-operator`).change(function() {
+                    updateFilterInputs(filterId);
+                });
+            }
+            
+            // Mettre à jour les inputs en fonction de la colonne et de l'opérateur sélectionnés
+            function updateFilterInputs(filterId) {
+                const container = $(`[data-filter-id="${filterId}"]`);
+                const column = container.find('.filter-column').val();
+                const operator = container.find('.filter-operator').val();
+                const columnType = columnData[column].type;
+                
+                // Mettre à jour les opérateurs disponibles
+                let operators;
+                if (columnType === 'date') operators = dateOperators;
+                else operators = textOperators;
+                
+                const operatorSelect = container.find('.filter-operator');
+                const currentOperator = operatorSelect.val();
+                operatorSelect.empty();
+                operators.forEach(op => {
+                    operatorSelect.append(`<option value="${op.id}">${op.text}</option>`);
+                });
+                
+                // Conserver l'opérateur sélectionné si possible
+                if (operators.some(op => op.id === currentOperator)) {
+                    operatorSelect.val(currentOperator);
+                }
+                
+                // Mettre à jour le champ de valeur
+                container.find('.filter-value, .filter-value-date, .date-range-filter').hide();
+                
+                if (operator === 'empty' || operator === 'not_empty') {
+                    // Pas de champ de valeur nécessaire
+                } else if (operator === 'between' && columnType === 'date') {
+                    container.find('.date-range-filter').show();
+                } else {
+                    if (columnType === 'date') {
+                        container.find('.filter-value-date').show();
+                    } else {
+                        container.find('.filter-value').show();
+                    }
+                }
+            }
+            
+            // Ajouter le premier filtre
+            addFilter();
+            
+            // Ajouter un nouveau filtre quand on clique sur le bouton
+            $('#addFilterBtn').click(addFilter);
+            
+            // Supprimer un filtre
+            $('#filterBuilder').on('click', '.remove-filter', function() {
+                $(this).closest('.filter-container').remove();
+            });
+            
+            // Appliquer les filtres
+            $('#applyFiltersBtn').click(function() {
+                const filters = [];
+                const logic = $('input[name="filterLogic"]:checked').val();
+                const personneType = $('input[name="personneType"]:checked').val();
+                
+                $('.filter-container').each(function() {
+                    const column = $(this).find('.filter-column').val();
+                    const operator = $(this).find('.filter-operator').val();
+                    let value1, value2;
+                    
+                    if (operator === 'empty' || operator === 'not_empty') {
+                        filters.push({ column, operator, logic });
+                        return;
+                    }
+                    
+                    if (operator === 'between' && columnData[column].type === 'date') {
+                        value1 = $(this).find('.filter-value-date-start').val();
+                        value2 = $(this).find('.filter-value-date-end').val();
+                        if (!value1 || !value2) return;
+                    } else {
+                        if (columnData[column].type === 'date') {
+                            value1 = $(this).find('.filter-value-date').val();
+                        } else {
+                            value1 = $(this).find('.filter-value').val();
+                        }
+                        if (!value1) return;
+                    }
+                    
+                    filters.push({ column, operator, value1, value2, logic });
+                });
+                
+                applyFilters(filters, logic, personneType);
+            });
+            
+            // Réinitialiser les filtres
+            $('#resetFiltersBtn').click(function() {
+                $('#filterBuilder').empty();
+                addFilter();
+                $('input[name="personneType"][value="all"]').prop('checked', true);
+                $('table tbody tr').show();
+            });
+            
+            // Fonction pour appliquer les filtres
+            function applyFilters(filters, logic, personneType) {
+                $('table tbody tr').each(function() {
+                    const row = $(this);
+                    let matchResults = [];
+                    
+                    // Filtrer d'abord par type de personne
+                    if (personneType !== 'all') {
+                        const rowType = row.data('type');
+                        if ((personneType === 'proprietaire' && rowType !== 'proprietaire') || 
+                            (personneType === 'locataire' && rowType !== 'locataire')) {
+                            row.hide();
+                            return;
+                        }
+                    }
+                    
+                    // Si aucun filtre, on affiche la ligne
+                    if (filters.length === 0) {
+                        row.show();
+                        return;
+                    }
+                    
+                    filters.forEach(filter => {
+                        const column = filter.column;
+                        const operator = filter.operator;
+                        let value = row.data(column);
+                        let matches = false;
+                        
+                        // Gérer les cas vides
+                        if (value === '' || value === null || value === undefined) {
+                            if (operator === 'empty') matches = true;
+                            else if (operator === 'not_empty') matches = false;
+                            else matches = false;
+                            
+                            matchResults.push(matches);
+                            return;
+                        }
+                        
+                        // Convertir les valeurs selon le type
+                        if (columnData[column].type === 'date') {
+                            const rowDate = new Date(value);
+                            let filterDate1, filterDate2;
+                            
+                            if (operator === 'between') {
+                                filterDate1 = new Date(parseDate(filter.value1));
+                                filterDate2 = new Date(parseDate(filter.value2));
+                                matches = rowDate >= filterDate1 && rowDate <= filterDate2;
+                            } else {
+                                filterDate1 = new Date(parseDate(filter.value1));
+                                
+                                switch(operator) {
+                                    case 'equals': 
+                                        matches = rowDate.getTime() === filterDate1.getTime(); 
+                                        break;
+                                    case 'not_equals': 
+                                        matches = rowDate.getTime() !== filterDate1.getTime(); 
+                                        break;
+                                    case 'greater': 
+                                        matches = rowDate > filterDate1; 
+                                        break;
+                                    case 'greater_equal': 
+                                        matches = rowDate >= filterDate1; 
+                                        break;
+                                    case 'less': 
+                                        matches = rowDate < filterDate1; 
+                                        break;
+                                    case 'less_equal': 
+                                        matches = rowDate <= filterDate1; 
+                                        break;
+                                }
+                            }
+                        } else {
+                            // Texte
+                            value = String(value).toLowerCase();
+                            const filterValue = String(filter.value1).toLowerCase();
+                            
+                            switch(operator) {
+                                case 'equals': matches = value === filterValue; break;
+                                case 'not_equals': matches = value !== filterValue; break;
+                                case 'contains': matches = value.includes(filterValue); break;
+                                case 'not_contains': matches = !value.includes(filterValue); break;
+                                case 'starts_with': matches = value.startsWith(filterValue); break;
+                                case 'ends_with': matches = value.endsWith(filterValue); break;
+                            }
+                        }
+                        
+                        matchResults.push(matches);
+                    });
+                    
+                    // Appliquer la logique AND ou OR
+                    let shouldShow;
+                    if (logic === 'AND') {
+                        shouldShow = matchResults.length > 0 && matchResults.every(m => m);
+                    } else { // OR
+                        shouldShow = matchResults.some(m => m);
+                    }
+                    
+                    row.toggle(shouldShow);
+                });
+            }
+            
+            // Helper pour parser les dates au format d/m/Y
+            function parseDate(dateStr) {
+                const parts = dateStr.split('/');
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+
+            // Fonction pour collecter les données visibles
+            function collectVisibleData() {
+                const data = [];
+                const headers = ['Nom', 'Prénom', 'Email', 'Téléphone', 'Adresse', 'Date d\'achat/Location'];
+
+                $('table tbody tr:visible').each(function() {
+                    const row = $(this);
+                    const rowData = {
+                        Nom: row.find('td').eq(0).text(),
+                        Prénom: row.find('td').eq(1).text(),
+                        Email: row.find('td').eq(2).text(),
+                        Téléphone: row.find('td').eq(3).text(),
+                        Adresse: row.find('td').eq(4).text(),
+                        "Date d'achat/Location": row.find('td').eq(5).text()
+                    };
+                    data.push(rowData);
+                });
+
+                return { headers, data };
+            }
+
+            // Exporter en PDF
+            $('#exportPdfBtn').click(function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const { headers, data } = collectVisibleData();
+
+                // Ajouter un titre
+                doc.setFontSize(18);
+                doc.text('Liste des Personnes (Propriétaires & Locataires)', 14, 22);
+
+                // Générer le tableau
+                doc.autoTable({
+                    head: [headers],
+                    body: data.map(row => headers.map(header => row[header])),
+                    startY: 30,
+                    theme: 'striped',
+                    headStyles: { fillColor: [100, 100, 100] },
+                    styles: { fontSize: 10 }
+                });
+
+                // Télécharger le PDF
+                doc.save('personnes.pdf');
+            });
+
+            // Exporter en Excel
+            $('#exportExcelBtn').click(function() {
+                const { headers, data } = collectVisibleData();
+
+                // Créer une feuille de calcul
+                const ws = XLSX.utils.json_to_sheet(data, { header: headers });
+
+                // Créer un classeur
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Personnes');
+
+                // Télécharger le fichier Excel
+                XLSX.writeFile(wb, 'personnes.xlsx');
+            });
+        });
+    </script>
 {% endblock %}

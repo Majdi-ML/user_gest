@@ -2,6 +2,44 @@
 
 {% block title %}Liste des Dépenses{% endblock %}
 
+{% block css %}
+    {{ parent() }}
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <style>
+        .filter-row th {
+            padding: 8px 3px !important;
+            vertical-align: top;
+        }
+        .filter-container {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .filter-select {
+            width: 100%;
+            min-width: 120px;
+        }
+        .filter-input {
+            width: 100%;
+            min-width: 150px;
+        }
+        .btn-add-condition {
+            margin-top: 5px;
+        }
+        .date-filter {
+            display: none;
+        }
+        .logic-operator {
+            font-weight: bold;
+            margin: 0 10px;
+        }
+        .export-buttons {
+            margin-bottom: 20px;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
 <div class="container mt-4">
     <h1 class="mb-4">💸 Liste des Dépenses</h1>
@@ -10,7 +48,47 @@
         <a href="{{ path('app_depense_new') }}" class="btn btn-success">➕ Ajouter une Dépense</a>
     </div>
 
-    <table class="table table-bordered table-striped">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Filtres Avancés</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="filterLogic" id="filterLogicAnd" value="AND" checked>
+                    <label class="form-check-label" for="filterLogicAnd">Toutes les conditions (AND)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="filterLogic" id="filterLogicOr" value="OR">
+                    <label class="form-check-label" for="filterLogicOr">Au moins une condition (OR)</label>
+                </div>
+            </div>
+            
+            <div id="filterBuilder">
+                <!-- Les filtres seront ajoutés ici dynamiquement -->
+            </div>
+            <button id="addFilterBtn" class="btn btn-primary btn-sm btn-add-condition mt-2">
+                <i class="bi bi-plus"></i> Ajouter une condition
+            </button>
+            <button id="applyFiltersBtn" class="btn btn-success btn-sm mt-2">
+                <i class="bi bi-funnel"></i> Appliquer les filtres
+            </button>
+            <button id="resetFiltersBtn" class="btn btn-danger btn-sm mt-2">
+                <i class="bi bi-x-circle"></i> Réinitialiser
+            </button>
+        </div>
+    </div>
+
+    <div class="export-buttons text-end">
+        <button id="exportPdfBtn" class="btn btn-danger btn-sm me-2">
+            <i class="bi bi-file-pdf"></i> Exporter en PDF
+        </button>
+        <button id="exportExcelBtn" class="btn btn-success btn-sm">
+            <i class="bi bi-file-excel"></i> Exporter en Excel
+        </button>
+    </div>
+
+    <table id="depensesTable" class="table table-bordered table-striped">
         <thead class="table-light">
             <tr>
                 <th>ID</th>
@@ -25,7 +103,12 @@
         <tbody>
         {% set total = 0 %}
         {% for depense in depenses %}
-            <tr>
+            <tr data-id="{{ depense.id }}" 
+                data-montant="{{ depense.montant }}" 
+                data-date="{{ depense.dateDepense ? depense.dateDepense|date('Y-m-d') : '' }}" 
+                data-description="{{ depense.description }}" 
+                data-type="{{ depense.type }}" 
+                data-utilisateur="{{ depense.user ? depense.user.email : '' }}">
                 <td>{{ depense.id }}</td>
                 <td>{{ depense.montant }}</td>
                 <td>{{ depense.dateDepense ? depense.dateDepense|date('d/m/Y') : '' }}</td>
@@ -57,4 +140,416 @@
         {% endif %}
     </table>
 </div>
+{% endblock %}
+
+{% block js %}
+    {{ parent() }}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Données pour les colonnes
+            const columnData = {
+                id: { type: 'number' },
+                montant: { type: 'number' },
+                date: { type: 'date' },
+                description: { type: 'text' },
+                type: { type: 'text' },
+                utilisateur: { type: 'text' }
+            };
+            
+            // Opérateurs par type de colonne
+            const textOperators = [
+                { id: 'equals', text: 'Égal à' },
+                { id: 'not_equals', text: 'Différent de' },
+                { id: 'contains', text: 'Contient' },
+                { id: 'not_contains', text: 'Ne contient pas' },
+                { id: 'starts_with', text: 'Commence par' },
+                { id: 'ends_with', text: 'Finit par' },
+                { id: 'empty', text: 'Est vide' },
+                { id: 'not_empty', text: "N'est pas vide" }
+            ];
+            
+            const numberOperators = [
+                { id: 'equals', text: 'Égal à (=)' },
+                { id: 'not_equals', text: 'Différent de (!=)' },
+                { id: 'greater', text: 'Supérieur à (>)' },
+                { id: 'greater_equal', text: 'Supérieur ou égal (>=)' },
+                { id: 'less', text: 'Inférieur à (<)' },
+                { id: 'less_equal', text: 'Inférieur ou égal (<=)' },
+                { id: 'empty', text: 'Est vide' },
+                { id: 'not_empty', text: "N'est pas vide" }
+            ];
+            
+            const dateOperators = [
+                { id: 'equals', text: 'Égal à' },
+                { id: 'not_equals', text: 'Différent de' },
+                { id: 'greater', text: 'Après le' },
+                { id: 'greater_equal', text: 'Après ou égal' },
+                { id: 'less', text: 'Avant le' },
+                { id: 'less_equal', text: 'Avant ou égal' },
+                { id: 'between', text: 'Entre' },
+                { id: 'empty', text: 'Est vide' },
+                { id: 'not_empty', text: "N'est pas vide" }
+            ];
+            
+            // Ajouter un nouveau filtre
+            function addFilter() {
+                const filterId = Date.now();
+                const filterHtml = `
+                <div class="filter-container" data-filter-id="${filterId}">
+                    <select class="form-select form-select-sm filter-column" style="width: 150px;">
+                        ${Object.keys(columnData).map(col => 
+                            `<option value="${col}">${col.charAt(0).toUpperCase() + col.slice(1)}</option>`
+                        ).join('')}
+                    </select>
+                    <select class="form-select form-select-sm filter-operator" style="width: 180px;">
+                        ${textOperators.map(op => `<option value="${op.id}">${op.text}</option>`).join('')}
+                    </select>
+                    <input type="text" class="form-control form-control-sm filter-value" placeholder="Valeur" style="display: none;">
+                    <input type="text" class="form-control form-control-sm filter-value-date date-filter" placeholder="Date" style="display: none;">
+                    <input type="number" class="form-control form-control-sm filter-value-number number-filter" placeholder="Valeur numérique" style="display: none;">
+                    <div class="date-range-filter" style="display: none; gap: 5px;">
+                        <input type="text" class="form-control form-control-sm filter-value-date-start" placeholder="Date début">
+                        <span>et</span>
+                        <input type="text" class="form-control form-control-sm filter-value-date-end" placeholder="Date fin">
+                    </div>
+                    <button class="btn btn-danger btn-sm remove-filter" type="button">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                `;
+                $('#filterBuilder').append(filterHtml);
+                
+                // Initialiser le datepicker
+                $(`[data-filter-id="${filterId}"] .date-filter`).flatpickr({
+                    dateFormat: "d/m/Y",
+                    locale: "fr"
+                });
+                
+                $(`[data-filter-id="${filterId}"] .filter-value-date-start, [data-filter-id="${filterId}"] .filter-value-date-end`).flatpickr({
+                    dateFormat: "d/m/Y",
+                    locale: "fr"
+                });
+                
+                // Mettre à jour les opérateurs et les champs de valeur quand la colonne change
+                $(`[data-filter-id="${filterId}"] .filter-column`).change(function() {
+                    updateFilterInputs(filterId);
+                }).trigger('change');
+                
+                // Mettre à jour le champ de valeur quand l'opérateur change
+                $(`[data-filter-id="${filterId}"] .filter-operator`).change(function() {
+                    updateFilterInputs(filterId);
+                });
+            }
+            
+            // Mettre à jour les inputs en fonction de la colonne et de l'opérateur sélectionnés
+            function updateFilterInputs(filterId) {
+                const container = $(`[data-filter-id="${filterId}"]`);
+                const column = container.find('.filter-column').val();
+                const operator = container.find('.filter-operator').val();
+                const columnType = columnData[column].type;
+                
+                // Mettre à jour les opérateurs disponibles
+                let operators;
+                if (columnType === 'number') operators = numberOperators;
+                else if (columnType === 'date') operators = dateOperators;
+                else operators = textOperators;
+                
+                const operatorSelect = container.find('.filter-operator');
+                const currentOperator = operatorSelect.val();
+                operatorSelect.empty();
+                operators.forEach(op => {
+                    operatorSelect.append(`<option value="${op.id}">${op.text}</option>`);
+                });
+                
+                // Conserver l'opérateur sélectionné si possible
+                if (operators.some(op => op.id === currentOperator)) {
+                    operatorSelect.val(currentOperator);
+                }
+                
+                // Mettre à jour le champ de valeur
+                container.find('.filter-value, .filter-value-date, .filter-value-number, .date-range-filter').hide();
+                
+                if (operator === 'empty' || operator === 'not_empty') {
+                    // Pas de champ de valeur nécessaire
+                } else if (operator === 'between' && columnType === 'date') {
+                    container.find('.date-range-filter').show();
+                } else {
+                    if (columnType === 'date') {
+                        container.find('.filter-value-date').show();
+                    } else if (columnType === 'number') {
+                        container.find('.filter-value-number').show();
+                    } else {
+                        container.find('.filter-value').show();
+                    }
+                }
+            }
+            
+            // Ajouter le premier filtre
+            addFilter();
+            
+            // Ajouter un nouveau filtre quand on clique sur le bouton
+            $('#addFilterBtn').click(addFilter);
+            
+            // Supprimer un filtre
+            $('#filterBuilder').on('click', '.remove-filter', function() {
+                $(this).closest('.filter-container').remove();
+            });
+            
+            // Appliquer les filtres
+            $('#applyFiltersBtn').click(function() {
+                const filters = [];
+                const logic = $('input[name="filterLogic"]:checked').val();
+                
+                $('.filter-container').each(function() {
+                    const column = $(this).find('.filter-column').val();
+                    const operator = $(this).find('.filter-operator').val();
+                    let value1, value2;
+                    
+                    if (operator === 'empty' || operator === 'not_empty') {
+                        filters.push({ column, operator, logic });
+                        return;
+                    }
+                    
+                    if (operator === 'between' && columnData[column].type === 'date') {
+                        value1 = $(this).find('.filter-value-date-start').val();
+                        value2 = $(this).find('.filter-value-date-end').val();
+                        if (!value1 || !value2) return;
+                    } else {
+                        if (columnData[column].type === 'date') {
+                            value1 = $(this).find('.filter-value-date').val();
+                        } else if (columnData[column].type === 'number') {
+                            value1 = $(this).find('.filter-value-number').val();
+                        } else {
+                            value1 = $(this).find('.filter-value').val();
+                        }
+                        if (!value1) return;
+                    }
+                    
+                    filters.push({ column, operator, value1, value2, logic });
+                });
+                
+                applyFilters(filters, logic);
+            });
+            
+            // Réinitialiser les filtres
+            $('#resetFiltersBtn').click(function() {
+                $('#filterBuilder').empty();
+                addFilter();
+                $('#depensesTable tbody tr').show();
+            });
+            
+            // Fonction pour appliquer les filtres
+            function applyFilters(filters, logic) {
+                if (filters.length === 0) {
+                    $('#depensesTable tbody tr').show();
+                    return;
+                }
+                
+                $('#depensesTable tbody tr').each(function() {
+                    const row = $(this);
+                    let matchResults = [];
+                    
+                    filters.forEach(filter => {
+                        const column = filter.column;
+                        const operator = filter.operator;
+                        let value = row.data(column);
+                        let matches = false;
+                        
+                        // Gérer les cas vides
+                        if (value === '' || value === null || value === undefined) {
+                            if (operator === 'empty') matches = true;
+                            else if (operator === 'not_empty') matches = false;
+                            else matches = false;
+                            
+                            matchResults.push(matches);
+                            return;
+                        }
+                        
+                        // Convertir les valeurs selon le type
+                        if (columnData[column].type === 'number') {
+                            value = parseFloat(value);
+                            const filterValue = parseFloat(filter.value1);
+                            
+                            switch(operator) {
+                                case 'equals': matches = value === filterValue; break;
+                                case 'not_equals': matches = value !== filterValue; break;
+                                case 'greater': matches = value > filterValue; break;
+                                case 'greater_equal': matches = value >= filterValue; break;
+                                case 'less': matches = value < filterValue; break;
+                                case 'less_equal': matches = value <= filterValue; break;
+                                case 'empty': matches = isNaN(value); break;
+                                case 'not_empty': matches = !isNaN(value); break;
+                            }
+                        } 
+                        else if (columnData[column].type === 'date') {
+                            const rowDate = new Date(value);
+                            let filterDate1, filterDate2;
+                            
+                            if (operator === 'between') {
+                                filterDate1 = new Date(parseDate(filter.value1));
+                                filterDate2 = new Date(parseDate(filter.value2));
+                                matches = rowDate >= filterDate1 && rowDate <= filterDate2;
+                            } else {
+                                filterDate1 = new Date(parseDate(filter.value1));
+                                
+                                switch(operator) {
+                                    case 'equals': 
+                                        matches = rowDate.getTime() === filterDate1.getTime(); 
+                                        break;
+                                    case 'not_equals': 
+                                        matches = rowDate.getTime() !== filterDate1.getTime(); 
+                                        break;
+                                    case 'greater': 
+                                        matches = rowDate > filterDate1; 
+                                        break;
+                                    case 'greater_equal': 
+                                        matches = rowDate >= filterDate1; 
+                                        break;
+                                    case 'less': 
+                                        matches = rowDate < filterDate1; 
+                                        break;
+                                    case 'less_equal': 
+                                        matches = rowDate <= filterDate1; 
+                                        break;
+                                }
+                            }
+                        } 
+                        else {
+                            // Texte
+                            value = String(value).toLowerCase();
+                            const filterValue = String(filter.value1).toLowerCase();
+                            
+                            switch(operator) {
+                                case 'equals': matches = value === filterValue; break;
+                                case 'not_equals': matches = value !== filterValue; break;
+                                case 'contains': matches = value.includes(filterValue); break;
+                                case 'not_contains': matches = !value.includes(filterValue); break;
+                                case 'starts_with': matches = value.startsWith(filterValue); break;
+                                case 'ends_with': matches = value.endsWith(filterValue); break;
+                            }
+                        }
+                        
+                        matchResults.push(matches);
+                    });
+                    
+                    // Appliquer la logique AND ou OR
+                    let shouldShow;
+                    if (logic === 'AND') {
+                        shouldShow = matchResults.length > 0 && matchResults.every(m => m);
+                    } else { // OR
+                        shouldShow = matchResults.some(m => m);
+                    }
+                    
+                    row.toggle(shouldShow);
+                });
+            }
+            
+            // Helper pour parser les dates au format d/m/Y
+            function parseDate(dateStr) {
+                const parts = dateStr.split('/');
+                return new Date(parts[2], parts[1] - 1, parts[0]);
+            }
+
+            // Fonction pour collecter les données visibles
+            function collectVisibleData() {
+                const data = [];
+                const headers = ['ID', 'Montant (DT)', 'Date', 'Description', 'Type', 'Utilisateur'];
+                let total = 0;
+
+                $('#depensesTable tbody tr:visible').each(function() {
+                    const row = $(this);
+                    const montant = parseFloat(row.find('td').eq(1).text()) || 0;
+                    const rowData = {
+                        ID: row.find('td').eq(0).text(),
+                        'Montant (DT)': row.find('td').eq(1).text(),
+                        Date: row.find('td').eq(2).text(),
+                        Description: row.find('td').eq(3).text(),
+                        Type: row.find('td').eq(4).text(),
+                        Utilisateur: row.find('td').eq(5).text()
+                    };
+                    data.push(rowData);
+                    total += montant;
+                });
+
+                // Ajouter la ligne de total si des données sont présentes
+                if (data.length > 0) {
+                    const totalRow = {
+                        ID: 'Total',
+                        'Montant (DT)': total.toFixed(2) + ' DT',
+                        Date: '',
+                        Description: '',
+                        Type: '',
+                        Utilisateur: ''
+                    };
+                    data.push(totalRow);
+                }
+
+                return { headers, data };
+            }
+
+            // Exporter en PDF
+            $('#exportPdfBtn').click(function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const { headers, data } = collectVisibleData();
+
+                // Ajouter un titre
+                doc.setFontSize(18);
+                doc.text('Liste des Dépenses', 14, 22);
+
+                // Générer le tableau
+                doc.autoTable({
+                    head: [headers],
+                    body: data.map(row => headers.map(header => row[header])),
+                    startY: 30,
+                    theme: 'striped',
+                    headStyles: { fillColor: [100, 100, 100] },
+                    styles: { fontSize: 10 },
+                    didParseCell: function(data) {
+                        if (data.row.raw[0] === 'Total') {
+                            data.cell.styles.fontStyle = 'bold';
+                            data.cell.styles.fillColor = [200, 230, 255];
+                        }
+                    }
+                });
+
+                // Télécharger le PDF
+                doc.save('depenses.pdf');
+            });
+
+            // Exporter en Excel
+            $('#exportExcelBtn').click(function() {
+                const { headers, data } = collectVisibleData();
+
+                // Créer une feuille de calcul
+                const ws = XLSX.utils.json_to_sheet(data, { header: headers });
+
+                // Appliquer un style pour la ligne de total
+                if (data.length > 0 && data[data.length - 1].ID === 'Total') {
+                    const range = XLSX.utils.decode_range(ws['!ref']);
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cellAddress = XLSX.utils.encode_cell({ r: range.e.r, c: C });
+                        if (!ws[cellAddress]) continue;
+                        ws[cellAddress].s = {
+                            font: { bold: true },
+                            fill: { fgColor: { rgb: 'C8E6FF' } }
+                        };
+                    }
+                }
+
+                // Créer un classeur
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Dépenses');
+
+                // Télécharger le fichier Excel
+                XLSX.writeFile(wb, 'depenses.xlsx');
+            });
+        });
+    </script>
 {% endblock %}

@@ -13,7 +13,14 @@
             </tr>
             <tr>
                 <th>Montant</th>
-                <td>{{ cautionnement.montant }}</td>
+                <td>
+                    {% if cautionnement.montant %}
+                        {{ cautionnement.montant.montant }} TND
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                
             </tr>
             <tr>
                 <th>Date_paiement</th>
@@ -22,6 +29,22 @@
             <tr>
                 <th>Mois</th>
                 <td>{{ cautionnement.Mois }}</td>
+            </tr>
+            <tr>
+                <th>Année</th>
+                <td>{{ cautionnement.Annee }}</td>
+            </tr>
+            <tr>
+                <th>Nature_paiement</th>
+                <td>{{ cautionnement.naturePaiement ? cautionnement.naturePaiement.nature : '—' }}</td>
+            </tr>
+            <tr>
+                <th>Personne</th>
+                <td>{{ cautionnement.personne ? cautionnement.personne.nom ~ ' ' ~ cautionnement.personne.prenom : '—' }}</td>
+            </tr>
+            <tr>
+                <th>Utilisateur</th>
+                <td>{{ cautionnement.user ? cautionnement.user.email : '—' }}</td>
             </tr>
         </tbody>
     </table>

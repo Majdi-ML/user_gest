@@ -33,6 +33,12 @@ class Bureau
     #[ORM\ManyToOne(inversedBy: 'bureaus')]
     private ?FonctionBureau $fonction = null;
 
+    #[ORM\Column(length: 4)]
+    private ?string $annee_debut = null;
+
+    #[ORM\Column(length: 4)]
+    private ?string $annee_fin = null;
+
     public function __construct()
     {
         $this->cnsses = new ArrayCollection();
@@ -129,6 +135,30 @@ class Bureau
     public function setFonction(?FonctionBureau $fonction): static
     {
         $this->fonction = $fonction;
+
+        return $this;
+    }
+
+    public function getAnneeDebut(): ?string
+    {
+        return $this->annee_debut;
+    }
+
+    public function setAnneeDebut(string $annee_debut): static
+    {
+        $this->annee_debut = $annee_debut;
+
+        return $this;
+    }
+
+    public function getAnneeFin(): ?string
+    {
+        return $this->annee_fin;
+    }
+
+    public function setAnneeFin(string $annee_fin): static
+    {
+        $this->annee_fin = $annee_fin;
 
         return $this;
     }

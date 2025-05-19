@@ -148,76 +148,87 @@
         <!-- End Messages Nav -->
 
         <li class="nav-item dropdown pe-3">
+  <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+    <img src="{{ asset('assetsback/img/profile-img.jpg') }}" alt="Profile" class="rounded-circle">
+    <span class="d-none d-md-block dropdown-toggle ps-2">{{ app.user.email }}</span>
+  </a><!-- End Profile Image Icon -->
 
-          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="{{asset('assetsback/img/profile-img.jpg')}}" alt="Profile" class="rounded-circle">
-            <span class="d-none d-md-block dropdown-toggle ps-2">{{app.user.email}}</span>
-          </a><!-- End Profile Iamge Icon -->
-
-          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
     <li class="dropdown-header">
-        <h6>{{app.user.email}}</h6>
-        <span>{{ app.user.roles[0] }}</span>
+      <h6>{{ app.user.email }}</h6>
+      <span>{{ app.user.roles[0] }}</span>
     </li>
-    <li>
-        <hr class="dropdown-divider">
-    </li>
+    <li><hr class="dropdown-divider"></li>
 
-    <!-- Ajout des 4 boutons demandés -->
+    <!-- Boutons existants -->
     <li>
-        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_type_rassmblement_index') }}">
-            <i class="bi bi-people-fill"></i>
-            <span>Type Rassemblement</span>
-        </a>
+      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_type_rassmblement_index') }}">
+        <i class="bi bi-people-fill"></i>
+        <span>Type Rassemblement</span>
+      </a>
     </li>
 
     <li>
-        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_type_papier_index') }}">
-            <i class="bi bi-file-earmark-text"></i>
-            <span>Type Papier</span>
-        </a>
+      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_type_papier_index') }}">
+        <i class="bi bi-file-earmark-text"></i>
+        <span>Type Papier</span>
+      </a>
     </li>
 
     <li>
-        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_status_bureau_index') }}">
-            <i class="bi bi-building-gear"></i>
-            <span>Status Bureau</span>
-        </a>
+      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_status_bureau_index') }}">
+        <i class="bi bi-building-gear"></i>
+        <span>Status Bureau</span>
+      </a>
     </li>
 
     <li>
-        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_fonction_bureau_index') }}">
-            <i class="bi bi-person-badge"></i>
-            <span>Fonction Bureau</span>
-        </a>
+      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_fonction_bureau_index') }}">
+        <i class="bi bi-person-badge"></i>
+        <span>Fonction Bureau</span>
+      </a>
     </li>
 
+    
+
+    <!-- Nouveau bouton : Frais Syndic -->
     <li>
-        <hr class="dropdown-divider">
+      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_frais_syndic_index') }}">
+        <i class="bi bi-cash-coin"></i>
+        <span>Frais Syndic</span>
+      </a>
     </li>
 
-    <!-- Conservation de Nature Paiement -->
+    <!-- Nouveau bouton : Fonction Employé -->
     <li>
-        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_nature_paiement_index') }}">
-            <i class="bi bi-currency-dollar"></i>
-            <span>Nature Paiement</span>
-        </a>
+      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_fonction_employe_index') }}">
+        <i class="bi bi-person-workspace"></i>
+        <span>Fonction Employé</span>
+      </a>
     </li>
 
+    
+
+    <!-- Nature Paiement -->
     <li>
-        <hr class="dropdown-divider">
+      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_nature_paiement_index') }}">
+        <i class="bi bi-currency-dollar"></i>
+        <span>Nature Paiement</span>
+      </a>
     </li>
 
-    <!-- Conservation de Logout -->
+    <li><hr class="dropdown-divider"></li>
+
+    <!-- Logout -->
     <li>
-        <a class="dropdown-item d-flex align-items-center" href="{{ path('app_logout') }}">
-            <i class="bi bi-box-arrow-right"></i>
-            <span>Sign Out</span>
-        </a>
+      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_logout') }}">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Sign Out</span>
+      </a>
     </li>
+  </ul><!-- End Profile Dropdown Items -->
+</li><!-- End Profile Nav -->
 
-          </ul><!-- End Profile Dropdown Items -->
-        </li><!-- End Profile Nav -->
 
       </ul>
     </nav><!-- End Icons Navigation -->
@@ -985,7 +996,7 @@
   </footer><!-- End Footer -->
 
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-{% block js%}
+{% block js %}
 
   <!-- Vendor JS Files -->
   <script src="{{asset('assetsback/vendor/apexcharts/apexcharts.min.js')}}"></script>

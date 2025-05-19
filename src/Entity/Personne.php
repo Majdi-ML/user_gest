@@ -46,7 +46,7 @@ class Personne
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $Date_location = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE , nullable: true)]
     private ?\DateTimeInterface $date_achat = null;
 
     public function __construct()
@@ -249,7 +249,7 @@ class Personne
         return $this->date_achat;
     }
 
-    public function setDateAchat(\DateTimeInterface $date_achat): static
+    public function setDateAchat(?\DateTimeInterface $date_achat): static
     {
         $this->date_achat = $date_achat;
 

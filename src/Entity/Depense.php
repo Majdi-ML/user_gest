@@ -31,11 +31,11 @@ class Depense
     #[ORM\ManyToOne(inversedBy: 'depenses')]
     private ?User $user = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $Attached_file = null;
 
     // NOTE: Ce n'est pas un champ mappé de la base de données, mais nécessaire pour le formulaire
-    #[Vich\UploadableField(mapping: 'depense_files', fileNameProperty: 'attachedFile')]
+    #[Vich\UploadableField(mapping: 'depense_files', fileNameProperty: 'Attached_file')]
     private ?File $file = null;
 
     public function getId(): ?int
@@ -108,10 +108,10 @@ class Depense
         return $this->Attached_file;
     }
 
-    public function setAttachedFile(string $Attached_file): static
+    
+    public function setAttachedFile(?string $Attached_file): static  // Allow null
     {
         $this->Attached_file = $Attached_file;
-
         return $this;
     }
 

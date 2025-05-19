@@ -1,4 +1,3 @@
-
 <form method="post" action="{{ path('app_nature_paiement_delete', {'id': nature_paiement.id}) }}" class="delete-form">
     <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ nature_paiement.id) }}">
     <button type="button" class="btn btn-danger btn-delete">

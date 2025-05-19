@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\EmployeRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EmployeRepository::class)]
@@ -33,6 +34,15 @@ class Employe
 
     #[ORM\Column(nullable: true)]
     private ?int $telephone = null;
+
+    #[ORM\ManyToOne(inversedBy: 'Employes')]
+    private ?FonctionEmploye $fonctionEmploye = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTimeInterface $date_debut = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTimeInterface $date_fin = null;
 
     public function getId(): ?int
     {
@@ -119,6 +129,42 @@ class Employe
     public function setTelephone(?int $telephone): static
     {
         $this->telephone = $telephone;
+
+        return $this;
+    }
+
+    public function getFonctionEmploye(): ?FonctionEmploye
+    {
+        return $this->fonctionEmploye;
+    }
+
+    public function setFonctionEmploye(?FonctionEmploye $fonctionEmploye): static
+    {
+        $this->fonctionEmploye = $fonctionEmploye;
+
+        return $this;
+    }
+
+    public function getDateDebut(): ?\DateTimeInterface
+    {
+        return $this->date_debut;
+    }
+
+    public function setDateDebut(\DateTimeInterface $date_debut): static
+    {
+        $this->date_debut = $date_debut;
+
+        return $this;
+    }
+
+    public function getDateFin(): ?\DateTimeInterface
+    {
+        return $this->date_fin;
+    }
+
+    public function setDateFin(\DateTimeInterface $date_fin): static
+    {
+        $this->date_fin = $date_fin;
 
         return $this;
     }

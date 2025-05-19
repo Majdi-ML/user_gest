@@ -79,6 +79,13 @@ public function findAppartementsLoues(array $criteria = [], string $orderBy = 'e
         
         return $qb->getQuery()->getResult();
     }
+    public function findHabitationStats(): array
+{
+    return $this->createQueryBuilder('a')
+        ->select('COUNT(a.id) as total, SUM(CASE WHEN a.est_habite = true THEN 1 ELSE 0 END) as occupied')
+        ->getQuery()
+        ->getSingleResult();
+}
 
 
 //    /**

@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}FraisSyndic index{% endblock %}
+
+{% block body %}
+    <h1>FraisSyndic index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Montant</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for frais_syndic in frais_syndics %}
+            <tr>
+                <td>{{ frais_syndic.id }}</td>
+                <td>{{ frais_syndic.montant }}</td>
+                <td>
+                    <a href="{{ path('app_frais_syndic_show', {'id': frais_syndic.id}) }}">show</a>
+                    <a href="{{ path('app_frais_syndic_edit', {'id': frais_syndic.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_frais_syndic_new') }}">Create new</a>
+{% endblock %}

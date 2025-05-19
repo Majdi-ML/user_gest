@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit FonctionEmploye{% endblock %}
+
+{% block body %}
+    <h1>Edit FonctionEmploye</h1>
+
+    {{ include('fonction_employe/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_fonction_employe_index') }}">back to list</a>
+
+    {{ include('fonction_employe/_delete_form.html.twig') }}
+{% endblock %}

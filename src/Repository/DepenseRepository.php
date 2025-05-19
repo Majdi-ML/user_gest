@@ -21,28 +21,60 @@ class DepenseRepository extends ServiceEntityRepository
         parent::__construct($registry, Depense::class);
     }
 
-//    /**
-//     * @return Depense[] Returns an array of Depense objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('d.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findMonthlyTotals(): array
+{
+    $conn = $this->getEntityManager()->getConnection();
 
-//    public function findOneBySomeField($value): ?Depense
-//    {
-//        return $this->createQueryBuilder('d')
-//            ->andWhere('d.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    $sql = "
+        SELECT 
+            strftime('%Y-%m', date_depense) as month,
+            SUM(montant) as total
+        FROM depense
+        GROUP BY month
+        ORDER BY month
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $resultSet = $stmt->executeQuery();
+
+    return $resultSet->fetchAllAssociative();
+}
+
+
+public function findYearlyTotals(): array
+{
+    $conn = $this->getEntityManager()->getConnection();
+
+    $sql = "
+        SELECT 
+            strftime('%Y', date_depense) as year,
+            SUM(montant) as total
+        FROM depense
+        GROUP BY year
+        ORDER BY year
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $resultSet = $stmt->executeQuery();
+
+    return $resultSet->fetchAllAssociative();
+}
+
+public function findTotalsByType(): array
+{
+    return $this->createQueryBuilder('d')
+        ->select('d.type, SUM(d.montant) as total')
+        ->groupBy('d.type')
+        ->getQuery()
+        ->getResult();
+}
+
+public function findLatest(int $limit): array
+{
+    return $this->createQueryBuilder('d')
+        ->orderBy('d.date_depense', 'DESC')
+        ->setMaxResults($limit)
+        ->getQuery()
+        ->getResult();
+}
 }

@@ -1,20 +1,309 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello DashboardController!{% endblock %}
+{% block title %}Tableau de Bord{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css" rel="stylesheet">
+    <style>
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+        }
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .stat-card .label {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+        .bg-primary-light {
+            background-color: #e3f2fd;
+        }
+        .bg-success-light {
+            background-color: #e8f5e9;
+        }
+        .bg-warning-light {
+            background-color: #fff8e1;
+        }
+        .bg-danger-light {
+            background-color: #ffebee;
+        }
+        .recent-activity {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .activity-item {
+            border-left: 3px solid #0d6efd;
+            padding-left: 10px;
+            margin-bottom: 10px;
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
-
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ 'C:/Users/majdi/Desktop/SyndicDesktop/src/Controller/DashboardController.php'|file_link(0) }}">src/Controller/DashboardController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'C:/Users/majdi/Desktop/SyndicDesktop/templates/dashboard/index.html.twig'|file_link(0) }}">templates/dashboard/index.html.twig</a></code></li>
-    </ul>
+<div class="container-fluid py-4">
+    <h1 class="mb-4">Tableau de Bord</h1>
+    
+    <!-- Row 1: Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary-light">
+                <div class="card-body stat-card">
+                    <div class="value text-primary">{{ (appartementStats.occupied / totalAppartements * 100)|number_format(1) }}%</div>
+                    <div class="label">Taux d'occupation</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success-light">
+                <div class="card-body stat-card">
+                    <div class="value text-success">{{ totalAppartements }}</div>
+                    <div class="label">Appartements total</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning-light">
+                <div class="card-body stat-card">
+                    <div class="value text-warning">{{ activeLocataires|length }}</div>
+                    <div class="label">Locataires actifs</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger-light">
+                <div class="card-body stat-card">
+                    <div class="value text-danger">{{ (appartementStats.occupied)|default(0) }}</div>
+                    <div class="label">Appartements occupés</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Row 2: Charts -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    Cautionnements par Mois
+                </div>
+                <div class="card-body">
+                    <canvas id="cautionnementsMonthChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    Dépenses par Mois
+                </div>
+                <div class="card-body">
+                    <canvas id="depensesMonthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Row 3: More Charts -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    Répartition des Dépenses par Type
+                </div>
+                <div class="card-body">
+                    <canvas id="depensesTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    Cautionnements par Année
+                </div>
+                <div class="card-body">
+                    <canvas id="cautionnementsYearChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Row 4: Recent Activity -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    Derniers Cautionnements
+                </div>
+                <div class="card-body recent-activity">
+                    {% for cautionnement in latestCautionnements %}
+                    <div class="activity-item">
+                        <strong>{{ cautionnement.Personne }}</strong> - 
+                        Appartement {{ cautionnement.appartement }} - 
+                        {{ cautionnement.Montant.montant|format_currency('TND') }} - 
+                        <small class="text-muted">{{ cautionnement.datePaiement|date('d/m/Y') }}</small>
+                    </div>
+                    {% else %}
+                    <div class="text-muted">Aucun cautionnement récent</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    Dernières Dépenses
+                </div>
+                <div class="card-body recent-activity">
+                    {% for depense in latestDepenses %}
+                    <div class="activity-item">
+                        <strong>{{ depense.type }}</strong> - 
+                        {{ depense.montant|format_currency('TND') }} - 
+                        {{ depense.description|u.truncate(30, '...') }} - 
+                        <small class="text-muted">{{ depense.dateDepense|date('d/m/Y') }}</small>
+                    </div>
+                    {% else %}
+                    <div class="text-muted">Aucune dépense récente</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script>
+        // Cautionnements par Mois
+        const cautionnementsMonthCtx = document.getElementById('cautionnementsMonthChart').getContext('2d');
+        const cautionnementsMonthChart = new Chart(cautionnementsMonthCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ cautionnementsByMonth|map(c => c.month)|json_encode|raw }},
+                datasets: [{
+                    label: 'Montant (TND)',
+                    data: {{ cautionnementsByMonth|map(c => c.total)|json_encode|raw }},
+                    backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Dépenses par Mois
+        const depensesMonthCtx = document.getElementById('depensesMonthChart').getContext('2d');
+        const depensesMonthChart = new Chart(depensesMonthCtx, {
+            type: 'line',
+            data: {
+                labels: {{ depensesByMonth|map(d => d.month)|json_encode|raw }},
+                datasets: [{
+                    label: 'Montant (TND)',
+                    data: {{ depensesByMonth|map(d => d.total)|json_encode|raw }},
+                    backgroundColor: 'rgba(25, 135, 84, 0.2)',
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Répartition des Dépenses par Type
+        const depensesTypeCtx = document.getElementById('depensesTypeChart').getContext('2d');
+        const depensesTypeChart = new Chart(depensesTypeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: {{ depensesByType|map(d => d.type)|json_encode|raw }},
+                datasets: [{
+                    data: {{ depensesByType|map(d => d.total)|json_encode|raw }},
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+        
+        // Cautionnements par Année
+        const cautionnementsYearCtx = document.getElementById('cautionnementsYearChart').getContext('2d');
+        const cautionnementsYearChart = new Chart(cautionnementsYearCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ cautionnementsByYear|map(c => c.year)|json_encode|raw }},
+                datasets: [{
+                    label: 'Montant (TND)',
+                    data: {{ cautionnementsByYear|map(c => c.total)|json_encode|raw }},
+                    backgroundColor: 'rgba(23, 162, 184, 0.7)',
+                    borderColor: 'rgba(23, 162, 184, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
 {% endblock %}

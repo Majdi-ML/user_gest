@@ -34,6 +34,14 @@
                         <th>Fonction</th>
                         <td>{{ bureau.fonction ? bureau.fonction.libelle : '—' }}</td>
                     </tr>
+                    <tr>
+                        <th>Année Début de Mandat</th>
+                        <td>{{ bureau.anneeDebut }}</td>
+                    </tr>
+                    <tr>
+                        <th>Année Fin de Mandat</th>
+                        <td>{{ bureau.anneeFin }}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -42,6 +50,7 @@
     <div class="mt-3">
         <a href="{{ path('app_bureau_index') }}" class="btn btn-secondary">Retour à la liste</a>
         <a href="{{ path('app_bureau_edit', {'id': bureau.id}) }}" class="btn btn-warning">Modifier</a>
+        {{ include('bureau/_delete_form.html.twig') }}
     </div>
 </div>
 {% endblock %}

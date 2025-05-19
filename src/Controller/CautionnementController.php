@@ -18,52 +18,59 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class CautionnementController extends AbstractController
 {
     #[Route('/get-appartements/{personneId}', name: 'get_appartements_by_personne')]
-public function getAppartementsByPersonne(int $personneId, AppartementRepository $appartementRepo): JsonResponse
-{
-    $appartements = $appartementRepo->findBy(['proprietaire' => $personneId]);
+    public function getAppartementsByPersonne(int $personneId, AppartementRepository $appartementRepo): JsonResponse
+    {
+        $appartements = $appartementRepo->findBy(['proprietaire' => $personneId]);
 
-    $data = [];
+        $data = [];
 
-    foreach ($appartements as $appartement) {
-        $data[] = [
-            'id' => $appartement->getId(),
-            'text' => (string) $appartement, // grâce au __toString()
-        ];
+        foreach ($appartements as $appartement) {
+            $data[] = [
+                'id' => $appartement->getId(),
+                'text' => (string) $appartement, // grâce au __toString()
+            ];
+        }
+
+        return new JsonResponse($data);
     }
 
-    return new JsonResponse($data);
-}
-#[Route('/', name: 'app_cautionnement_index', methods: ['GET'])]
-public function index(Request $request, CautionnementRepository $cautionnementRepository): Response
-{
-    $mois = $request->query->get('mois');
-    $annee = $request->query->get('annee');
+    #[Route('/', name: 'app_cautionnement_index', methods: ['GET'])]
+    public function index(Request $request, CautionnementRepository $cautionnementRepository): Response
+    {
+        $mois = $request->query->get('mois');
+        $annee = $request->query->get('annee');
 
-    $queryBuilder = $cautionnementRepository->createQueryBuilder('c');
+        $queryBuilder = $cautionnementRepository->createQueryBuilder('c');
 
-    if ($mois) {
-        $queryBuilder->andWhere('c.Mois = :mois')->setParameter('mois', $mois);
+        if ($mois) {
+            $queryBuilder->andWhere('c.Mois = :mois')->setParameter('mois', $mois);
+        }
+
+        if ($annee) {
+            $dateDebut = new \DateTime("$annee-01-01");
+            $dateFin = new \DateTime("$annee-12-31");
+            $queryBuilder->andWhere('c.date_paiement BETWEEN :dateDebut AND :dateFin')
+                         ->setParameter('dateDebut', $dateDebut)
+                         ->setParameter('dateFin', $dateFin);
+        }
+
+        $cautionnements = $queryBuilder->getQuery()->getResult();
+
+        // ✅ Nouveau calcul du montant total
+        $totalMontant = array_reduce($cautionnements, function ($carry, $c) {
+            $montantObj = $c->getMontant(); // par exemple un objet FraisSyndic
+            $montant = $montantObj ? $montantObj->getMontant() : 0;
+            return $carry + $montant;
+        }, 0);
+
+        return $this->render('cautionnement/index.html.twig', [
+            'cautionnements' => $cautionnements,
+            'totalMontant' => $totalMontant,
+            'mois' => $mois,
+            'annee' => $annee,
+        ]);
     }
 
-    if ($annee) {
-        $dateDebut = new \DateTime("$annee-01-01");
-        $dateFin = new \DateTime("$annee-12-31");
-        $queryBuilder->andWhere('c.date_paiement BETWEEN :dateDebut AND :dateFin')
-                     ->setParameter('dateDebut', $dateDebut)
-                     ->setParameter('dateFin', $dateFin);
-    }
-
-    $cautionnements = $queryBuilder->getQuery()->getResult();
-
-    $totalMontant = array_reduce($cautionnements, fn($carry, $c) => $carry + $c->getMontant(), 0);
-
-    return $this->render('cautionnement/index.html.twig', [
-        'cautionnements' => $cautionnements,
-        'totalMontant' => $totalMontant,
-        'mois' => $mois,
-        'annee' => $annee,
-    ]);
-}
 
     #[Route('/new', name: 'app_cautionnement_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager , Security $security): Response

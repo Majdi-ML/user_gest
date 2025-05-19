@@ -9,6 +9,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
+use App\Entity\FonctionEmploye;
 
 class EmployeType extends AbstractType
 {
@@ -45,7 +48,24 @@ class EmployeType extends AbstractType
                 'attr' => ['class' => 'form-control'],
                 'label' => 'Téléphone',
                 'required' => false
-            ]);
+            ])
+            ->add('fonctionEmploye', EntityType::class, [
+    'class' => FonctionEmploye::class,
+    'choice_label' => 'libelle',
+    'label' => 'Fonction',
+    'placeholder' => 'Sélectionnez une fonction',
+    'attr' => ['class' => 'form-select']
+])
+->add('date_debut', DateType::class, [
+    'widget' => 'single_text',
+    'label' => 'Date de début',
+    'attr' => ['class' => 'form-control']
+])
+->add('date_fin', DateType::class, [
+    'widget' => 'single_text',
+    'label' => 'Date de fin',
+    'attr' => ['class' => 'form-control']
+]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -39,6 +39,15 @@ class PersonneRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+    public function findActiveLocataires(): array
+{
+    return $this->createQueryBuilder('p')
+        ->where('p.status = :status')
+        ->setParameter('status', 'locataire')
+        ->orderBy('p.nom', 'ASC')
+        ->getQuery()
+        ->getResult();
+}
 //    /**
 //     * @return Personne[] Returns an array of Personne objects
 //     */

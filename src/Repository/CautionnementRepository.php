@@ -19,8 +19,39 @@ class CautionnementRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Cautionnement::class);
-    }
+    }public function findMonthlyTotals(): array
+{
+    return $this->createQueryBuilder('c')
+        ->select('c.Mois as month, SUM(f.montant) as total')
+        ->join('c.Montant', 'f')
+        ->groupBy('c.Mois')
+        ->orderBy('c.Mois')
+        ->getQuery()
+        ->getResult();
+}
 
+public function findYearlyTotals(): array
+{
+    return $this->createQueryBuilder('c')
+        ->select('c.annee as year, SUM(f.montant) as total')
+        ->join('c.Montant', 'f')
+        ->groupBy('c.annee')
+        ->orderBy('c.annee')
+        ->getQuery()
+        ->getResult();
+}
+
+public function findLatest(int $limit): array
+{
+    return $this->createQueryBuilder('c')
+        ->join('c.Personne', 'p')
+        ->join('c.appartement', 'a')
+        ->join('c.Montant', 'f')
+        ->orderBy('c.date_paiement', 'DESC')
+        ->setMaxResults($limit)
+        ->getQuery()
+        ->getResult();
+}
 //    /**
 //     * @return Cautionnement[] Returns an array of Cautionnement objects
 //     */

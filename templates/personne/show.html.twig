@@ -56,9 +56,10 @@
                 <tbody>
                 {% for cautionnement in personne.cautionnements %}
                     <tr>
-                        <td>{{ cautionnement.montant }} DT</td>
+                        <td>{{ cautionnement.montant.montant}} DT</td>
                         <td>{{ cautionnement.datePaiement ? cautionnement.datePaiement|date('d/m/Y') : '—' }}</td>
                         <td>{{ cautionnement.mois }}</td>
+                        <td>{{ cautionnement.annee }}</td>
                         <td>{{ cautionnement.appartement }}</td>
                     </tr>
                 {% endfor %}

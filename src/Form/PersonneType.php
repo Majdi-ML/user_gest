@@ -47,6 +47,7 @@ class PersonneType extends AbstractType
             ->add('date_achat', DateType::class, [
                 'widget' => 'single_text',
                 'attr' => ['class' => 'form-control'],
+                'required' => false,
                 'label' => 'Date d\'achat',
             ]);
     }

@@ -24,7 +24,7 @@ class Cnss
     #[ORM\Column(nullable: true)]
     private ?float $montant_totale = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $attached_file = null;
 
     #[ORM\ManyToOne(inversedBy: 'cnsses')]
@@ -89,7 +89,7 @@ class Cnss
         return $this->attached_file;
     }
 
-    public function setAttachedFile(string $attached_file): static
+    public function setAttachedFile(?string $attached_file): static
     {
         $this->attached_file = $attached_file;
 

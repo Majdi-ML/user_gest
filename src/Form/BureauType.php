@@ -11,6 +11,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 class BureauType extends AbstractType
 {
@@ -40,7 +41,20 @@ class BureauType extends AbstractType
                 'choice_label' => 'libelle',
                 'attr' => ['class' => 'form-select'],
                 'label' => 'Fonction'
-            ]);
+            ])
+            ->add('annee_debut', ChoiceType::class, [
+            'label' => 'Année de début mondat',
+            'placeholder' => 'Sélectionnez une année',
+            'choices' => array_combine(array_reverse(range(date('Y'), 2000)), array_reverse(range(date('Y'), 2000))),
+            'attr' => ['class' => 'form-select']
+            ])
+            ->add('annee_fin', ChoiceType::class, [
+            'label' => 'Année de fin de mandat',
+            'placeholder' => 'Sélectionnez une année',    
+            'choices' => array_combine(array_reverse(range(date('Y'), 2000)), array_reverse(range(date('Y'), 2000))),
+            'attr' => ['class' => 'form-select']
+        ])
+            ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void

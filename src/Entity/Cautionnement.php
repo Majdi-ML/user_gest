@@ -14,8 +14,7 @@ class Cautionnement
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
-    private ?float $montant = null;
+    
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $date_paiement = null;
@@ -37,6 +36,12 @@ class Cautionnement
     #[ORM\ManyToOne(inversedBy: 'cautionnements')]
     private ?NaturePaiement $Nature_Paiement = null;
 
+    #[ORM\Column(length: 4)]
+    private ?string $annee = null;
+
+    #[ORM\ManyToOne(inversedBy: 'cautionnements')]
+    private ?FraisSyndic $Montant = null;
+
 
 
     public function getId(): ?int
@@ -44,17 +49,7 @@ class Cautionnement
         return $this->id;
     }
 
-    public function getMontant(): ?float
-    {
-        return $this->montant;
-    }
-
-    public function setMontant(float $montant): static
-    {
-        $this->montant = $montant;
-
-        return $this;
-    }
+   
 
     public function getDatePaiement(): ?\DateTimeInterface
     {
@@ -126,6 +121,30 @@ class Cautionnement
     public function setNaturePaiement(?NaturePaiement $Nature_Paiement): static
     {
         $this->Nature_Paiement = $Nature_Paiement;
+
+        return $this;
+    }
+
+    public function getAnnee(): ?string
+    {
+        return $this->annee;
+    }
+
+    public function setAnnee(string $annee): static
+    {
+        $this->annee = $annee;
+
+        return $this;
+    }
+
+    public function getMontant(): ?FraisSyndic
+    {
+        return $this->Montant;
+    }
+
+    public function setMontant(?FraisSyndic $Montant): static
+    {
+        $this->Montant = $Montant;
 
         return $this;
     }
