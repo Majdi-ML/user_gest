@@ -42,16 +42,37 @@ public function findYearlyTotals(): array
 }
 
 public function findLatest(int $limit): array
-{
-    return $this->createQueryBuilder('c')
-        ->join('c.Personne', 'p')
-        ->join('c.appartement', 'a')
-        ->join('c.Montant', 'f')
-        ->orderBy('c.date_paiement', 'DESC')
-        ->setMaxResults($limit)
-        ->getQuery()
-        ->getResult();
-}
+    {
+        // Step 1: Get all records sorted by date_paiement ASC with row numbers
+        $subQuery = $this->createQueryBuilder('c')
+            ->select('c.id')
+            ->leftJoin('c.Personne', 'p')
+            ->leftJoin('c.appartement', 'a')
+            ->leftJoin('c.Montant', 'f')
+            ->orderBy('c.date_paiement', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        // Step 2: Get the IDs of the last 5 records (most recent)
+        $totalRecords = count($subQuery);
+        $offset = max(0, $totalRecords - $limit);
+        $ids = array_slice(array_column($subQuery, 'id'), $offset, $limit);
+
+        if (empty($ids)) {
+            return [];
+        }
+
+        // Step 3: Fetch the full entities for the selected IDs, preserving DESC order
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.Personne', 'p')
+            ->leftJoin('c.appartement', 'a')
+            ->leftJoin('c.Montant', 'f')
+            ->where('c.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('c.date_paiement', 'DESC') // Ensure the most recent is last
+            ->getQuery()
+            ->getResult();
+    }
 //    /**
 //     * @return Cautionnement[] Returns an array of Cautionnement objects
 //     */

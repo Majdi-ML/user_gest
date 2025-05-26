@@ -1,0 +1,2158 @@
+// interfaces/Cluster.ts
+import type { Etat } from './Common'
+import type { Demande } from './Demande'
+import type { Serveur } from './Serveur'
+
+export interface Cluster {
+  id: number
+  ref: string
+  etat_id: number
+  nomDuRessourceGroupPackageServiceGuard: string
+  adresseIp: string
+  listeDesServeursConcernes: string
+  logicielCluster: string
+  version: string
+  mode: string
+  serveurActif: string
+  complementsInformations: string
+  demande_id: number
+  
+  // Relations
+  etat?: Etat
+  demande?: Demande
+  serveurs?: Serveur[]
+}
+
+export interface ClusterCreatePayload {
+  ref: string
+  etat_id: number
+  nomDuRessourceGroupPackageServiceGuard: string
+  adresseIp: string
+  listeDesServeursConcernes: string
+  logicielCluster: string
+  version: string
+  mode: string
+  serveurActif: string
+  complementsInformations: string
+  demande_id: number
+  serveurs_ids?: number
+}// interfaces/Common.ts
+export interface Etat {
+    id: number
+    nom: string
+  }
+  
+  export interface Criticite {
+    id: number
+    nom: string
+  }
+  
+  export interface Platforme {
+    id: number
+    nom: string
+  }
+  
+  export interface TypeServeur {
+    id: number
+    nom: string
+  }
+  
+  export interface OS {
+    id: number
+    nom: string
+  }
+  
+  export interface SocleStandardOMU {
+    id: number
+    nom: string
+  }
+  
+  export interface MonitoredBy {
+    id: number
+    nom: string
+  }
+  
+  export interface VersionTechFirmware {
+    id: number
+    nom: string
+  }
+  
+  export interface VersionSNMP {
+    id: number
+    nom: string
+  }
+  export interface Status {
+    id: number
+    nom: string
+  }
+// interfaces/Demande.ts
+import type { Status } from './Common'
+import type { User } from './User'
+import type { ServicePlatform } from './ServicePlatform'
+import type { Cluster } from './Cluster'
+import type { Serveur } from './Serveur'
+import type { Logfile } from './Logfile'
+import type { Process } from './Process'
+import type { RequeteSQL } from './RequeteSQL'
+import type { Script } from './Script'
+import type { Url } from './Url'
+import type { TrapSnmp } from './TrapSnmp'
+import type { LogfilePattern } from './LogfilePattern'
+
+export interface Demande {
+  id: number
+  title: string
+  description: string
+  status_id: number
+  user_id: number | null
+  serviceplatfom_id: number | null
+  created_at: string
+  updated_at: string
+  
+  // Relations
+  status?: Status
+  user?: User
+  serviceplatfom?: ServicePlatform
+  clusters?: Cluster[]
+  serveurs?: Serveur[]
+  logfiles?: Logfile[]
+  processes?: Process[]
+  requetessqls?: RequeteSQL[]
+  scripts?: Script[]
+  urls?: Url[]
+  trapssnmps?: TrapSnmp[]
+  logfilespatterns?: LogfilePattern[]
+}
+
+export interface DemandeCreatePayload {
+  title: string
+  description: string
+  status_id: number
+  user_id?: number | null
+  serviceplatfom_id?: number | null
+}
+// stores/enumStore.ts
+import { defineStore } from 'pinia'
+import axios from 'axios'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useEnumStore = defineStore('enum', {
+  state: () => ({
+    etats: [] as any[],
+    criticites: [] as any[],
+    platformes: [] as any[],
+    typesServeurs: [] as any[],
+    osList: [] as any[],
+    soclesStandardOMU: [] as any[],
+    monitoredBys: [] as any[],
+    versionsTechFirmware: [] as any[],
+    versionsSNMP: [] as any[],
+    status: [] as any[],
+    loading: false,
+    error: null as string | null
+  }),
+
+  actions: {
+    async fetchAllEnums() {
+      this.loading = true
+      try {
+        await Promise.all([
+          this.fetchEtats(),
+          this.fetchCriticites(),
+          this.fetchPlatformes(),
+          this.fetchTypesServeurs(),
+          this.fetchOSList(),
+          this.fetchSoclesStandardOMU(),
+          this.fetchMonitoredBys(),
+          this.fetchVersionsTechFirmware(),
+          this.fetchVersionsSNMP(),
+          this.fetchStatus()
+        ])
+      } catch (error) {
+        this.handleError(error, 'Error fetching enum values')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchEtats() {
+      try {
+        const response = await apiClient.get('/etats')
+        this.etats = response.data
+      } catch (error) {
+        this.handleError(error, 'Error fetching etats')
+      }
+    },
+
+    async fetchCriticites() {
+      try {
+        const response = await apiClient.get('/criticites')
+        this.criticites = response.data
+      } catch (error) {
+        this.handleError(error, 'Error fetching criticites')
+      }
+    },
+
+    async fetchPlatformes() {
+      try {
+        const response = await apiClient.get('/platformes')
+        this.platformes = response.data
+      } catch (error) {
+        this.handleError(error, 'Error fetching platformes')
+      }
+    },
+
+    async fetchTypesServeurs() {
+      try {
+        const response = await apiClient.get('/types-serveurs')
+        this.typesServeurs = response.data
+      } catch (error) {
+        this.handleError(error, 'Error fetching types serveurs')
+      }
+    },
+
+    async fetchOSList() {
+      try {
+        const response = await apiClient.get('/os')
+        this.osList = response.data
+      } catch (error) {
+        this.handleError(error, 'Error fetching OS list')
+      }
+    },
+
+    async fetchSoclesStandardOMU() {
+      try {
+        const response = await apiClient.get('/socles-standard-omu')
+        this.soclesStandardOMU = response.data
+      } catch (error) {
+        this.handleError(error, 'Error fetching socles standard OMU')
+      }
+    },
+
+    async fetchMonitoredBys() {
+      try {
+        const response = await apiClient.get('/monitored-bys')
+        this.monitoredBys = response.data
+      } catch (error) {
+        this.handleError(error, 'Error fetching monitored by options')
+      }
+    },
+
+    async fetchVersionsTechFirmware() {
+      try {
+        const response = await apiClient.get('/versions-tech-firmware')
+        this.versionsTechFirmware = response.data
+      } catch (error) {
+        this.handleError(error, 'Error fetching tech firmware versions')
+      }
+    },
+
+    async fetchVersionsSNMP() {
+      try {
+        const response = await apiClient.get('/versions-snmp')
+        this.versionsSNMP = response.data
+      } catch (error) {
+        this.handleError(error, 'Error fetching SNMP versions')
+      }
+    },
+
+    async fetchStatus() {
+      try {
+        const response = await apiClient.get('/status')
+        this.status = response.data
+      } catch (error) {
+        this.handleError(error, 'Error fetching status')
+      }
+    },
+
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+
+  getters: {
+    getEtatById: (state) => (id: number) => state.etats.find(e => e.id === id),
+    getCriticiteById: (state) => (id: number) => state.criticites.find(c => c.id === id),
+    getPlatformeById: (state) => (id: number) => state.platformes.find(p => p.id === id),
+    getTypeServeurById: (state) => (id: number) => state.typesServeurs.find(t => t.id === id),
+    getOSById: (state) => (id: number) => state.osList.find(o => o.id === id),
+    getSocleStandardOMUById: (state) => (id: number) => state.soclesStandardOMU.find(s => s.id === id),
+    getMonitoredByById: (state) => (id: number) => state.monitoredBys.find(m => m.id === id),
+    getVersionTechFirmwareById: (state) => (id: number) => state.versionsTechFirmware.find(v => v.id === id),
+    getVersionSNMPById: (state) => (id: number) => state.versionsSNMP.find(v => v.id === id),
+    getStatusById: (state) => (id: number) => state.status.find(s => s.id === id)
+  }
+})
+// interfaces/index.ts
+export * from './Common'
+export * from './Demande'
+export * from './Cluster'
+export * from './Serveur'
+export * from './Logfile'
+export * from './LogfilePattern'
+export * from './Process'
+export * from './RequeteSQL'
+export * from './Script'
+export * from './Url'
+export * from './TrapSnmp'
+export * from './User'
+export * from './ServicePlatform'
+// interfaces/Logfile.ts
+import type { Etat } from './Common'
+import type { MonitoredBy } from './Common'
+import type { Demande } from './Demande'
+import type { Serveur } from './Serveur'
+import type { LogfilePattern } from './LogfilePattern'
+
+export interface Logfile {
+  id: number
+  ref: string
+  etat_id: number
+  refComposant: string
+  rgSgSiCluster: string
+  logfile: string
+  localisation: string
+  description: string
+  formatLogfile: string
+  separateur: string
+  intervalleDePolling: string
+  monitoredBy_id: number
+  fourniEnAnnexe: string
+  refService: string
+  nomTemplate: string
+  logConditions: string
+  demande_id: number
+  
+  // Relations
+  etat?: Etat
+  monitoredby?: MonitoredBy
+  demande?: Demande
+  serveurs?: Serveur[]
+  logfilespatterns?: LogfilePattern[]
+}
+
+export interface LogfileCreatePayload {
+  ref: string
+  etat_id: number
+  refComposant: string
+  rgSgSiCluster: string
+  logfile: string
+  localisation: string
+  description: string
+  formatLogfile: string
+  separateur: string
+  intervalleDePolling: string
+  monitoredBy_id: number
+  fourniEnAnnexe: string
+  refService: string
+  nomTemplate: string
+  logConditions: string
+  demande_id: number
+  serveurs_ids?: number
+}
+// interfaces/LogfilePattern.ts
+import type { Etat } from './Common'
+import type { Criticite } from './Common'
+import type { Logfile } from './Logfile'
+import type { Demande } from './Demande'
+
+export interface LogfilePattern {
+  id: number
+  nRef: number
+  ref: string
+  etat_id: number
+  signification: string
+  identification: string
+  criticite_id: number
+  messageAlarme: string
+  instructions: string
+  performAction: string
+  acquittement: string
+  complementsInformations: string
+  refService: string
+  objet: string
+  logfile_id: number
+  demande_id: number
+  
+  // Relations
+  etat?: Etat
+  criticite?: Criticite
+  logfile?: Logfile
+  demande?: Demande
+}
+
+export interface LogfilePatternCreatePayload {
+  nRef: number
+  ref: string
+  etat_id: number
+  signification: string
+  identification: string
+  criticite_id: number
+  messageAlarme: string
+  instructions: string
+  performAction: string
+  acquittement: string
+  complementsInformations: string
+  refService: string
+  objet: string
+  logfile_id: number
+  demande_id: number
+}// interfaces/Process.ts
+import type { Etat } from './Common'
+import type { Criticite } from './Common'
+import type { MonitoredBy } from './Common'
+import type { Demande } from './Demande'
+import type { Serveur } from './Serveur'
+
+export interface Process {
+  id: number
+  ref: string
+  etat_id: number
+  refComposant: string
+  process: string
+  criticite_id: number
+  messageAlarme: string
+  intervalleDePolling: string
+  objet: string
+  nomTemplate: string
+  monitoredBy_id: number
+  demande_id: number
+  
+  // Relations
+  etat?: Etat
+  criticite?: Criticite
+  monitoredby?: MonitoredBy
+  demande?: Demande
+  serveurs?: Serveur[]
+
+}
+
+export interface ProcessCreatePayload {
+  ref: string
+  etat_id: number
+  refComposant: string
+  process: string
+  criticite_id: number
+  messageAlarme: string
+  intervalleDePolling: string
+  objet: string
+  nomTemplate: string
+  monitoredBy_id: number
+  demande_id: number
+  serveurs_ids?: number
+}// interfaces/RequeteSQL.ts
+import type { Etat } from './Common'
+import type { Criticite } from './Common'
+import type { MonitoredBy } from './Common'
+import type { Demande } from './Demande'
+import type { Serveur } from './Serveur'
+
+export interface RequeteSQL {
+  id: number
+  ref: string
+  etat_id: number
+  refComposant: string
+  rgSgSiCluster: string
+  requeteSql: string
+  usernameDbName: string
+  resultatAttenduDeLaRequete: string
+  performAction: string
+  criticite_id: number
+  messageAlarme: string
+  instructions: string
+  intervalleDePolling: string
+  refService: string
+  objet: string
+  monitoredBy_id: number
+  nomTemplate: string
+  demande_id: number
+  
+  // Relations
+  etat?: Etat
+  criticite?: Criticite
+  monitoredby?: MonitoredBy
+  demande?: Demande
+  serveurs?: Serveur[]
+}
+
+export interface RequeteSQLCreatePayload {
+  ref: string
+  etat_id: number
+  refComposant: string
+  rgSgSiCluster: string
+  requeteSql: string
+  usernameDbName: string
+  resultatAttenduDeLaRequete: string
+  performAction: string
+  criticite_id: number
+  messageAlarme: string
+  instructions: string
+  intervalleDePolling: string
+  refService: string
+  objet: string
+  monitoredBy_id: number
+  nomTemplate: string
+  demande_id: number
+  serveurs_ids?: number
+}// interfaces/Script.ts
+import type { Etat } from './Common'
+import type { Criticite } from './Common'
+import type { MonitoredBy } from './Common'
+import type { Demande } from './Demande'
+import type { Serveur } from './Serveur'
+
+export interface Script {
+  id: number
+  ref: string
+  etat_id: number
+  refComposant: string
+  rgSgSiCluster: string
+  script: string
+  codeErreur: string
+  criticite_id: number
+  description: string
+  instructions: string
+  monitoredBy_id: number
+  refService: string
+  demande_id: number
+  
+  // Relations
+  etat?: Etat
+  criticite?: Criticite
+  monitoredby?: MonitoredBy
+  demande?: Demande
+  serveurs?: Serveur[]
+}
+
+export interface ScriptCreatePayload {
+  ref: string
+  etat_id: number
+  refComposant: string
+  rgSgSiCluster: string
+  script: string
+  codeErreur: string
+  criticite_id: number
+  description: string
+  instructions: string
+  monitoredBy_id: number
+  refService: string
+  demande_id: number
+  serveurs_ids?: number
+}// interfaces/Serveur.ts
+import type { Etat } from './Common'
+import type { Platforme } from './Common'
+import type { TypeServeur } from './Common'
+import type { OS } from './Common'
+import type { SocleStandardOMU } from './Common'
+import type { VersionTechFirmware } from './Common'
+import type { Demande } from './Demande'
+
+export interface Serveur {
+  id: number
+  ref: string
+  etat_id: number
+  platforme_id: number
+  hostname: string
+  fqdn: string
+  type_id: number
+  modele: string
+  os_id: number
+  verTechFirmware_id: number | null
+  cluster: string
+  ipSource: string
+  description: string
+  socleStandardOmu_id: number
+  complementsInformations: string
+  demande_id: number
+  
+  // Relations
+  etat?: Etat
+  platforme?: Platforme
+  typeserveur?: TypeServeur
+  os?: OS
+  soclestandardomu?: SocleStandardOMU
+  ver_tech_firmware?: VersionTechFirmware
+  demande?: Demande
+}
+
+export interface ServeurCreatePayload {
+  ref: string
+  etat_id: number
+  platforme_id: number
+  hostname: string
+  fqdn: string
+  type_id: number
+  modele: string
+  os_id: number
+  verTechFirmware_id?: number | null
+  cluster: string
+  ipSource: string
+  description: string
+  socleStandardOmu_id: number
+  complementsInformations: string
+  demande_id: number
+}// interfaces/ServicePlatform.ts
+import type { User } from './User'
+
+export interface ServicePlatform {
+  id: number
+  user_id: number | null
+  support_id: number | null
+  nom: string
+  created_at: string
+  updated_at: string
+  
+  // Relations
+  user?: User
+  // support?: Support // Si vous avez une interface Support
+}// interfaces/TrapSnmp.ts
+import type { Etat } from './Common'
+import type { Criticite } from './Common'
+import type { VersionSNMP } from './Common'
+import type { Demande } from './Demande'
+import type { Serveur } from './Serveur'
+
+export interface TrapSnmp {
+  id: number
+  ref: string
+  etat_id: number
+  refComposant: string
+  signification: string
+  versionSnmp_id: number
+  oid: string
+  specificTrap: string
+  variableBinding: string
+  criticite_id: number
+  messageAlarme: string
+  instructions: string
+  acquittement: string
+  mibAssocie: string
+  objet: string
+  compelementInformation: string
+  demande_id: number
+  
+  // Relations
+  etat?: Etat
+  criticite?: Criticite
+  version_snmp?: VersionSNMP
+  demande?: Demande
+  serveurs?: Serveur[]
+}
+
+export interface TrapSnmpCreatePayload {
+  ref: string
+  etat_id: number
+  refComposant: string
+  signification: string
+  versionSnmp_id: number
+  oid: string
+  specificTrap: string
+  variableBinding: string
+  criticite_id: number
+  messageAlarme: string
+  instructions: string
+  acquittement: string
+  mibAssocie: string
+  objet: string
+  compelementInformation: string
+  demande_id: number
+  serveurs_ids?: number
+}// interfaces/Url.ts
+import type { Etat } from './Common'
+import type { Criticite } from './Common'
+import type { MonitoredBy } from './Common'
+import type { Demande } from './Demande'
+import type { Serveur } from './Serveur'
+
+export interface Url {
+  id: number
+  ref: string
+  etat_id: number
+  refComposant: string
+  rgSgSiCluster: string
+  url: string
+  performAction: string
+  criticite_id: number
+  messageAlarme: string
+  instructions: string
+  intervalleDePolling: string
+  refService: string
+  objet: string
+  monitoredBy_id: number
+  nomTemplate: string
+  demande_id: number
+  
+  // Relations
+  etat?: Etat
+  criticite?: Criticite
+  monitoredby?: MonitoredBy
+  demande?: Demande
+  serveurs?: Serveur[]
+}
+
+export interface UrlCreatePayload {
+  ref: string
+  etat_id: number
+  refComposant: string
+  rgSgSiCluster: string
+  url: string
+  performAction: string
+  criticite_id: number
+  messageAlarme: string
+  instructions: string
+  intervalleDePolling: string
+  refService: string
+  objet: string
+  monitoredBy_id: number
+  nomTemplate: string
+  demande_id: number
+  serveurs_ids?: number
+}// interfaces/User.ts
+export interface User {
+  id: number
+  username: string
+  email?: string
+  // Ajoutez d'autres champs utilisateur si nécessaire
+}
+
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import type { Cluster, ClusterCreatePayload } from '@/interfaces/Cluster'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useClusterStore = defineStore('cluster', {
+  state: () => ({
+    clusters: [] as Cluster[],
+    currentCluster: null as Cluster | null,
+    loading: false,
+    error: null as string | null
+  }),
+
+  actions: {
+    async fetchClusters() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/clusters', {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.clusters = response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching clusters')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchClusterById(id: number) {
+      this.loading = true
+      try {
+        const response = await apiClient.get(`/clusters/${id}`, {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.currentCluster = response.data
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching cluster details')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createCluster(payload: ClusterCreatePayload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/clusters', payload)
+        this.clusters.unshift(response.data)
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error creating cluster')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateCluster(cluster: Cluster) {
+      this.loading = true
+      try {
+        const { id, ...payload } = cluster
+        const response = await apiClient.put(`/clusters/${id}`, payload)
+        
+        const index = this.clusters.findIndex(c => c.id === id)
+        if (index !== -1) {
+          this.clusters[index] = response.data
+        }
+        
+        if (this.currentCluster?.id === id) {
+          this.currentCluster = response.data
+        }
+        
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error updating cluster')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteCluster(id: number) {
+      this.loading = true
+      try {
+        await apiClient.delete(`/clusters/${id}`)
+        this.clusters = this.clusters.filter(c => c.id !== id)
+        
+        if (this.currentCluster?.id === id) {
+          this.currentCluster = null
+        }
+      } catch (error: any) {
+        this.handleError(error, 'Error deleting cluster')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+
+  getters: {
+    getClusterById: (state) => (id: number) => {
+      return state.clusters.find(c => c.id === id)
+    },
+    
+    clustersByDemande: (state) => (demandeId: number) => {
+      return state.clusters.filter(c => c.demande_id === demandeId)
+    },
+    
+    totalClusters: (state) => state.clusters.length
+  }
+})
+
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import type { Demande, DemandeCreatePayload } from '../interfaces/Demande'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useDemandeStore = defineStore('demande', {
+  state: () => ({
+    demandes: [] as Demande[],
+    loading: false,
+    error: null as string | null,
+    currentDemande: null as Demande | null
+  }),
+  
+  actions: {
+    async fetchDemandes() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/demandes', {
+          params: {
+            include: 'status,user,serviceplatfom,clusters,serveurs,logfiles,processes,requetessqls,scripts,urls,trapssnmps,logfilespatterns'
+          }
+        })
+        this.demandes = response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching demandes')
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    async fetchDemandeById(id: number) {
+      this.loading = true
+      try {
+        const response = await apiClient.get(`/demandes/${id}`, {
+          params: {
+            include: 'status,user,serviceplatfom,clusters,serveurs,logfiles,processes,requetessqls,scripts,urls,trapssnmps,logfilespatterns'
+          }
+        })
+        this.currentDemande = response.data
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching demande details')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    async createDemande(payload: DemandeCreatePayload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/demandes', payload)
+        this.demandes.unshift(response.data)
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error creating demande')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    async updateDemande(demande: Demande) {
+      this.loading = true
+      try {
+        const { id, ...payload } = demande
+        const response = await apiClient.put(`/demandes/${id}`, payload)
+        
+        const index = this.demandes.findIndex(d => d.id === id)
+        if (index !== -1) {
+          this.demandes[index] = response.data
+        }
+        
+        if (this.currentDemande?.id === id) {
+          this.currentDemande = response.data
+        }
+        
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error updating demande')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    async deleteDemande(id: number) {
+      this.loading = true
+      try {
+        await apiClient.delete(`/demandes/${id}`)
+        this.demandes = this.demandes.filter(d => d.id !== id)
+        
+        if (this.currentDemande?.id === id) {
+          this.currentDemande = null
+        }
+      } catch (error: any) {
+        this.handleError(error, 'Error deleting demande')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+    
+    // Méthode de gestion d'erreur sans modificateur private
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+  
+  getters: {
+    getDemandeById: (state) => (id: number) => {
+      return state.demandes.find(d => d.id === id)
+    },
+    
+    demandesByStatus: (state) => (statusId: number) => {
+      return state.demandes.filter(d => d.status_id === statusId)
+    },
+    
+    demandesByUser: (state) => (userId: number) => {
+      return state.demandes.filter(d => d.user_id === userId)
+    },
+    
+    totalDemandes: (state) => state.demandes.length,
+    
+    pendingDemandes: (state) => {
+      return state.demandes.filter(d => d.status_id === 1)
+    },
+    
+    completedDemandes: (state) => {
+      return state.demandes.filter(d => d.status_id === 2)
+    }
+  }
+})
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import type { Logfile, LogfileCreatePayload } from '@/interfaces/Logfile'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useLogfileStore = defineStore('logfile', {
+  state: () => ({
+    logfiles: [] as Logfile[],
+    currentLogfile: null as Logfile | null,
+    loading: false,
+    error: null as string | null
+  }),
+
+  actions: {
+    async fetchLogfiles() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/logfiles', {
+          params: { include: 'etat,monitoredby,demande,serveurs,logfilespatterns' }
+        })
+        this.logfiles = response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching logfiles')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchLogfileById(id: number) {
+      this.loading = true
+      try {
+        const response = await apiClient.get(`/logfiles/${id}`, {
+          params: { include: 'etat,monitoredby,demande,serveurs,logfilespatterns' }
+        })
+        this.currentLogfile = response.data
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching logfile details')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createLogfile(payload: LogfileCreatePayload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/logfiles', payload)
+        this.logfiles.unshift(response.data)
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error creating logfile')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateLogfile(logfile: Logfile) {
+      this.loading = true
+      try {
+        const { id, ...payload } = logfile
+        const response = await apiClient.put(`/logfiles/${id}`, payload)
+        
+        const index = this.logfiles.findIndex(l => l.id === id)
+        if (index !== -1) {
+          this.logfiles[index] = response.data
+        }
+        
+        if (this.currentLogfile?.id === id) {
+          this.currentLogfile = response.data
+        }
+        
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error updating logfile')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteLogfile(id: number) {
+      this.loading = true
+      try {
+        await apiClient.delete(`/logfiles/${id}`)
+        this.logfiles = this.logfiles.filter(l => l.id !== id)
+        
+        if (this.currentLogfile?.id === id) {
+          this.currentLogfile = null
+        }
+      } catch (error: any) {
+        this.handleError(error, 'Error deleting logfile')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+
+  getters: {
+    getLogfileById: (state) => (id: number) => {
+      return state.logfiles.find(l => l.id === id)
+    },
+    
+    logfilesByDemande: (state) => (demandeId: number) => {
+      return state.logfiles.filter(l => l.demande_id === demandeId)
+    },
+    
+    totalLogfiles: (state) => state.logfiles.length
+  }
+})
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import type { LogfilePattern, LogfilePatternCreatePayload } from '@/interfaces/LogfilePattern'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useLogfilePatternStore = defineStore('logfilePattern', {
+  state: () => ({
+    patterns: [] as LogfilePattern[],
+    currentPattern: null as LogfilePattern | null,
+    loading: false,
+    error: null as string | null
+  }),
+
+  actions: {
+    async fetchPatterns() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/logfilespatterns', {
+          params: { include: 'etat,criticite,logfile,demande' }
+        })
+        this.patterns = response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching logfile patterns')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchPatternById(id: number) {
+      this.loading = true
+      try {
+        const response = await apiClient.get(`/logfilespatterns/${id}`, {
+          params: { include: 'etat,criticite,logfile,demande' }
+        })
+        this.currentPattern = response.data
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching pattern details')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createPattern(payload: LogfilePatternCreatePayload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/logfilespatterns', payload)
+        this.patterns.unshift(response.data)
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error creating pattern')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updatePattern(pattern: LogfilePattern) {
+      this.loading = true
+      try {
+        const { id, ...payload } = pattern
+        const response = await apiClient.put(`/logfilespatterns/${id}`, payload)
+        
+        const index = this.patterns.findIndex(p => p.id === id)
+        if (index !== -1) {
+          this.patterns[index] = response.data
+        }
+        
+        if (this.currentPattern?.id === id) {
+          this.currentPattern = response.data
+        }
+        
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error updating pattern')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deletePattern(id: number) {
+      this.loading = true
+      try {
+        await apiClient.delete(`/logfilespatterns/${id}`)
+        this.patterns = this.patterns.filter(p => p.id !== id)
+        
+        if (this.currentPattern?.id === id) {
+          this.currentPattern = null
+        }
+      } catch (error: any) {
+        this.handleError(error, 'Error deleting pattern')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+
+  getters: {
+    getPatternById: (state) => (id: number) => {
+      return state.patterns.find(p => p.id === id)
+    },
+    
+    patternsByLogfile: (state) => (logfileId: number) => {
+      return state.patterns.filter(p => p.logfile_id === logfileId)
+    },
+    
+    patternsByDemande: (state) => (demandeId: number) => {
+      return state.patterns.filter(p => p.demande_id === demandeId)
+    },
+    
+    totalPatterns: (state) => state.patterns.length
+  }
+})
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import type { Process, ProcessCreatePayload } from '@/interfaces/Process'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useProcessStore = defineStore('process', {
+  state: () => ({
+    processes: [] as Process[],
+    currentProcess: null as Process | null,
+    loading: false,
+    error: null as string | null
+  }),
+
+  actions: {
+    async fetchProcesses() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/processes', {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.processes = response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching processes')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchProcessById(id: number) {
+      this.loading = true
+      try {
+        const response = await apiClient.get(`/processes/${id}`, {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.currentProcess = response.data
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching process details')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createProcess(payload: ProcessCreatePayload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/processes', payload)
+        this.processes.unshift(response.data)
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error creating process')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateProcess(process: Process) {
+      this.loading = true
+      try {
+        const { id, ...payload } = process
+        const response = await apiClient.put(`/processes/${id}`, payload)
+        
+        const index = this.processes.findIndex(p => p.id === id)
+        if (index !== -1) {
+          this.processes[index] = response.data
+        }
+        
+        if (this.currentProcess?.id === id) {
+          this.currentProcess = response.data
+        }
+        
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error updating process')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteProcess(id: number) {
+      this.loading = true
+      try {
+        await apiClient.delete(`/processes/${id}`)
+        this.processes = this.processes.filter(p => p.id !== id)
+        
+        if (this.currentProcess?.id === id) {
+          this.currentProcess = null
+        }
+      } catch (error: any) {
+        this.handleError(error, 'Error deleting process')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+
+  getters: {
+    getProcessById: (state) => (id: number) => {
+      return state.processes.find(p => p.id === id)
+    },
+    
+    processesByDemande: (state) => (demandeId: number) => {
+      return state.processes.filter(p => p.demande_id === demandeId)
+    },
+    
+    totalProcesses: (state) => state.processes.length
+  }
+})
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import type { RequeteSQL, RequeteSQLCreatePayload } from '@/interfaces/RequeteSQL'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useRequeteSqlStore = defineStore('requeteSql', {
+  state: () => ({
+    requetes: [] as RequeteSQL[],
+    currentRequete: null as RequeteSQL | null,
+    loading: false,
+    error: null as string | null
+  }),
+
+  actions: {
+    async fetchRequetes() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/requetessqls', {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.requetes = response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching SQL queries')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchRequeteById(id: number) {
+      this.loading = true
+      try {
+        const response = await apiClient.get(`/requetessqls/${id}`, {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.currentRequete = response.data
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching query details')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createRequete(payload: RequeteSQLCreatePayload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/requetessqls', payload)
+        this.requetes.unshift(response.data)
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error creating query')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateRequete(requete: RequeteSQL) {
+      this.loading = true
+      try {
+        const { id, ...payload } = requete
+        const response = await apiClient.put(`/requetessqls/${id}`, payload)
+        
+        const index = this.requetes.findIndex(r => r.id === id)
+        if (index !== -1) {
+          this.requetes[index] = response.data
+        }
+        
+        if (this.currentRequete?.id === id) {
+          this.currentRequete = response.data
+        }
+        
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error updating query')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteRequete(id: number) {
+      this.loading = true
+      try {
+        await apiClient.delete(`/requetessqls/${id}`)
+        this.requetes = this.requetes.filter(r => r.id !== id)
+        
+        if (this.currentRequete?.id === id) {
+          this.currentRequete = null
+        }
+      } catch (error: any) {
+        this.handleError(error, 'Error deleting query')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+
+  getters: {
+    getRequeteById: (state) => (id: number) => {
+      return state.requetes.find(r => r.id === id)
+    },
+    
+    requetesByDemande: (state) => (demandeId: number) => {
+      return state.requetes.filter(r => r.demande_id === demandeId)
+    },
+    
+    totalRequetes: (state) => state.requetes.length
+  }
+})
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import type { Script, ScriptCreatePayload } from '@/interfaces/Script'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useScriptStore = defineStore('script', {
+  state: () => ({
+    scripts: [] as Script[],
+    currentScript: null as Script | null,
+    loading: false,
+    error: null as string | null
+  }),
+
+  actions: {
+    async fetchScripts() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/scripts', {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.scripts = response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching scripts')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchScriptById(id: number) {
+      this.loading = true
+      try {
+        const response = await apiClient.get(`/scripts/${id}`, {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.currentScript = response.data
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching script details')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createScript(payload: ScriptCreatePayload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/scripts', payload)
+        this.scripts.unshift(response.data)
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error creating script')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateScript(script: Script) {
+      this.loading = true
+      try {
+        const { id, ...payload } = script
+        const response = await apiClient.put(`/scripts/${id}`, payload)
+        
+        const index = this.scripts.findIndex(s => s.id === id)
+        if (index !== -1) {
+          this.scripts[index] = response.data
+        }
+        
+        if (this.currentScript?.id === id) {
+          this.currentScript = response.data
+        }
+        
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error updating script')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteScript(id: number) {
+      this.loading = true
+      try {
+        await apiClient.delete(`/scripts/${id}`)
+        this.scripts = this.scripts.filter(s => s.id !== id)
+        
+        if (this.currentScript?.id === id) {
+          this.currentScript = null
+        }
+      } catch (error: any) {
+        this.handleError(error, 'Error deleting script')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+
+  getters: {
+    getScriptById: (state) => (id: number) => {
+      return state.scripts.find(s => s.id === id)
+    },
+    
+    scriptsByDemande: (state) => (demandeId: number) => {
+      return state.scripts.filter(s => s.demande_id === demandeId)
+    },
+    
+    totalScripts: (state) => state.scripts.length
+  }
+})
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import type { Serveur, ServeurCreatePayload } from '@/interfaces/Serveur'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useServeurStore = defineStore('serveur', {
+  state: () => ({
+    serveurs: [] as Serveur[],
+    currentServeur: null as Serveur | null,
+    loading: false,
+    error: null as string | null
+  }),
+
+  actions: {
+    async fetchServeurs() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/serveurs', {
+          params: { include: 'etat,platforme,typeserveur,os,soclestandardomu,demande' }
+        })
+        this.serveurs = response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching serveurs')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchServeurById(id: number) {
+      this.loading = true
+      try {
+        const response = await apiClient.get(`/serveurs/${id}`, {
+          params: { include: 'etat,platforme,typeserveur,os,soclestandardomu,demande' }
+        })
+        this.currentServeur = response.data
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching serveur details')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createServeur(payload: ServeurCreatePayload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/serveurs', payload)
+        this.serveurs.unshift(response.data)
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error creating serveur')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateServeur(serveur: Serveur) {
+      this.loading = true
+      try {
+        const { id, ...payload } = serveur
+        const response = await apiClient.put(`/serveurs/${id}`, payload)
+        
+        const index = this.serveurs.findIndex(s => s.id === id)
+        if (index !== -1) {
+          this.serveurs[index] = response.data
+        }
+        
+        if (this.currentServeur?.id === id) {
+          this.currentServeur = response.data
+        }
+        
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error updating serveur')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteServeur(id: number) {
+      this.loading = true
+      try {
+        await apiClient.delete(`/serveurs/${id}`)
+        this.serveurs = this.serveurs.filter(s => s.id !== id)
+        
+        if (this.currentServeur?.id === id) {
+          this.currentServeur = null
+        }
+      } catch (error: any) {
+        this.handleError(error, 'Error deleting serveur')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+
+  getters: {
+    getServeurById: (state) => (id: number) => {
+      return state.serveurs.find(s => s.id === id)
+    },
+    
+    serveursByDemande: (state) => (demandeId: number) => {
+      return state.serveurs.filter(s => s.demande_id === demandeId)
+    },
+    
+    totalServeurs: (state) => state.serveurs.length
+  }
+})
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import type { TrapSnmp, TrapSnmpCreatePayload } from '@/interfaces/TrapSnmp'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useTrapSnmpStore = defineStore('trapSnmp', {
+  state: () => ({
+    traps: [] as TrapSnmp[],
+    currentTrap: null as TrapSnmp | null,
+    loading: false,
+    error: null as string | null
+  }),
+
+  actions: {
+    async fetchTraps() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/trapssnmps', {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.traps = response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching SNMP traps')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchTrapById(id: number) {
+      this.loading = true
+      try {
+        const response = await apiClient.get(`/trapssnmps/${id}`, {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.currentTrap = response.data
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching trap details')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createTrap(payload: TrapSnmpCreatePayload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/trapssnmps', payload)
+        this.traps.unshift(response.data)
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error creating trap')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateTrap(trap: TrapSnmp) {
+      this.loading = true
+      try {
+        const { id, ...payload } = trap
+        const response = await apiClient.put(`/trapssnmps/${id}`, payload)
+        
+        const index = this.traps.findIndex(t => t.id === id)
+        if (index !== -1) {
+          this.traps[index] = response.data
+        }
+        
+        if (this.currentTrap?.id === id) {
+          this.currentTrap = response.data
+        }
+        
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error updating trap')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteTrap(id: number) {
+      this.loading = true
+      try {
+        await apiClient.delete(`/trapssnmps/${id}`)
+        this.traps = this.traps.filter(t => t.id !== id)
+        
+        if (this.currentTrap?.id === id) {
+          this.currentTrap = null
+        }
+      } catch (error: any) {
+        this.handleError(error, 'Error deleting trap')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+
+  getters: {
+    getTrapById: (state) => (id: number) => {
+      return state.traps.find(t => t.id === id)
+    },
+    
+    trapsByDemande: (state) => (demandeId: number) => {
+      return state.traps.filter(t => t.demande_id === demandeId)
+    },
+    
+    totalTraps: (state) => state.traps.length
+  }
+})
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import type { Url, UrlCreatePayload } from '@/interfaces/Url'
+
+const apiClient = axios.create({
+  baseURL: 'http://127.0.0.1:8000/api',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+})
+
+export const useUrlStore = defineStore('url', {
+  state: () => ({
+    urls: [] as Url[],
+    currentUrl: null as Url | null,
+    loading: false,
+    error: null as string | null
+  }),
+
+  actions: {
+    async fetchUrls() {
+      this.loading = true
+      this.error = null
+      try {
+        const response = await apiClient.get('/urls', {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.urls = response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching URLs')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async fetchUrlById(id: number) {
+      this.loading = true
+      try {
+        const response = await apiClient.get(`/urls/${id}`, {
+          params: { include: 'etat,demande,serveurs' }
+        })
+        this.currentUrl = response.data
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error fetching URL details')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async createUrl(payload: UrlCreatePayload) {
+      this.loading = true
+      try {
+        const response = await apiClient.post('/urls', payload)
+        this.urls.unshift(response.data)
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error creating URL')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async updateUrl(url: Url) {
+      this.loading = true
+      try {
+        const { id, ...payload } = url
+        const response = await apiClient.put(`/urls/${id}`, payload)
+        
+        const index = this.urls.findIndex(u => u.id === id)
+        if (index !== -1) {
+          this.urls[index] = response.data
+        }
+        
+        if (this.currentUrl?.id === id) {
+          this.currentUrl = response.data
+        }
+        
+        return response.data
+      } catch (error: any) {
+        this.handleError(error, 'Error updating URL')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async deleteUrl(id: number) {
+      this.loading = true
+      try {
+        await apiClient.delete(`/urls/${id}`)
+        this.urls = this.urls.filter(u => u.id !== id)
+        
+        if (this.currentUrl?.id === id) {
+          this.currentUrl = null
+        }
+      } catch (error: any) {
+        this.handleError(error, 'Error deleting URL')
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    handleError(error: any, context: string) {
+      this.error = error.response?.data?.message || error.message
+      console.error(`${context}:`, error)
+      return this.error
+    }
+  },
+
+  getters: {
+    getUrlById: (state) => (id: number) => {
+      return state.urls.find(u => u.id === id)
+    },
+    
+    urlsByDemande: (state) => (demandeId: number) => {
+      return state.urls.filter(u => u.demande_id === demandeId)
+    },
+    
+    totalUrls: (state) => state.urls.length
+  }
+})
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\pages\welcome.vue
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+import UiRetroGrid from '../components/Ui/RetroGrid.vue'
+import ThemePopOver from '../components/ThemePopOver.vue' // Importez votre composant
+
+const router = useRouter()
+const colorMode = useColorMode() // Utilisez le colorMode si nécessaire
+
+const goToDashboard = () => router.push('/examples/dashboard')
+const goToSignIn = () => router.push('/login')
+
+// Optionnel: fonction pour basculer manuellement
+const toggleDarkMode = () => {
+  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
+</script>
+
+<template>
+  <!-- Background Grid -->
+  <UiRetroGrid />
+
+  <!-- Wrapper Container for Centering -->
+  <div class="relative z-10 min-h-screen flex items-center justify-center px-4">
+    <!-- Bouton de bascule en haut à droite -->
+    <div class="absolute top-4 right-4">
+      <!-- Solution 1: Utilisez votre ThemePopOver existant -->
+      <ThemePopOver />
+      
+      <!-- Solution alternative 2: Bouton simple si vous préférez -->
+      <!--
+      <button
+        @click="toggleDarkMode"
+        class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        :aria-label="colorMode.value === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+      >
+        <Icon 
+          :name="colorMode.value === 'dark' ? 'lucide:sun' : 'lucide:moon'" 
+          class="h-5 w-5" 
+        />
+      </button>
+      -->
+    </div>
+    
+    <div class="container mx-auto flex flex-col-reverse md:flex-row items-center justify-center gap-12 py-20">
+      <!-- Left: Title and Buttons -->
+      <div class="flex flex-col items-center md:items-start text-center md:text-left gap-8 md:w-1/2">
+        <h1 class="text-5xl md:text-6xl font-bold leading-tight bg-gradient-to-b from-[#ffd319] via-[#ff2975] to-[#8c1eff] text-transparent bg-clip-text">
+          welcome
+        </h1>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+          <UiButton size="lg" @click="goToSignIn">Sign In</UiButton>
+          <UiButton size="lg" @click="goToDashboard">Go To Dashboard</UiButton>
+        </div>
+      </div>
+
+      <!-- Right: Image -->
+      <div class="w-full md:w-1/2 flex items-center justify-center">
+        <img
+           src="/Ooredoo-Logo_CMYK_On-White-BG_FA-0.png"
+          alt="Company Logo"
+          class="w-full max-w-sm object-contain"
+          style="min-width: 400px; max-height: 300px;"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\DataTableOoredoo.vue
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+import UiRetroGrid from '../components/Ui/RetroGrid.vue'
+import ThemePopOver from '../components/ThemePopOver.vue' // Importez votre composant
+
+const router = useRouter()
+const colorMode = useColorMode() // Utilisez le colorMode si nécessaire
+
+const goToDashboard = () => router.push('/examples/dashboard')
+const goToSignIn = () => router.push('/login')
+
+// Optionnel: fonction pour basculer manuellement
+const toggleDarkMode = () => {
+  colorMode.preference = colorMode.value === 'dark' ? 'light' : 'dark'
+}
+</script>
+
+<template>
+  <!-- Background Grid -->
+  <UiRetroGrid />
+
+  <!-- Wrapper Container for Centering -->
+  <div class="relative z-10 min-h-screen flex items-center justify-center px-4">
+    <!-- Bouton de bascule en haut à droite -->
+    <div class="absolute top-4 right-4">
+      <!-- Solution 1: Utilisez votre ThemePopOver existant -->
+      <ThemePopOver />
+      
+      <!-- Solution alternative 2: Bouton simple si vous préférez -->
+      <!--
+      <button
+        @click="toggleDarkMode"
+        class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+        :aria-label="colorMode.value === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
+      >
+        <Icon 
+          :name="colorMode.value === 'dark' ? 'lucide:sun' : 'lucide:moon'" 
+          class="h-5 w-5" 
+        />
+      </button>
+      -->
+    </div>
+    
+    <div class="container mx-auto flex flex-col-reverse md:flex-row items-center justify-center gap-12 py-20">
+      <!-- Left: Title and Buttons -->
+      <div class="flex flex-col items-center md:items-start text-center md:text-left gap-8 md:w-1/2">
+        <h1 class="text-5xl md:text-6xl font-bold leading-tight bg-gradient-to-b from-[#ffd319] via-[#ff2975] to-[#8c1eff] text-transparent bg-clip-text">
+          welcome
+        </h1>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+          <UiButton size="lg" @click="goToSignIn">Sign In</UiButton>
+          <UiButton size="lg" @click="goToDashboard">Go To Dashboard</UiButton>
+        </div>
+      </div>
+
+      <!-- Right: Image -->
+      <div class="w-full md:w-1/2 flex items-center justify-center">
+        <img
+           src="/Ooredoo-Logo_CMYK_On-White-BG_FA-0.png"
+          alt="Company Logo"
+          class="w-full max-w-sm object-contain"
+          style="min-width: 400px; max-height: 300px;"
+        />
+      </div>
+    </div>
+  </div>
+</template>
+et j'ai cree ces fichier 
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\ClusterForm.vue
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\CreateDemandeWizard.vue
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\DemandeForm.vue
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\LogfileForm.vue
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\LogfilePatternForm.vue
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\ProcessForm.vue
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\RequeteSqlForm.vue
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\ScriptForm.vue
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\ServeurForm.vue
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\TrapSnmpForm.vue
+C:\Users\majdi\Desktop\Stage_pfe_ooredoo\ooredoo-front\app\components\ooredoo\adddemande\UrlForm.vue

@@ -145,7 +145,7 @@
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header bg-secondary text-white">
-                    Derniers Cautionnements
+                    Derniers Frais syndic
                 </div>
                 <div class="card-body recent-activity">
                     {% for cautionnement in latestCautionnements %}
@@ -186,7 +186,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script>
         // Cautionnements par Mois
         const cautionnementsMonthCtx = document.getElementById('cautionnementsMonthChart').getContext('2d');

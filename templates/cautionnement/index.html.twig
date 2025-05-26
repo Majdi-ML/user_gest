@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste des Cautionnements{% endblock %}
+{% block title %}Liste des Frais Syndics{% endblock %}
 
 {% block css %}
     {{ parent() }}
@@ -42,10 +42,10 @@
 
 {% block body %}
 <div class="container mt-4">
-    <h1 class="mb-4">💰 Cautionnements</h1>
+    <h1 class="mb-4">💰 Frais Syndic</h1>
 
     <div class="mb-3 text-end">
-        <a href="{{ path('app_cautionnement_new') }}" class="btn btn-success">➕ Nouveau cautionnement</a>
+        <a href="{{ path('app_cautionnement_new') }}" class="btn btn-success">➕ Nouveau </a>
     </div>
 
     <div class="card mb-4">
@@ -89,7 +89,7 @@
     </div>
 
     <div class="alert alert-info">
-        💵 Total des cautionnements : <strong>{{ totalMontant }} TND</strong>
+        💵 Total des Frais : <strong id="totalMontant">{{ totalMontant }} TND</strong>
     </div>
 
     <div class="table-responsive">
@@ -152,7 +152,7 @@
             {% if cautionnements|length > 0 %}
                 <tfoot>
                     <tr class="table-info fw-bold">
-                        <td>{{ totalMontant }} TND</td>
+                        <td id="totalMontantFooter">{{ totalMontant }} TND</td>
                         <td colspan="8"></td>
                     </tr>
                 </tfoot>
@@ -364,12 +364,14 @@
                 $('#filterBuilder').empty();
                 addFilter();
                 $('#cautionnementsTable tbody tr').show();
+                updateTotalMontant(); // Update total after reset
             });
             
             // Fonction pour appliquer les filtres
             function applyFilters(filters, logic) {
                 if (filters.length === 0) {
                     $('#cautionnementsTable tbody tr').show();
+                    updateTotalMontant(); // Update total when no filters
                     return;
                 }
                 
@@ -470,6 +472,8 @@
                     
                     row.toggle(shouldShow);
                 });
+                
+                updateTotalMontant(); // Update total after applying filters
             }
             
             // Helper pour parser les dates au format d/m/Y
@@ -478,11 +482,27 @@
                 return new Date(parts[2], parts[1] - 1, parts[0]);
             }
 
+            // Fonction pour calculer et mettre à jour le total des montants visibles
+            function updateTotalMontant() {
+                let total = 0;
+                $('#cautionnementsTable tbody tr:visible').each(function() {
+                    const montantText = $(this).find('td').eq(0).text().replace(' TND', '').trim();
+                    const montant = parseFloat(montantText);
+                    if (!isNaN(montant)) {
+                        total += montant;
+                    }
+                });
+                total = total.toFixed(2); // Format to 2 decimal places
+                $('#totalMontant').text(total + ' TND');
+                $('#totalMontantFooter').text(total + ' TND');
+                return total;
+            }
+
             // Fonction pour collecter les données visibles
             function collectVisibleData() {
                 const data = [];
                 const headers = ['Montant', 'Date de Paiement', 'Mois', 'Année', 'Nature Paiement', 'Personne', 'Appartement', 'Utilisateur (email)'];
-                let total = {{ totalMontant }};
+                const total = updateTotalMontant(); // Get the dynamic total
 
                 $('table tbody tr:visible').each(function() {
                     const row = $(this);
@@ -526,7 +546,7 @@
 
                 // Ajouter un titre
                 doc.setFontSize(18);
-                doc.text('Liste des Cautionnements', 14, 22);
+                doc.text('Liste des Frais Syndics', 14, 22);
 
                 // Générer le tableau
                 doc.autoTable({
@@ -545,7 +565,7 @@
                 });
 
                 // Télécharger le PDF
-                doc.save('cautionnements.pdf');
+                doc.save('frais-syndic.pdf');
             });
 
             // Exporter en Excel
@@ -570,11 +590,14 @@
 
                 // Créer un classeur
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Cautionnements');
+                XLSX.utils.book_append_sheet(wb, ws, 'Frais Syndics');
 
                 // Télécharger le fichier Excel
-                XLSX.writeFile(wb, 'cautionnements.xlsx');
+                XLSX.writeFile(wb, 'frais-syndic.xlsx');
             });
+
+            // Update total on initial load
+            updateTotalMontant();
         });
     </script>
 {% endblock %}

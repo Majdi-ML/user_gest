@@ -107,9 +107,12 @@ $proprietaireFilter = $request->query->get('proprietaire', '');
     }
 
     #[Route('/{id}/edit', name: 'app_appartement_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Appartement $appartement, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Appartement $appartement, EntityManagerInterface $entityManager,PersonneRepository $personneRepository): Response
     {
-        $form = $this->createForm(AppartementType::class, $appartement);
+        $form = $this->createForm(AppartementType::class, $appartement, [
+            'proprietaires' => $personneRepository->findProprietaires(),
+            'locataires' => $personneRepository->findLocataires(),
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

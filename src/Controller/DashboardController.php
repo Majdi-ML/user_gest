@@ -40,6 +40,7 @@ class DashboardController extends AbstractController
         
         // Locataires actifs
         $activeLocataires = $personneRepo->findActiveLocataires();
+        dump($cautionnementsByMonth, $cautionnementsByYear, $depensesByMonth, $depensesByType);
 
         return $this->render('dashboard/index.html.twig', [
             'cautionnementsByMonth' => $cautionnementsByMonth,
@@ -52,6 +53,7 @@ class DashboardController extends AbstractController
             'latestCautionnements' => $latestCautionnements,
             'latestDepenses' => $latestDepenses,
             'activeLocataires' => $activeLocataires,
+            
         ]);
     }
 }

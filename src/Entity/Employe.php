@@ -38,10 +38,10 @@ class Employe
     #[ORM\ManyToOne(inversedBy: 'Employes')]
     private ?FonctionEmploye $fonctionEmploye = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE , nullable: true)]
     private ?\DateTimeInterface $date_debut = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE ,nullable: true)]
     private ?\DateTimeInterface $date_fin = null;
 
     public function getId(): ?int
@@ -150,7 +150,7 @@ class Employe
         return $this->date_debut;
     }
 
-    public function setDateDebut(\DateTimeInterface $date_debut): static
+    public function setDateDebut(?\DateTimeInterface $date_debut): static
     {
         $this->date_debut = $date_debut;
 
@@ -162,7 +162,7 @@ class Employe
         return $this->date_fin;
     }
 
-    public function setDateFin(\DateTimeInterface $date_fin): static
+    public function setDateFin(?\DateTimeInterface $date_fin): static
     {
         $this->date_fin = $date_fin;
 

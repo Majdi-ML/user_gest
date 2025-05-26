@@ -1,9 +1,9 @@
 <?php
-
 namespace App\Form;
 
 use App\Entity\Cnss;
 use App\Entity\Bureau;
+use App\Repository\BureauRepository; // Import the correct repository
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -16,6 +16,9 @@ class CnssType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $annees = range(date('Y'), date('Y') - 10);
+        $annees = array_combine($annees, $annees);
+
         $builder
             ->add('trimstre', ChoiceType::class, [
                 'choices' => [
@@ -28,9 +31,11 @@ class CnssType extends AbstractType
                 'label' => 'Trimestre',
                 'placeholder' => 'Sélectionnez un trimestre'
             ])
-            ->add('annee', NumberType::class, [
-                'attr' => ['class' => 'form-control'],
-                'label' => 'Année'
+            ->add('annee', ChoiceType::class, [
+                'choices' => $annees,
+                'label' => 'Année',
+                'placeholder' => 'Sélectionnez une année',
+                'attr' => ['class' => 'form-select']
             ])
             ->add('montant_totale', NumberType::class, [
                 'attr' => ['class' => 'form-control'],
@@ -38,7 +43,15 @@ class CnssType extends AbstractType
             ])
             ->add('bureau', EntityType::class, [
                 'class' => Bureau::class,
-                'choice_label' => 'nom',
+                'query_builder' => function (BureauRepository $er) { // Change EntityRepository to BureauRepository
+                    return $er->createQueryBuilder('b')
+                        ->join('b.status', 's')
+                        ->where('s.libelle = :active')
+                        ->setParameter('active', 'actif');
+                },
+                'choice_label' => function ($bureau) {
+                    return $bureau->getNom() . ' ' . $bureau->getPrenom();
+                },
                 'attr' => ['class' => 'form-select'],
                 'label' => 'Responsable',
                 'placeholder' => 'Sélectionnez un responsable'

@@ -38,6 +38,11 @@ class DepenseType extends AbstractType
                 'placeholder' => 'Sélectionner un type',
                 'attr' => ['class' => 'form-select'],
             ])
+            ->add('date_depense', DateType::class, [
+                'widget' => 'single_text',
+                'label' => 'Date de dépense',
+                'attr' => ['class' => 'form-control']
+                ])
             ->add('file', VichFileType::class, [
                 'label' => 'Fichier joint (PDF/Image)',
                 'required' => false,

@@ -17,22 +17,30 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 #[Route('/cautionnement')]
 class CautionnementController extends AbstractController
 {
-    #[Route('/get-appartements/{personneId}', name: 'get_appartements_by_personne')]
-    public function getAppartementsByPersonne(int $personneId, AppartementRepository $appartementRepo): JsonResponse
-    {
-        $appartements = $appartementRepo->findBy(['proprietaire' => $personneId]);
+    #[Route('/get-personnes/{appartementId}', name: 'get_personnes_by_appartement')]
+public function getPersonnesByAppartement(int $appartementId, AppartementRepository $appartementRepo): JsonResponse
+{
+    $appartement = $appartementRepo->find($appartementId);
 
-        $data = [];
-
-        foreach ($appartements as $appartement) {
-            $data[] = [
-                'id' => $appartement->getId(),
-                'text' => (string) $appartement, // grâce au __toString()
-            ];
-        }
-
-        return new JsonResponse($data);
+    if (!$appartement) {
+        return new JsonResponse(['error' => 'Appartement non trouvé'], 404);
     }
+
+    $proprietaire = $appartement->getProprietaire();
+
+    if (!$proprietaire) {
+        return new JsonResponse([]);
+    }
+
+    $data = [
+        [
+            'id' => $proprietaire->getId(),
+            'text' => $proprietaire->getNom() . ' ' . $proprietaire->getPrenom(),
+        ]
+    ];
+
+    return new JsonResponse($data);
+}
 
     #[Route('/', name: 'app_cautionnement_index', methods: ['GET'])]
     public function index(Request $request, CautionnementRepository $cautionnementRepository): Response
@@ -72,28 +80,61 @@ class CautionnementController extends AbstractController
     }
 
 
-    #[Route('/new', name: 'app_cautionnement_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager , Security $security): Response
-    {
-        $cautionnement = new Cautionnement();
-        $form = $this->createForm(CautionnementType::class, $cautionnement);
-        $form->handleRequest($request);
-        $user = $security->getUser();
+   #[Route('/new', name: 'app_cautionnement_new', methods: ['GET', 'POST'])]
+public function new(Request $request, EntityManagerInterface $entityManager, Security $security): Response
+{
+    $cautionnement = new Cautionnement();
+    $form = $this->createForm(CautionnementType::class, $cautionnement);
+    $form->handleRequest($request);
+    $user = $security->getUser();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $cautionnement->setDatePaiement(new \DateTime());
-            $cautionnement->setUser($user);
-            $entityManager->persist($cautionnement);
-            $entityManager->flush();
+    if ($form->isSubmitted() && $form->isValid()) {
+        $moisSelectionnes = $form->get('Mois')->getData();
 
-            return $this->redirectToRoute('app_cautionnement_index', [], Response::HTTP_SEE_OTHER);
+        if (empty($moisSelectionnes)) {
+            $this->addFlash('error', 'Veuillez sélectionner au moins un mois.');
+            return $this->renderForm('cautionnement/new.html.twig', [
+                'cautionnement' => $cautionnement,
+                'form' => $form,
+            ]);
         }
 
-        return $this->renderForm('cautionnement/new.html.twig', [
-            'cautionnement' => $cautionnement,
-            'form' => $form,
-        ]);
+        $appartement = $cautionnement->getAppartement();
+        $personne = $cautionnement->getPersonne();
+        if ($appartement && $personne && $appartement->getProprietaire() !== $personne) {
+            $this->addFlash('error', 'Le propriétaire sélectionné ne correspond pas à l\'appartement.');
+            return $this->renderForm('cautionnement/new.html.twig', [
+                'cautionnement' => $cautionnement,
+                'form' => $form,
+            ]);
+        }
+
+        foreach ($moisSelectionnes as $mois) {
+            $newCautionnement = new Cautionnement();
+            $newCautionnement->setMontant($cautionnement->getMontant());
+            $newCautionnement->setAnnee($cautionnement->getAnnee());
+            $newCautionnement->setMois($mois);
+            $newCautionnement->setPersonne($cautionnement->getPersonne());
+            $newCautionnement->setAppartement($cautionnement->getAppartement());
+            $newCautionnement->setNaturePaiement($cautionnement->getNaturePaiement());
+            $newCautionnement->setDatePaiement(new \DateTime());
+            $newCautionnement->setUser($user);
+
+            $entityManager->persist($newCautionnement);
+          
+        }
+
+        $entityManager->flush();
+
+        
+        return $this->redirectToRoute('app_cautionnement_index', [], Response::HTTP_SEE_OTHER);
     }
+
+    return $this->renderForm('cautionnement/new.html.twig', [
+        'cautionnement' => $cautionnement,
+        'form' => $form,
+    ]);
+}
 
     #[Route('/{id}', name: 'app_cautionnement_show', methods: ['GET'])]
     public function show(Cautionnement $cautionnement): Response

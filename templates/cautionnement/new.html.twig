@@ -1,42 +1,68 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Cautionnement{% endblock %}
+{% block title %}Frais Syndic{% endblock %}
 
 {% block body %}
-    <h1>Create new Cautionnement</h1>
+    <h1> Frais Syndic</h1>
 
-    {{ include('cautionnement/_form.html.twig') }}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
 
-    <a href="{{ path('app_cautionnement_index') }}">back to list</a>
+    {{ form_start(form) }}
+        {{ form_row(form.Montant) }}
+        {{ form_row(form.annee) }}
+        {{ form_row(form.Mois) }}
+        {{ form_row(form.appartement) }}
+        {{ form_row(form.Personne) }}
+        {{ form_row(form.Nature_Paiement) }}
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('app_cautionnement_index') }}">Retour à la liste</a>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $('.personne-select').on('change', function () {
-    const personneId = $(this).val();
-    const appartementSelect = $('.appartement-select');
+    <script>
+        $(document).ready(function () {
+            // Initially disable the personne field
+            $('.personne-select').prop('disabled', true);
 
-    appartementSelect.empty();
-    appartementSelect.append('<option>Chargement...</option>');
+            // When the appartement field changes
+            $('.appartement-select').on('change', function () {
+                const appartementId = $(this).val();
+                const personneSelect = $('.personne-select');
 
-    if (personneId) {
-        $.ajax({
-            url: '/cautionnement/get-appartements/' + personneId,
-            method: 'GET',
-            success: function (data) {
-                appartementSelect.empty();
-                if (data.length > 0) {
-                    data.forEach(function (appartement) {
-                        appartementSelect.append(
-                            `<option value="${appartement.id}">${appartement.text}</option>`
-                        );
+                // Clear and disable the personne field
+                personneSelect.empty().prop('disabled', true);
+                personneSelect.append('<option>Sélectionnez un appartement d\'abord</option>');
+
+                if (appartementId) {
+                    // Fetch the owner for the selected apartment
+                    $.ajax({
+                        url: '/cautionnement/get-personnes/' + appartementId,
+                        method: 'GET',
+                        success: function (data) {
+                            personneSelect.empty();
+                            if (data.length > 0) {
+                                personneSelect.prop('disabled', false);
+                                data.forEach(function (personne) {
+                                    personneSelect.append(
+                                        `<option value="${personne.id}" selected>${personne.text}</option>`
+                                    );
+                                });
+                            } else {
+                                personneSelect.append('<option>Aucun propriétaire trouvé</option>');
+                            }
+                        },
+                        error: function () {
+                            personneSelect.append('<option>Erreur lors du chargement</option>');
+                        }
                     });
-                } else {
-                    appartementSelect.append('<option>Aucun appartement</option>');
                 }
-            }
+            });
         });
-    }
-});
-</script>
-
+    </script>
 {% endblock %}
