@@ -45,45 +45,79 @@ public function getPersonnesByAppartement(int $appartementId, AppartementReposit
     #[Route('/', name: 'app_cautionnement_index', methods: ['GET'])]
     public function index(Request $request, CautionnementRepository $cautionnementRepository): Response
     {
-        $mois = $request->query->get('mois');
-        $annee = $request->query->get('annee');
+      // Fetch all cautionnements
+        $cautionnements = $cautionnementRepository->findAll();
 
-        $queryBuilder = $cautionnementRepository->createQueryBuilder('c');
-
-        if ($mois) {
-            $queryBuilder->andWhere('c.Mois = :mois')->setParameter('mois', $mois);
+        // Calculate total montant
+        $totalMontant = 0;
+        foreach ($cautionnements as $c) {
+            if ($c->getMontant()) {
+                $totalMontant += $c->getMontant()->getMontant();
+            }
         }
 
-        if ($annee) {
-            $dateDebut = new \DateTime("$annee-01-01");
-            $dateFin = new \DateTime("$annee-12-31");
-            $queryBuilder->andWhere('c.date_paiement BETWEEN :dateDebut AND :dateFin')
-                         ->setParameter('dateDebut', $dateDebut)
-                         ->setParameter('dateFin', $dateFin);
+        // Organize data by year and appartement
+        $dataByYear = [];
+        foreach ($cautionnements as $c) {
+            $year = $c->getAnnee();
+            $month = $c->getMois();
+            $monthNum = array_search($month, [
+                1 => 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+            ]);
+
+            if (!$year || !$month || !$monthNum) {
+                continue; // Skip if year or month is missing
+            }
+
+            // Unique key for grouping: appartement
+            $appartementObj = $c->getAppartement();
+$appartementKey = $appartementObj ? $appartementObj->getId() : '—';
+
+$personne = $c->getPersonne();
+$nom = $personne ? $personne->getNom() . ' ' . $personne->getPrenom() : '—';
+$proprietaire = $personne ? $personne->getNom() : '—';
+
+if (!isset($dataByYear[$year])) {
+    $dataByYear[$year] = [];
+}
+
+if (!isset($dataByYear[$year][$appartementKey])) {
+    $dataByYear[$year][$appartementKey] = [
+        'nom' => $nom,
+        'appartement' => $appartementObj,
+        'proprietaire' => $proprietaire,
+        'months' => array_fill(1, 12, 'Non'),
+        'details' => [],
+    ];
+}
+
+$dataByYear[$year][$appartementKey]['months'][$monthNum] = 'Oui';
+
+$dataByYear[$year][$appartementKey]['details'][] = [
+    'id' => $c->getId(),
+    'montant' => $c->getMontant() ? $c->getMontant()->getMontant() : null,
+    'mois' => $month,
+    'annee' => $year,
+    'naturePaiement' => $c->getNaturePaiement() ? $c->getNaturePaiement()->getNature() : null,
+    'personne' => $nom,
+    'appartement' => $appartementObj,
+    'utilisateur' => $c->getUser() ? $c->getUser()->getEmail() : null,
+];
         }
-
-        $cautionnements = $queryBuilder->getQuery()->getResult();
-
-        // ✅ Nouveau calcul du montant total
-        $totalMontant = array_reduce($cautionnements, function ($carry, $c) {
-            $montantObj = $c->getMontant(); // par exemple un objet FraisSyndic
-            $montant = $montantObj ? $montantObj->getMontant() : 0;
-            return $carry + $montant;
-        }, 0);
 
         return $this->render('cautionnement/index.html.twig', [
             'cautionnements' => $cautionnements,
+            'dataByYear' => $dataByYear,
             'totalMontant' => $totalMontant,
-            'mois' => $mois,
-            'annee' => $annee,
         ]);
     }
+    
 
 
    #[Route('/new', name: 'app_cautionnement_new', methods: ['GET', 'POST'])]
 public function new(Request $request, EntityManagerInterface $entityManager, Security $security): Response
-{
-    $cautionnement = new Cautionnement();
+{$cautionnement = new Cautionnement();
     $form = $this->createForm(CautionnementType::class, $cautionnement);
     $form->handleRequest($request);
     $user = $security->getUser();
@@ -99,34 +133,42 @@ public function new(Request $request, EntityManagerInterface $entityManager, Sec
             ]);
         }
 
-        $appartement = $cautionnement->getAppartement();
-        $personne = $cautionnement->getPersonne();
-        if ($appartement && $personne && $appartement->getProprietaire() !== $personne) {
-            $this->addFlash('error', 'Le propriétaire sélectionné ne correspond pas à l\'appartement.');
+        $appartements = $form->get('appartement')->getData();
+        if (empty($appartements)) {
+            $this->addFlash('error', 'Veuillez sélectionner au moins un appartement.');
             return $this->renderForm('cautionnement/new.html.twig', [
                 'cautionnement' => $cautionnement,
                 'form' => $form,
             ]);
         }
 
-        foreach ($moisSelectionnes as $mois) {
-            $newCautionnement = new Cautionnement();
-            $newCautionnement->setMontant($cautionnement->getMontant());
-            $newCautionnement->setAnnee($cautionnement->getAnnee());
-            $newCautionnement->setMois($mois);
-            $newCautionnement->setPersonne($cautionnement->getPersonne());
-            $newCautionnement->setAppartement($cautionnement->getAppartement());
-            $newCautionnement->setNaturePaiement($cautionnement->getNaturePaiement());
-            $newCautionnement->setDatePaiement(new \DateTime());
-            $newCautionnement->setUser($user);
+        foreach ($appartements as $appartement) {
+            $proprietaire = $appartement->getProprietaire();
+            if (!$proprietaire) {
+                $this->addFlash('error', 'L\'appartement sélectionné n\'a pas de propriétaire.');
+                return $this->renderForm('cautionnement/new.html.twig', [
+                    'cautionnement' => $cautionnement,
+                    'form' => $form,
+                ]);
+            }
 
-            $entityManager->persist($newCautionnement);
-          
+            foreach ($moisSelectionnes as $mois) {
+                $newCautionnement = new Cautionnement();
+                $newCautionnement->setMontant($cautionnement->getMontant());
+                $newCautionnement->setAnnee($cautionnement->getAnnee());
+                $newCautionnement->setMois($mois);
+                $newCautionnement->setPersonne($proprietaire); // Set proprietor based on apartment
+                $newCautionnement->setAppartement($appartement);
+                $newCautionnement->setNaturePaiement($cautionnement->getNaturePaiement());
+                $newCautionnement->setDatePaiement(new \DateTime());
+                $newCautionnement->setUser($user);
+
+                $entityManager->persist($newCautionnement);
+            }
         }
 
         $entityManager->flush();
 
-        
         return $this->redirectToRoute('app_cautionnement_index', [], Response::HTTP_SEE_OTHER);
     }
 

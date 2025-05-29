@@ -35,9 +35,9 @@ class EmployeType extends AbstractType
                 'label' => 'Salaire (DT)',
                 'required' => false
             ])
-            ->add('montant_cnss', NumberType::class, [
+            ->add('cnss', NumberType::class, [
                 'attr' => ['class' => 'form-control'],
-                'label' => 'Montant CNSS (DT)'
+                'label' => 'NUM CNSS'
             ])
             ->add('Couverture_sociale', CheckboxType::class, [
                 'label' => 'Couverture sociale',

@@ -3,7 +3,6 @@
 namespace App\Form;
 
 use App\Entity\Cautionnement;
-use App\Entity\Personne;
 use App\Entity\Appartement;
 use App\Entity\NaturePaiement;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -53,16 +52,11 @@ class CautionnementType extends AbstractType
             ->add('appartement', EntityType::class, [
                 'class' => Appartement::class,
                 'choice_label' => fn(Appartement $a) => (string) $a,
-                'placeholder' => 'Sélectionnez un appartement',
+                'placeholder' => 'Sélectionnez les appartements',
+                'multiple' => true,
+                'expanded' => false,
+                'mapped' => false,
                 'attr' => ['class' => 'form-select appartement-select']
-            ])
-            ->add('Personne', EntityType::class, [
-                'class' => Personne::class,
-                'choice_label' => fn(Personne $p) => $p->getNom() . ' ' . $p->getPrenom(),
-                'label' => 'Propriétaire',
-                'placeholder' => 'Sélectionnez un appartement d\'abord',
-                'attr' => ['class' => 'form-select personne-select', 'disabled' => 'disabled'],
-                'required' => true,
             ])
             ->add('Nature_Paiement', EntityType::class, [
                 'class' => NaturePaiement::class,

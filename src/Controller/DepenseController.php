@@ -14,13 +14,51 @@ use Symfony\Component\Security\Core\Security;
 #[Route('/depense')]
 class DepenseController extends AbstractController
 {
-    #[Route('/', name: 'app_depense_index', methods: ['GET'])]
+   #[Route('/', name: 'app_depense_index')]
     public function index(DepenseRepository $depenseRepository): Response
     {
+        $depenses = $depenseRepository->findAll();
+
+        // Group expenses by year and month
+        $depensesByYear = [];
+        foreach ($depenses as $depense) {
+            $date = $depense->getDateDepense(); // Adjust this method based on your Depense entity
+            if ($date) {
+                $year = $date->format('Y');
+                $month = $date->format('F'); // Full month name (e.g., "January")
+
+                if (!isset($depensesByYear[$year])) {
+                    $depensesByYear[$year] = [];
+                }
+
+                if (!isset($depensesByYear[$year][$month])) {
+                    $depensesByYear[$year][$month] = [
+                        'SALAIRE' => 0,
+                        'CNSS' => 0,
+                        'STEG' => 0,
+                        'SONEDE' => 0,
+                        'IMPOTS' => 0,
+                        'JARDINAGE' => 0,
+                        'PRODUITS_ENTRETIEN' => 0,
+                        'GROS_ŒUVRES_ENTRETIEN' => 0,
+                        'FRAIS_JURIDIQUE' => 0,
+                        'DIVERS' => 0,
+                    ];
+                }
+
+                // Map the expense type to the corresponding category and add the amount
+                $type = $depense->getType(); // Adjust this method based on your Depense entity
+                $montant = $depense->getMontant(); // Adjust this method based on your Depense entity
+                $depensesByYear[$year][$month][$type] += $montant;
+            }
+        }
+
         return $this->render('depense/index.html.twig', [
-            'depenses' => $depenseRepository->findAll(),
+            'depenses' => $depenses,
+            'depensesByYear' => $depensesByYear,
         ]);
     }
+
 
     #[Route('/new', name: 'app_depense_new', methods: ['GET', 'POST'])]
 public function new(Request $request, EntityManagerInterface $entityManager, Security $security): Response
@@ -31,7 +69,6 @@ public function new(Request $request, EntityManagerInterface $entityManager, Sec
     $user = $security->getUser();
 
     if ($form->isSubmitted() && $form->isValid()) {
-        $depense->setDateDepense(new \DateTime());
         $depense->setUser($user);
         $entityManager->persist($depense);
         $entityManager->flush();

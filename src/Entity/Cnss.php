@@ -27,10 +27,12 @@ class Cnss
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $attached_file = null;
 
-    #[ORM\ManyToOne(inversedBy: 'cnsses')]
-    private ?Bureau $bureau = null;
+    
     #[Vich\UploadableField(mapping: 'cnss_files', fileNameProperty: 'attached_file')]
     private ?File $cnssFile = null;
+
+    #[ORM\ManyToOne(inversedBy: 'cnsses')]
+    private ?Employe $employe = null;
 
     public function setCnssFile(?File $cnssFile = null): void
     {
@@ -96,17 +98,19 @@ class Cnss
         return $this;
     }
 
-    public function getBureau(): ?Bureau
+    public function getEmploye(): ?Employe
     {
-        return $this->bureau;
+        return $this->employe;
     }
 
-    public function setBureau(?Bureau $bureau): static
+    public function setEmploye(?Employe $employe): static
     {
-        $this->bureau = $bureau;
+        $this->employe = $employe;
 
         return $this;
     }
+
+   
 
  
 }

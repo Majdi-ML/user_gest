@@ -96,7 +96,7 @@
                 <th>Prénom</th>
                 <th>CIN</th>
                 <th>Salaire (DT)</th>
-                <th>CNSS (DT)</th>
+                <th>NUM CNSS</th>
                 <th>Couverture</th>
                 <th>Téléphone</th>
                 <th>Fonction</th>
@@ -112,7 +112,7 @@
                 data-prenom="{{ employe.Prenom }}"
                 data-cin="{{ employe.cin }}"
                 data-salaire="{{ employe.salaire }}"
-                data-cnss="{{ employe.montantCnss }}"
+                data-cnss="{{ employe.cnss }}"
                 data-couverture="{{ employe.CouvertureSociale ? 'true' : 'false' }}"
                 data-telephone="{{ employe.telephone }}"
                 data-fonction="{{ employe.fonctionEmploye ? employe.fonctionEmploye.libelle : '' }}"
@@ -123,7 +123,7 @@
                 <td>{{ employe.Prenom }}</td>
                 <td>{{ employe.cin }}</td>
                 <td>{{ employe.salaire|number_format(2, '.', ',') }}</td>
-                <td>{{ employe.montantCnss|number_format(2, '.', ',') }}</td>
+                <td>{{ employe.cnss|number_format(2, '.', ',') }}</td>
                 <td>{{ employe.CouvertureSociale ? '✅' : '❌' }}</td>
                 <td>{{ employe.telephone }}</td>
                 <td>{{ employe.fonctionEmploye ? employe.fonctionEmploye.libelle : '—' }}</td>
@@ -483,7 +483,7 @@
             // Fonction pour collecter les données visibles
             function collectVisibleData() {
                 const data = [];
-                const headers = ['ID', 'Nom', 'Prénom', 'CIN', 'Salaire (DT)', 'CNSS (DT)', 'Couverture', 'Téléphone', 'Fonction', 'Début', 'Fin'];
+                const headers = ['ID', 'Nom', 'Prénom', 'CIN', 'Salaire (DT)', 'NUM CNSS', 'Couverture', 'Téléphone', 'Fonction', 'Début', 'Fin'];
 
                 $('#employesTable tbody tr:visible').each(function() {
                     const row = $(this);
@@ -493,7 +493,7 @@
                         'Prénom': row.find('td').eq(2).text(),
                         'CIN': row.find('td').eq(3).text(),
                         'Salaire (DT)': row.find('td').eq(4).text(),
-                        'CNSS (DT)': row.find('td').eq(5).text(),
+                        'NUM CNSS': row.find('td').eq(5).text(),
                         'Couverture': row.find('td').eq(6).text(),
                         'Téléphone': row.find('td').eq(7).text(),
                         'Fonction': row.find('td').eq(8).text(),

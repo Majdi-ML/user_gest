@@ -16,64 +16,14 @@ use Symfony\Component\Routing\Annotation\Route;
 class AppartementController extends AbstractController
 {
     #[Route('/', name: 'app_appartement_index', methods: ['GET'])]
-    public function index(Request $request, AppartementRepository $appartementRepository): Response
-    {
-        // Récupérer les paramètres de filtrage
-        $blocFilter = $request->query->get('bloc', ''); // Définir une valeur par défaut vide si rien n'est sélectionné
-$etageFilter = $request->query->get('etage', ''); // Idem
-$locataireFilter = $request->query->get('locataire', ''); // Idem
-$proprietaireFilter = $request->query->get('proprietaire', ''); 
-    
-        // Critères de filtrage dynamiques
-        $criteria = [];
-        if ($blocFilter) {
-            $criteria['bloc'] = $blocFilter;
-        }
-        if ($etageFilter) {
-            $criteria['etage'] = $etageFilter;
-        }
-        if ($locataireFilter) {
-            $criteria['locataire'] = $locataireFilter;
-        }
-        if ($proprietaireFilter) {
-            $criteria['proprietaire'] = $proprietaireFilter;
-        }
-    
-        // Récupérer les appartements loués (avec locataire)
-        $appartementsLoues = $appartementRepository->findAppartementsLoues(
-            $criteria, // vos critères supplémentaires
-            'etage',   // champ de tri
-            'ASC'      // ordre de tri
-        );
-    
-        // Récupérer les appartements non loués (sans locataire)
-        $appartementsNonLoues = $appartementRepository->findBy(
-            array_merge($criteria, ['locataire' => null]),
-            ['etage' => 'ASC']
-        );
-    
-        // Récupérer les options pour les filtres
-        $blocs = $appartementRepository->findDistinctValues('bloc');
-        $etages = $appartementRepository->findDistinctValues('etage');
-        $locataires = $appartementRepository->findDistinctLocataires(); // Récupère les locataires avec nom et prénom
-        $proprietaires = $appartementRepository->findDistinctProprietaires(); // Récupère les propriétaires avec nom et prénom
-    
-        return $this->render('appartement/index.html.twig', [
-            'appartementsLoues' => $appartementsLoues,
-            'appartementsNonLoues' => $appartementsNonLoues,
-            'blocFilter' => $blocFilter,
-            'etageFilter' => $etageFilter,
-            'locataireFilter' => $locataireFilter,
-            'proprietaireFilter' => $proprietaireFilter,
-            'blocs' => $blocs,
-            'etages' => $etages,
-            'locataires' => $locataires, // Passer les locataires à la vue
-            'proprietaires' => $proprietaires, // Passer les propriétaires à la vue
-        ]);
-    }
-    
+    public function index(AppartementRepository $appartementRepository): Response
+{
+    $appartements = $appartementRepository->findAll();
 
-
+    return $this->render('appartement/index.html.twig', [
+        'appartements' => $appartements,
+    ]);
+}
 
     #[Route('/new', name: 'app_appartement_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager,PersonneRepository $personneRepository): Response

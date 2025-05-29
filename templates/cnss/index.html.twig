@@ -94,13 +94,13 @@
                     data-trimestre="{{ cnss.trimstre }}"
                     data-annee="{{ cnss.annee }}"
                     data-montant="{{ cnss.montantTotale }}"
-                    data-responsable="{{ cnss.bureau ? cnss.bureau.nom ~ ' ' ~ cnss.bureau.prenom : '' }}"
+                    data-responsable="{{ cnss.employe ? cnss.employe.nom ~ ' ' ~ cnss.employe.prenom : '' }}"
                     data-document="{{ cnss.attachedFile ? 'true' : 'false' }}">
                     <td>{{ cnss.id }}</td>
                     <td>{{ cnss.trimstre }}ème trimestre</td>
                     <td>{{ cnss.annee }}</td>
                     <td>{{ cnss.montantTotale|number_format(3, '.', ' ') }}</td>
-                    <td>{{ cnss.bureau ? cnss.bureau.nom ~ ' ' ~ cnss.bureau.prenom : '—' }}</td>
+                    <td>{{ cnss.employe ? cnss.employe.nom ~ ' ' ~ cnss.employe.prenom : '—' }}</td>
                     <td>
                         {% if cnss.attachedFile %}
                             <span class="badge bg-success">Document joint</span>

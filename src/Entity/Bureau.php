@@ -24,8 +24,7 @@ class Bureau
     #[ORM\Column(nullable: true)]
     private ?int $telephone = null;
 
-    #[ORM\OneToMany(mappedBy: 'bureau', targetEntity: Cnss::class)]
-    private Collection $cnsses;
+    
 
     #[ORM\ManyToOne(inversedBy: 'bureaus')]
     private ?StatusBureau $status = null;
@@ -41,7 +40,7 @@ class Bureau
 
     public function __construct()
     {
-        $this->cnsses = new ArrayCollection();
+       
     }
 
     public function getId(): ?int
@@ -85,35 +84,6 @@ class Bureau
         return $this;
     }
 
-    /**
-     * @return Collection<int, Cnss>
-     */
-    public function getCnsses(): Collection
-    {
-        return $this->cnsses;
-    }
-
-    public function addCnss(Cnss $cnss): static
-    {
-        if (!$this->cnsses->contains($cnss)) {
-            $this->cnsses->add($cnss);
-            $cnss->setBureau($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCnss(Cnss $cnss): static
-    {
-        if ($this->cnsses->removeElement($cnss)) {
-            // set the owning side to null (unless already changed)
-            if ($cnss->getBureau() === $this) {
-                $cnss->setBureau(null);
-            }
-        }
-
-        return $this;
-    }
 
     public function getStatus(): ?StatusBureau
     {

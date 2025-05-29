@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\EmployeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -27,7 +29,7 @@ class Employe
     private ?float $salaire = null;
 
     #[ORM\Column]
-    private ?float $montant_cnss = null;
+    private ?float $cnss = null;
 
     #[ORM\Column(nullable: true)]
     private ?bool $Couverture_sociale = null;
@@ -43,6 +45,14 @@ class Employe
 
     #[ORM\Column(type: Types::DATE_MUTABLE ,nullable: true)]
     private ?\DateTimeInterface $date_fin = null;
+
+    #[ORM\OneToMany(mappedBy: 'employe', targetEntity: Cnss::class)]
+    private Collection $cnsses;
+
+    public function __construct()
+    {
+        $this->cnsses = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -97,14 +107,14 @@ class Employe
         return $this;
     }
 
-    public function getMontantCnss(): ?float
+    public function getCnss(): ?float
     {
-        return $this->montant_cnss;
+        return $this->cnss;
     }
 
-    public function setMontantCnss(float $montant_cnss): static
+    public function setCnss(float $cnss): static
     {
-        $this->montant_cnss = $montant_cnss;
+        $this->cnss = $cnss;
 
         return $this;
     }
@@ -165,6 +175,36 @@ class Employe
     public function setDateFin(?\DateTimeInterface $date_fin): static
     {
         $this->date_fin = $date_fin;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Cnss>
+     */
+    public function getCnsses(): Collection
+    {
+        return $this->cnsses;
+    }
+
+    public function addCnss(Cnss $cnss): static
+    {
+        if (!$this->cnsses->contains($cnss)) {
+            $this->cnsses->add($cnss);
+            $cnss->setEmploye($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCnss(Cnss $cnss): static
+    {
+        if ($this->cnsses->removeElement($cnss)) {
+            // set the owning side to null (unless already changed)
+            if ($cnss->getEmploye() === $this) {
+                $cnss->setEmploye(null);
+            }
+        }
 
         return $this;
     }

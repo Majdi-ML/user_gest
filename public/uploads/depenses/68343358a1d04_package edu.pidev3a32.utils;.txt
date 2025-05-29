@@ -1,0 +1,43 @@
+package edu.pidev3a32.utils;
+
+import kong.unirest.HttpResponse;
+import kong.unirest.JsonNode;
+import kong.unirest.Unirest;
+import kong.unirest.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class CurrencyConverter {
+    private static final String API_KEY = "fca_live_98kNgczmuBbw1qZUrchovDZMz5vO3PGN0MKuveT8";
+    private static final String API_URL = "https://api.freecurrencyapi.com/v1/latest?apikey=fca_live_98kNgczmuBbw1qZUrchovDZMz5vO3PGN0MKuveT8";
+
+    private static Map<String, Double> exchangeRates = new HashMap<>();
+
+    public static void loadExchangeRates() {
+        HttpResponse<JsonNode> response = Unirest.get(API_URL)
+                .queryString("apikey", API_KEY)
+                .queryString("base_currency", "TND") // Devise de base
+                .asJson();
+
+        if (response.isSuccess()) {
+            JSONObject data = response.getBody().getObject().getJSONObject("data");
+
+            // Conversion explicite en Map<String, Double>
+            Map<String, Double> rates = new HashMap<>();
+            for (String currency : data.keySet()) {
+                rates.put(currency, data.getDouble(currency)); // Cast en Double
+            }
+
+            exchangeRates = rates;
+        }
+    }
+
+    public static double convert(double amount, String currency) {
+        return exchangeRates.containsKey(currency) ? amount * exchangeRates.get(currency) : amount;
+    }
+
+    public static Map<String, Double> getAvailableCurrencies() {
+        return exchangeRates;
+    }
+}

@@ -37,6 +37,15 @@
         .export-buttons {
             margin-bottom: 20px;
         }
+        .nav-tabs {
+            margin-bottom: 10px;
+        }
+        .paid-month {
+            color: green;
+        }
+        .unpaid-month {
+            color: red;
+        }
     </style>
 {% endblock %}
 
@@ -45,7 +54,7 @@
     <h1 class="mb-4">💰 Frais Syndic</h1>
 
     <div class="mb-3 text-end">
-        <a href="{{ path('app_cautionnement_new') }}" class="btn btn-success">➕ Nouveau </a>
+        <a href="{{ path('app_cautionnement_new') }}" class="btn btn-success">➕ Nouveau</a>
     </div>
 
     <div class="card mb-4">
@@ -92,74 +101,101 @@
         💵 Total des Frais : <strong id="totalMontant">{{ totalMontant }} TND</strong>
     </div>
 
-    <div class="table-responsive">
-        <table id="cautionnementsTable" class="table table-bordered table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Montant</th>
-                    <th>Date de Paiement</th>
-                    <th>Mois</th>
-                    <th>Année</th>
-                    <th>Nature Paiement</th>
-                    <th>Personne</th>
-                    <th>Appartement</th>
-                    <th>Utilisateur (email)</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for c in cautionnements %}
-                <tr data-id="{{ c.id }}"
-                    data-montant="{{ c.montant ? c.montant.montant : '' }}"
-                    data-date-paiement="{{ c.datePaiement ? c.datePaiement|date('Y-m-d') : '' }}"
-                    data-mois="{{ c.mois }}"
-                    data-annee="{{ c.annee }}"
-                    data-nature-paiement="{{ c.naturePaiement ? c.naturePaiement.nature : '' }}"
-                    data-personne="{{ c.personne ? c.personne.nom ~ ' ' ~ c.personne.prenom : '' }}"
-                    data-appartement="{{ c.Appartement ? c.Appartement : '' }}"
-                    data-utilisateur="{{ c.user ? c.user.email : '' }}">
-                    <td>
-                        {% if c.montant %}
-                            {{ c.montant.montant }} TND
-                        {% else %}
-                            —
-                        {% endif %}
-                    </td>
-                    <td>{{ c.datePaiement ? c.datePaiement|date('d/m/Y') : '' }}</td>
-                    <td>{{ c.mois }}</td>
-                    <td>{{ c.annee }}</td>
-                    <td>{{ c.naturePaiement ? c.naturePaiement.nature : '—' }}</td>
-                    <td>
-                        {% if c.personne %}
-                            {{ c.personne.nom }} {{ c.personne.prenom }}
-                        {% else %}
-                            —
-                        {% endif %}
-                    </td>
-                    <td>{{ c.Appartement ? c.Appartement : '—' }}</td>
-                    <td>{{ c.user ? c.user.email : '—' }}</td>
-                    <td>
-                        <a href="{{ path('app_cautionnement_show', {'id': c.id}) }}" class="btn btn-sm btn-outline-primary">Afficher</a>
-                        <a href="{{ path('app_cautionnement_edit', {'id': c.id}) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="9" class="text-center">Aucun cautionnement trouvé.</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-            {% if cautionnements|length > 0 %}
-                <tfoot>
-                    <tr class="table-info fw-bold">
-                        <td id="totalMontantFooter">{{ totalMontant }} TND</td>
-                        <td colspan="8"></td>
-                    </tr>
-                </tfoot>
-            {% endif %}
-        </table>
+    <ul class="nav nav-tabs" id="yearTabs" role="tablist">
+        {% for year, yearData in dataByYear %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if loop.first %}active{% endif %}" id="year-{{ year }}-tab" data-bs-toggle="tab" data-bs-target="#year-{{ year }}" type="button" role="tab" aria-controls="year-{{ year }}" aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ year }}</button>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="tab-content" id="yearTabContent">
+        {% for year, yearData in dataByYear %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="year-{{ year }}" role="tabpanel" aria-labelledby="year-{{ year }}-tab">
+                <div class="table-responsive">
+                    <table id="cautionnementsTable-{{ year }}" class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr><th>Appartement</th>
+                                <th>Propriétaire</th>
+                                
+                                <th>Année</th>
+                                <th>Janvier</th>
+                                <th>Février</th>
+                                <th>Mars</th>
+                                <th>Avril</th>
+                                <th>Mai</th>
+                                <th>Juin</th>
+                                <th>Juillet</th>
+                                <th>Août</th>
+                                <th>Septembre</th>
+                                <th>Octobre</th>
+                                <th>Novembre</th>
+                                <th>Décembre</th>
+                                <th>Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appartement, data in yearData %}
+                                <tr data-nom="{{ data.nom }}"
+                                    data-appartement="{{ data.appartement }}"
+                                    data-proprietaire="{{ data.proprietaire }}"
+                                    data-annee="{{ year }}"
+                                    data-details="{{ data.details|json_encode }}">
+                                     <td>{{ data.appartement }}</td>
+                                    <td>{{ data.nom }}</td>
+                                    <td>{{ year }}</td>
+                                    {% for month in 1..12 %}
+                                        <td class="text-center {% if data.months[month] == 'Oui' %}paid-month{% else %}unpaid-month{% endif %}">
+                                            {% if data.months[month] == 'Oui' %}
+                                                ✅
+                                            {% else %}
+                                                ❌
+                                            {% endif %}
+                                        </td>
+                                    {% endfor %}
+                                    <td class="text-center">
+                                        {% set total = 0 %}
+                                        {% for detail in data.details %}
+                                            {% set total = total + detail.montant %}
+                                        {% endfor %}
+                                        {{ total }} TND
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_cautionnement_show', {'id': data.details[0].id}) }}" class="btn btn-sm btn-outline-primary">Afficher</a>
+                                        <a href="{{ path('app_cautionnement_edit', {'id': data.details[0].id}) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="18" class="text-center">Aucun cautionnement trouvé pour {{ year }}.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% endfor %}
     </div>
 </div>
+
+<script type="text/javascript">
+    const cautionnementsDataByYear = {
+        {% for year, yearData in dataByYear %}
+            "{{ year }}": [
+                {% for appartement, data in yearData %}
+                    {
+                        nom: "{{ data.nom }}",
+                        appartement: "{{ data.appartement }}",
+                        proprietaire: "{{ data.proprietaire }}",
+                        details: {{ data.details|json_encode|raw }},
+                        months: {{ data.months|json_encode|raw }}
+                    }{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ]{% if not loop.last %},{% endif %}
+        {% endfor %}
+    };
+</script>
 {% endblock %}
 
 {% block js %}
@@ -174,13 +210,12 @@
         $(document).ready(function() {
             // Données pour les colonnes
             const columnData = {
-                montant: { type: 'number' },
-                'date-paiement': { type: 'date' },
-                mois: { type: 'text' },
-                annee: { type: 'number' },
-                'nature-paiement': { type: 'text' },
-                personne: { type: 'text' },
+                nom: { type: 'text' },
                 appartement: { type: 'text' },
+                proprietaire: { type: 'text' },
+                annee: { type: 'number' },
+                montant: { type: 'number' },
+                'nature-paiement': { type: 'text' },
                 utilisateur: { type: 'text' }
             };
             
@@ -207,18 +242,6 @@
                 { id: 'not_empty', text: "N'est pas vide" }
             ];
             
-            const dateOperators = [
-                { id: 'equals', text: 'Égal à' },
-                { id: 'not_equals', text: 'Différent de' },
-                { id: 'greater', text: 'Après le' },
-                { id: 'greater_equal', text: 'Après ou égal' },
-                { id: 'less', text: 'Avant le' },
-                { id: 'less_equal', text: 'Avant ou égal' },
-                { id: 'between', text: 'Entre' },
-                { id: 'empty', text: 'Est vide' },
-                { id: 'not_empty', text: "N'est pas vide" }
-            ];
-            
             // Ajouter un nouveau filtre
             function addFilter() {
                 const filterId = Date.now();
@@ -226,7 +249,7 @@
                 <div class="filter-container" data-filter-id="${filterId}">
                     <select class="form-select form-select-sm filter-column" style="width: 150px;">
                         ${Object.keys(columnData).map(col => 
-                            `<option value="${col}">${col.replace('date-paiement', 'Date de Paiement').replace('nature-paiement', 'Nature Paiement').replace('-', ' ').charAt(0).toUpperCase() + col.replace('date-paiement', 'Date de Paiement').replace('nature-paiement', 'Nature Paiement').replace('-', ' ').slice(1)}</option>`
+                            \`<option value="\${col}">\${col.replace('nature-paiement', 'Nature Paiement').replace('-', ' ').charAt(0).toUpperCase() + col.replace('nature-paiement', 'Nature Paiement').replace('-', ' ').slice(1)}</option>\`
                         ).join('')}
                     </select>
                     <select class="form-select form-select-sm filter-operator" style="width: 180px;">
@@ -234,12 +257,6 @@
                     </select>
                     <input type="text" class="form-control form-control-sm filter-value" placeholder="Valeur" style="display: none;">
                     <input type="number" class="form-control form-control-sm filter-value-number number-filter" placeholder="Valeur numérique" style="display: none;">
-                    <input type="text" class="form-control form-control-sm filter-value-date date-filter" placeholder="Date" style="display: none;">
-                    <div class="date-range-filter" style="display: none; gap: 5px;">
-                        <input type="text" class="form-control form-control-sm filter-value-date-start" placeholder="Date début">
-                        <span>et</span>
-                        <input type="text" class="form-control form-control-sm filter-value-date-end" placeholder="Date fin">
-                    </div>
                     <button class="btn btn-danger btn-sm remove-filter" type="button">
                         <i class="bi bi-trash"></i>
                     </button>
@@ -247,39 +264,23 @@
                 `;
                 $('#filterBuilder').append(filterHtml);
                 
-                // Initialiser le datepicker
-                $(`[data-filter-id="${filterId}"] .date-filter`).flatpickr({
-                    dateFormat: "d/m/Y",
-                    locale: "fr"
-                });
-                
-                $(`[data-filter-id="${filterId}"] .filter-value-date-start, [data-filter-id="${filterId}"] .filter-value-date-end`).flatpickr({
-                    dateFormat: "d/m/Y",
-                    locale: "fr"
-                });
-                
-                // Mettre à jour les opérateurs et les champs de valeur quand la colonne change
                 $(`[data-filter-id="${filterId}"] .filter-column`).change(function() {
                     updateFilterInputs(filterId);
                 }).trigger('change');
                 
-                // Mettre à jour le champ de valeur quand l'opérateur change
                 $(`[data-filter-id="${filterId}"] .filter-operator`).change(function() {
                     updateFilterInputs(filterId);
                 });
             }
             
-            // Mettre à jour les inputs en fonction de la colonne et de l'opérateur sélectionnés
             function updateFilterInputs(filterId) {
                 const container = $(`[data-filter-id="${filterId}"]`);
                 const column = container.find('.filter-column').val();
                 const operator = container.find('.filter-operator').val();
                 const columnType = columnData[column].type;
                 
-                // Mettre à jour les opérateurs disponibles
                 let operators;
                 if (columnType === 'number') operators = numberOperators;
-                else if (columnType === 'date') operators = dateOperators;
                 else operators = textOperators;
                 
                 const operatorSelect = container.find('.filter-operator');
@@ -289,22 +290,16 @@
                     operatorSelect.append(`<option value="${op.id}">${op.text}</option>`);
                 });
                 
-                // Conserver l'opérateur sélectionné si possible
                 if (operators.some(op => op.id === currentOperator)) {
                     operatorSelect.val(currentOperator);
                 }
                 
-                // Mettre à jour le champ de valeur
-                container.find('.filter-value, .filter-value-number, .filter-value-date, .date-range-filter').hide();
+                container.find('.filter-value, .filter-value-number').hide();
                 
                 if (operator === 'empty' || operator === 'not_empty') {
-                    // Pas de champ de valeur nécessaire
-                } else if (operator === 'between' && columnType === 'date') {
-                    container.find('.date-range-filter').show();
+                    // No value field needed
                 } else {
-                    if (columnType === 'date') {
-                        container.find('.filter-value-date').show();
-                    } else if (columnType === 'number') {
+                    if (columnType === 'number') {
                         container.find('.filter-value-number').show();
                     } else {
                         container.find('.filter-value').show();
@@ -312,18 +307,14 @@
                 }
             }
             
-            // Ajouter le premier filtre
             addFilter();
             
-            // Ajouter un nouveau filtre quand on clique sur le bouton
             $('#addFilterBtn').click(addFilter);
             
-            // Supprimer un filtre
             $('#filterBuilder').on('click', '.remove-filter', function() {
                 $(this).closest('.filter-container').remove();
             });
             
-            // Appliquer les filtres
             $('#applyFiltersBtn').click(function() {
                 const filters = [];
                 const logic = $('input[name="filterLogic"]:checked').val();
@@ -331,272 +322,228 @@
                 $('.filter-container').each(function() {
                     const column = $(this).find('.filter-column').val();
                     const operator = $(this).find('.filter-operator').val();
-                    let value1, value2;
+                    let value1;
                     
                     if (operator === 'empty' || operator === 'not_empty') {
                         filters.push({ column, operator, logic });
                         return;
                     }
                     
-                    if (operator === 'between' && columnData[column].type === 'date') {
-                        value1 = $(this).find('.filter-value-date-start').val();
-                        value2 = $(this).find('.filter-value-date-end').val();
-                        if (!value1 || !value2) return;
+                    if (columnData[column].type === 'number') {
+                        value1 = $(this).find('.filter-value-number').val();
                     } else {
-                        if (columnData[column].type === 'date') {
-                            value1 = $(this).find('.filter-value-date').val();
-                        } else if (columnData[column].type === 'number') {
-                            value1 = $(this).find('.filter-value-number').val();
-                        } else {
-                            value1 = $(this).find('.filter-value').val();
-                        }
-                        if (!value1) return;
+                        value1 = $(this).find('.filter-value').val();
                     }
+                    if (!value1) return;
                     
-                    filters.push({ column, operator, value1, value2, logic });
+                    filters.push({ column, operator, value1, logic });
                 });
                 
                 applyFilters(filters, logic);
             });
             
-            // Réinitialiser les filtres
             $('#resetFiltersBtn').click(function() {
                 $('#filterBuilder').empty();
                 addFilter();
-                $('#cautionnementsTable tbody tr').show();
-                updateTotalMontant(); // Update total after reset
+                $('.tab-pane table tbody tr').show();
+                updateTotalMontant();
             });
             
-            // Fonction pour appliquer les filtres
             function applyFilters(filters, logic) {
                 if (filters.length === 0) {
-                    $('#cautionnementsTable tbody tr').show();
-                    updateTotalMontant(); // Update total when no filters
+                    $('.tab-pane table tbody tr').show();
+                    updateTotalMontant();
                     return;
                 }
                 
-                $('#cautionnementsTable tbody tr').each(function() {
-                    const row = $(this);
-                    let matchResults = [];
+                $('.tab-pane').each(function() {
+                    const year = $(this).attr('id').replace('year-', '');
+                    const yearData = cautionnementsDataByYear[year] || [];
                     
-                    filters.forEach(filter => {
-                        const column = filter.column;
-                        const operator = filter.operator;
-                        let value = row.data(column);
-                        let matches = false;
+                    $(this).find('tbody tr').each(function() {
+                        const row = $(this);
+                        const rowNom = row.data('nom');
+                        const rowAppartement = row.data('appartement');
+                        const rowProprietaire = row.data('proprietaire');
+                        const rowAnnee = row.data('annee');
+                        const details = JSON.parse(row.data('details'));
+                        let matchResults = [];
                         
-                        // Gérer les cas vides
-                        if (value === '' || value === null || value === undefined) {
-                            if (operator === 'empty') matches = true;
-                            else if (operator === 'not_empty') matches = false;
-                            else matches = false;
+                        filters.forEach(filter => {
+                            const column = filter.column;
+                            const operator = filter.operator;
+                            let matches = false;
                             
-                            matchResults.push(matches);
-                            return;
-                        }
-                        
-                        // Convertir les valeurs selon le type
-                        if (columnData[column].type === 'number') {
-                            value = parseFloat(value);
-                            const filterValue = parseFloat(filter.value1);
-                            
-                            switch(operator) {
-                                case 'equals': matches = value === filterValue; break;
-                                case 'not_equals': matches = value !== filterValue; break;
-                                case 'greater': matches = value > filterValue; break;
-                                case 'greater_equal': matches = value >= filterValue; break;
-                                case 'less': matches = value < filterValue; break;
-                                case 'less_equal': matches = value <= filterValue; break;
-                                case 'empty': matches = isNaN(value); break;
-                                case 'not_empty': matches = !isNaN(value); break;
-                            }
-                        } 
-                        else if (columnData[column].type === 'date') {
-                            const rowDate = new Date(value);
-                            let filterDate1, filterDate2;
-                            
-                            if (operator === 'between') {
-                                filterDate1 = new Date(parseDate(filter.value1));
-                                filterDate2 = new Date(parseDate(filter.value2));
-                                matches = rowDate >= filterDate1 && rowDate <= filterDate2;
-                            } else {
-                                filterDate1 = new Date(parseDate(filter.value1));
-                                
-                                switch(operator) {
-                                    case 'equals': 
-                                        matches = rowDate.getTime() === filterDate1.getTime(); 
-                                        break;
-                                    case 'not_equals': 
-                                        matches = rowDate.getTime() !== filterDate1.getTime(); 
-                                        break;
-                                    case 'greater': 
-                                        matches = rowDate > filterDate1; 
-                                        break;
-                                    case 'greater_equal': 
-                                        matches = rowDate >= filterDate1; 
-                                        break;
-                                    case 'less': 
-                                        matches = rowDate < filterDate1; 
-                                        break;
-                                    case 'less_equal': 
-                                        matches = rowDate <= filterDate1; 
-                                        break;
+                            // Handle direct row data (nom, appartement, proprietaire, annee)
+                            if (['nom', 'appartement', 'proprietaire', 'annee'].includes(column)) {
+                                let value = row.data(column);
+                                if (value === '' || value === null || value === undefined) {
+                                    if (operator === 'empty') matches = true;
+                                    else if (operator === 'not_empty') matches = false;
+                                    else matches = false;
+                                    matchResults.push(matches);
+                                    return;
                                 }
+                                
+                                if (column === 'annee') {
+                                    value = parseFloat(value);
+                                    const filterValue = parseFloat(filter.value1);
+                                    switch(operator) {
+                                        case 'equals': matches = value === filterValue; break;
+                                        case 'not_equals': matches = value !== filterValue; break;
+                                        case 'greater': matches = value > filterValue; break;
+                                        case 'greater_equal': matches = value >= filterValue; break;
+                                        case 'less': matches = value < filterValue; break;
+                                        case 'less_equal': matches = value <= filterValue; break;
+                                    }
+                                } else {
+                                    value = String(value).toLowerCase();
+                                    const filterValue = String(filter.value1).toLowerCase();
+                                    switch(operator) {
+                                        case 'equals': matches = value === filterValue; break;
+                                        case 'not_equals': matches = value !== filterValue; break;
+                                        case 'contains': matches = value.includes(filterValue); break;
+                                        case 'not_contains': matches = !value.includes(filterValue); break;
+                                        case 'starts_with': matches = value.startsWith(filterValue); break;
+                                        case 'ends_with': matches = value.endsWith(filterValue); break;
+                                    }
+                                }
+                                matchResults.push(matches);
+                                return;
                             }
-                        } 
-                        else {
-                            // Texte
-                            value = String(value).toLowerCase();
-                            const filterValue = String(filter.value1).toLowerCase();
                             
-                            switch(operator) {
-                                case 'equals': matches = value === filterValue; break;
-                                case 'not_equals': matches = value !== filterValue; break;
-                                case 'contains': matches = value.includes(filterValue); break;
-                                case 'not_contains': matches = !value.includes(filterValue); break;
-                                case 'starts_with': matches = value.startsWith(filterValue); break;
-                                case 'ends_with': matches = value.endsWith(filterValue); break;
-                            }
+                            // Handle detailed data (montant, nature-paiement, utilisateur)
+                            let detailMatches = details.map(detail => {
+                                let value = detail[column];
+                                if (value === '' || value === null || value === undefined) {
+                                    if (operator === 'empty') return true;
+                                    else if (operator === 'not_empty') return false;
+                                    else return false;
+                                }
+                                
+                                if (columnData[column].type === 'number') {
+                                    value = parseFloat(value);
+                                    const filterValue = parseFloat(filter.value1);
+                                    switch(operator) {
+                                        case 'equals': return value === filterValue;
+                                        case 'not_equals': return value !== filterValue;
+                                        case 'greater': return value > filterValue;
+                                        case 'greater_equal': return value >= filterValue;
+                                        case 'less': return value < filterValue;
+                                        case 'less_equal': return value <= filterValue;
+                                        case 'empty': return isNaN(value);
+                                        case 'not_empty': return !isNaN(value);
+                                    }
+                                } else {
+                                    value = String(value).toLowerCase();
+                                    const filterValue = String(filter.value1).toLowerCase();
+                                    switch(operator) {
+                                        case 'equals': return value === filterValue;
+                                        case 'not_equals': return value !== filterValue;
+                                        case 'contains': return value.includes(filterValue);
+                                        case 'not_contains': return !value.includes(filterValue);
+                                        case 'starts_with': return value.startsWith(filterValue);
+                                        case 'ends_with': return value.endsWith(filterValue);
+                                    }
+                                }
+                                return false;
+                            });
+                            
+                            matches = detailMatches.some(m => m);
+                            matchResults.push(matches);
+                        });
+                        
+                        let shouldShow;
+                        if (logic === 'AND') {
+                            shouldShow = matchResults.length > 0 && matchResults.every(m => m);
+                        } else {
+                            shouldShow = matchResults.some(m => m);
                         }
                         
-                        matchResults.push(matches);
+                        row.toggle(shouldShow);
                     });
-                    
-                    // Appliquer la logique AND ou OR
-                    let shouldShow;
-                    if (logic === 'AND') {
-                        shouldShow = matchResults.length > 0 && matchResults.every(m => m);
-                    } else { // OR
-                        shouldShow = matchResults.some(m => m);
-                    }
-                    
-                    row.toggle(shouldShow);
                 });
                 
-                updateTotalMontant(); // Update total after applying filters
-            }
-            
-            // Helper pour parser les dates au format d/m/Y
-            function parseDate(dateStr) {
-                const parts = dateStr.split('/');
-                return new Date(parts[2], parts[1] - 1, parts[0]);
+                updateTotalMontant();
             }
 
-            // Fonction pour calculer et mettre à jour le total des montants visibles
             function updateTotalMontant() {
                 let total = 0;
-                $('#cautionnementsTable tbody tr:visible').each(function() {
-                    const montantText = $(this).find('td').eq(0).text().replace(' TND', '').trim();
-                    const montant = parseFloat(montantText);
-                    if (!isNaN(montant)) {
-                        total += montant;
-                    }
+                $('.tab-pane.show.active table tbody tr:visible').each(function() {
+                    const details = JSON.parse($(this).data('details'));
+                    details.forEach(detail => {
+                        const montant = parseFloat(detail.montant);
+                        if (!isNaN(montant)) {
+                            total += montant;
+                        }
+                    });
                 });
-                total = total.toFixed(2); // Format to 2 decimal places
+                total = total.toFixed(2);
                 $('#totalMontant').text(total + ' TND');
-                $('#totalMontantFooter').text(total + ' TND');
-                return total;
             }
 
-            // Fonction pour collecter les données visibles
-            function collectVisibleData() {
+            function collectVisibleData(year) {
                 const data = [];
-                const headers = ['Montant', 'Date de Paiement', 'Mois', 'Année', 'Nature Paiement', 'Personne', 'Appartement', 'Utilisateur (email)'];
-                const total = updateTotalMontant(); // Get the dynamic total
-
-                $('table tbody tr:visible').each(function() {
+                const headers = ['Nom', 'Appartement', 'Propriétaire', 'Année', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre', 'Total'];
+                
+                $(`#cautionnementsTable-${year} tbody tr:visible`).each(function() {
                     const row = $(this);
-                    const montantText = row.find('td').eq(0).text().replace(' TND', '').trim();
                     const rowData = {
-                        'Montant': montantText,
-                        'Date de Paiement': row.find('td').eq(1).text(),
-                        'Mois': row.find('td').eq(2).text(),
+                        'Nom': row.find('td').eq(0).text(),
+                        'Appartement': row.find('td').eq(1).text(),
+                        'Propriétaire': row.find('td').eq(2).text(),
                         'Année': row.find('td').eq(3).text(),
-                        'Nature Paiement': row.find('td').eq(4).text(),
-                        'Personne': row.find('td').eq(5).text(),
-                        'Appartement': row.find('td').eq(6).text(),
-                        'Utilisateur (email)': row.find('td').eq(7).text()
+                        'Janvier': row.find('td').eq(4).text(),
+                        'Février': row.find('td').eq(5).text(),
+                        'Mars': row.find('td').eq(6).text(),
+                        'Avril': row.find('td').eq(7).text(),
+                        'Mai': row.find('td').eq(8).text(),
+                        'Juin': row.find('td').eq(9).text(),
+                        'Juillet': row.find('td').eq(10).text(),
+                        'Août': row.find('td').eq(11).text(),
+                        'Septembre': row.find('td').eq(12).text(),
+                        'Octobre': row.find('td').eq(13).text(),
+                        'Novembre': row.find('td').eq(14).text(),
+                        'Décembre': row.find('td').eq(15).text(),
+                        'Total': row.find('td').eq(16).text()
                     };
                     data.push(rowData);
                 });
 
-                // Ajouter la ligne de total si des données sont présentes
-                if (data.length > 0) {
-                    const totalRow = {
-                        'Montant': total + ' TND',
-                        'Date de Paiement': '',
-                        'Mois': '',
-                        'Année': '',
-                        'Nature Paiement': '',
-                        'Personne': '',
-                        'Appartement': '',
-                        'Utilisateur (email)': ''
-                    };
-                    data.push(totalRow);
-                }
-
                 return { headers, data };
             }
 
-            // Exporter en PDF
             $('#exportPdfBtn').click(function() {
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF();
-                const { headers, data } = collectVisibleData();
+                const activeYear = $('#yearTabs .nav-link.active').text();
+                const { headers, data } = collectVisibleData(activeYear);
 
-                // Ajouter un titre
                 doc.setFontSize(18);
-                doc.text('Liste des Frais Syndics', 14, 22);
+                doc.text(`Frais Syndic - ${activeYear}`, 14, 22);
 
-                // Générer le tableau
                 doc.autoTable({
                     head: [headers],
                     body: data.map(row => headers.map(header => row[header])),
                     startY: 30,
                     theme: 'striped',
                     headStyles: { fillColor: [100, 100, 100] },
-                    styles: { fontSize: 10 },
-                    didParseCell: function(data) {
-                        if (data.row.raw[0].includes('TND') && data.row.raw[1] === '') {
-                            data.cell.styles.fontStyle = 'bold';
-                            data.cell.styles.fillColor = [200, 230, 255];
-                        }
-                    }
+                    styles: { fontSize: 10 }
                 });
 
-                // Télécharger le PDF
-                doc.save('frais-syndic.pdf');
+                doc.save(`frais-syndic-${activeYear}.pdf`);
             });
 
-            // Exporter en Excel
             $('#exportExcelBtn').click(function() {
-                const { headers, data } = collectVisibleData();
+                const activeYear = $('#yearTabs .nav-link.active').text();
+                const { headers, data } = collectVisibleData(activeYear);
 
-                // Créer une feuille de calcul
                 const ws = XLSX.utils.json_to_sheet(data, { header: headers });
-
-                // Appliquer un style pour la ligne de total
-                if (data.length > 0 && data[data.length - 1]['Montant'].includes('TND')) {
-                    const range = XLSX.utils.decode_range(ws['!ref']);
-                    for (let C = range.s.c; C <= range.e.c; ++C) {
-                        const cellAddress = XLSX.utils.encode_cell({ r: range.e.r, c: C });
-                        if (!ws[cellAddress]) continue;
-                        ws[cellAddress].s = {
-                            font: { bold: true },
-                            fill: { fgColor: { rgb: 'C8E6FF' } }
-                        };
-                    }
-                }
-
-                // Créer un classeur
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Frais Syndics');
-
-                // Télécharger le fichier Excel
-                XLSX.writeFile(wb, 'frais-syndic.xlsx');
+                XLSX.writeFile(wb, `frais-syndic-${activeYear}.xlsx`);
             });
 
-            // Update total on initial load
             updateTotalMontant();
         });
     </script>

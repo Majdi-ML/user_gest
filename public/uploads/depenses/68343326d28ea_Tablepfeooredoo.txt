@@ -1,0 +1,242 @@
+Table Cluster :
+id
+ref
+etat_id(fk etat)
+nomDuRessourceGroupPackageServiceGuard
+adresseIp
+listeDesServeursConcernes
+logicielCluster
+version
+mode
+serveurActif
+complementsInformations
+demande_id(fk demande)
+************************************************************************************
+Table LogFiles :
+id
+ref
+etat_id(fk etat)
+refComposant
+rgSgSiCluster
+logfile
+localisation
+description
+formatLogfile
+separateur
+intervalleDePolling
+monitoredBy_id(fk monitoredBy)
+fourniEnAnnexe
+refService
+nomTemplate
+logConditions
+demande_id(fk demande)
+************************************************************************************
+Table LogFilesPatterns :
+id
+nRef
+ref
+etat_id(fk etat)
+signification
+identification
+criticite_id(fk crticite)
+messageAlarme
+instructions
+performAction
+acquittement
+complementsInformations
+refService
+objet
+logfile_id( fk logfiles)
+demande_id(fk demande)
+************************************************************************************
+Table Process :
+id
+ref
+etat_id(fk etat)
+refComposant
+process
+criticite_id(fk crticite)
+messageAlarme
+intervalleDePolling
+objet
+nomTemplate
+monitoredBy_id(fk monitoredBy)
+demande_id(fk demande)
+************************************************************************************
+Table Requetessql :
+id
+ref
+etat_id(fk etat)
+refComposant
+rgSgSiCluster
+requeteSql
+usernameDbName
+resultatAttenduDeLaRequete
+performAction
+criticite_id(fk crticite)
+messageAlarme
+instructions
+intervalleDePolling
+refService
+objet
+monitoredBy_id(fk monitoredBy)
+nomTemplate
+demande_id(fk demande)
+************************************************************************************
+Table Scripts :
+id
+ref
+etat_id(fk etat)
+refComposant
+rgSgSiCluster
+script
+codeErreur
+criticite_id(fk crticite)
+description
+instructions
+monitoredBy_id(fk monitoredBy)
+refService
+demande_id(fk demande)
+************************************************************************************
+Table Serveurs :
+id
+ref
+etat_id(fk etat)
+platforme_id(fk platforme)
+hostname
+fqdn
+type_id(fk type)
+modele
+os_id(fk os)
+verTechFirmware_id (fk verTechFirmware)
+cluster
+ipSource
+description
+socleStandardOmu_id (fk socleStandardOmu)
+complementsInformations
+demande_id(fk demande)
+************************************************************************************
+Table TrapsSnmp :
+id
+ref
+etat_id(fk etat)
+refComposant
+signification
+versionSnmp_id(fk versionSnmp)
+oid
+specificTrap
+variableBinding
+criticite_id(fk crticite)
+messageAlarme
+instructions
+acquittement
+mibAssocie
+objet
+compelementInformation
+demande_id(fk demande)
+************************************************************************************
+Table Url :
+id
+ref
+etat_id(fk etat)
+refComposant
+rgSgSiCluster
+url
+performAction
+criticite_id(fk crticite)
+messageAlarme
+instructions
+intervalleDePolling
+refService
+objet
+monitoredBy_id(fk monitoredBy)
+nomTemplate
+demande_id(fk demande)
+************************************************************************************
+Table demandes :
+id
+date_creation
+last_update_at
+status_id(fk status)
+user_id(fk user)
+serviceplatfom_id(fk Serviceplatform)
+************************************************************************************
+Table ServicePlatfom :
+id
+date_creation
+last_update_at
+user_id(fk user)
+support_id(fk support)
+************************************************************************************
+Table User :
+id
+username
+email
+password
+role_id(fk role)
+support_id(fk support)
+************************************************************************************
+Table support :
+id
+support
+*************************************************************************************
+Table role :
+id
+role
+*************************************************************************************
+tous string sauf $nRef de Table LogFilesPatterns et les ids de tables ennuls sont integer
+les tables
+Table TrapsSnmp, Table Scripts,Table Requetessql ,Table Process ,Table LogFilesPatterns,Table LogFiles,Table Cluster ont des relations many to many avec Table Serveurs
+*************************************************************************************
+les tables: 
+Table Url
+Table TrapsSnmp
+Table Serveurs
+Table Scripts
+Table Requetessql 
+Table Process
+Table LogFilesPatterns
+Table LogFiles
+Table Cluster
+Table demandes
+Table Serviceplatform
+Table support
+Tables user 
+Table Roles
+Tables externes à créer pour les énumérations:
+
+Table Etat
+id (clé primaire)
+nom (valeurs possibles : Inchangé, Modifié, Nouveau, Supprimé)
+
+Table MonitoredBy
+id (clé primaire)
+nom (valeurs possibles : OMU, Sitescope 1, Sitescope 2, NNMI, RUM, BPM)
+
+Table Criticite
+id (clé primaire)
+nom (valeurs possibles : Critique, Majeure, Normale)
+
+Table Platforme
+id (clé primaire)
+nom (valeurs possibles : Prod, Pré-Prod)
+
+Table TypeServeur
+id (clé primaire)
+nom (valeurs possibles : Autres, Baie, Firewall, Load_Balancer, Machine_Virtuelle, Proxy, Routeur, Serveur, Switch)
+
+Table OS
+id (clé primaire)
+nom (valeurs possibles : AIX, HPUX, Linux, Solaris, Windows)
+
+Table VersionSnmp
+id (clé primaire)
+nom (valeurs possibles : Version 1, Version 2)
+
+Table SocleStandardOmu
+id (clé primaire)
+nom (valeurs possibles : Oui, Non)
+
+Table Status
+id (clé primaire)
+nom (valeurs possibles : nouvelle, en validation , en traitement, test ,cloturée)

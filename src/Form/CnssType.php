@@ -2,8 +2,10 @@
 namespace App\Form;
 
 use App\Entity\Cnss;
-use App\Entity\Bureau;
-use App\Repository\BureauRepository; // Import the correct repository
+use App\Entity\Employe;
+
+use App\Repository\EmployeRepository;
+ // Import the correct repository
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -11,7 +13,7 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Vich\UploaderBundle\Form\Type\VichFileType;
-
+use Symfony\Component\Form\Extension\Core\Type\TextType; 
 class CnssType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -41,21 +43,19 @@ class CnssType extends AbstractType
                 'attr' => ['class' => 'form-control'],
                 'label' => 'Montant total (DT)'
             ])
-            ->add('bureau', EntityType::class, [
-                'class' => Bureau::class,
-                'query_builder' => function (BureauRepository $er) { // Change EntityRepository to BureauRepository
-                    return $er->createQueryBuilder('b')
-                        ->join('b.status', 's')
-                        ->where('s.libelle = :active')
-                        ->setParameter('active', 'actif');
-                },
-                'choice_label' => function ($bureau) {
-                    return $bureau->getNom() . ' ' . $bureau->getPrenom();
-                },
-                'attr' => ['class' => 'form-select'],
-                'label' => 'Responsable',
-                'placeholder' => 'Sélectionnez un responsable'
-            ])
+            ->add('employe', EntityType::class, [
+    'class' => Employe::class,
+    'query_builder' => function (EmployeRepository $er) {
+        return $er->createQueryBuilder('e')
+            ->orderBy('e.nom', 'ASC');
+    },
+    'choice_label' => function ($employe) {
+        return $employe->getNom() . ' ' . $employe->getPrenom();
+    },
+    'placeholder' => 'Sélectionnez un employé',
+    'label' => 'Employé',
+    'attr' => ['class' => 'form-select']
+])
             ->add('cnssFile', VichFileType::class, [
                 'label' => 'Déclaration CNSS (PDF/Image)',
                 'required' => false,

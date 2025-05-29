@@ -9,6 +9,7 @@
         .filter-row th {
             padding: 8px 3px !important;
             vertical-align: top;
+            cursor: pointer;
         }
         .filter-container {
             display: flex;
@@ -34,11 +35,18 @@
             font-weight: bold;
             margin: 0 10px;
         }
-        .appartement-type-tabs {
-            margin-bottom: 20px;
-        }
         .export-buttons {
             margin-bottom: 20px;
+        }
+        .sort-arrow {
+            display: inline-block;
+            margin-left: 5px;
+        }
+        .sort-asc::after {
+            content: " ↑";
+        }
+        .sort-desc::after {
+            content: " ↓";
         }
     </style>
 {% endblock %}
@@ -67,22 +75,6 @@
                 </div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label">Type d'appartement:</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input appartement-type" type="radio" name="appartementType" id="appartementTypeAll" value="all" checked>
-                    <label class="form-check-label" for="appartementTypeAll">Tous</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input appartement-type" type="radio" name="appartementType" id="appartementTypeLoue" value="loue">
-                    <label class="form-check-label" for="appartementTypeLoue">Loués</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input appartement-type" type="radio" name="appartementType" id="appartementTypeNonLoue" value="non_loue">
-                    <label class="form-check-label" for="appartementTypeNonLoue">Non Loués</label>
-                </div>
-            </div>
-
             <div id="filterBuilder">
                 <!-- Les filtres seront ajoutés ici dynamiquement -->
             </div>
@@ -107,107 +99,49 @@
         </button>
     </div>
 
-    <ul class="nav nav-tabs appartement-type-tabs" id="appartementTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="loues-tab" data-bs-toggle="tab" data-bs-target="#loues" type="button" role="tab" aria-controls="loues" aria-selected="true">✅ Appartements Loués</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="non-loues-tab" data-bs-toggle="tab" data-bs-target="#non-loues" type="button" role="tab" aria-controls="non-loues" aria-selected="false">❌ Appartements Non Loués</button>
-        </li>
-    </ul>
-
-    <div class="tab-content" id="appartementTabContent">
-        <div class="tab-pane fade show active" id="loues" role="tabpanel" aria-labelledby="loues-tab">
-            <table class="table table-bordered table-striped mb-5">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Numéro</th>
-                        <th>Type</th>
-                        <th>Étage</th>
-                        <th>Bloc</th>
-                        <th>Occupé</th>
-                        <th>Locataire</th>
-                        <th>Propriétaire</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for appartement in appartementsLoues %}
-                    <tr data-id="{{ appartement.id }}"
-                        data-type="loue"
-                        data-numero="{{ appartement.numero }}"
-                        data-type-appartement="{{ appartement.type }}"
-                        data-etage="{{ appartement.etage }}"
-                        data-bloc="{{ appartement.bloc ? appartement.bloc.nom : '' }}"
-                        data-occupe="{{ appartement.estHabite ? 'Oui' : 'Non' }}"
-                        data-locataire="{{ appartement.locataire ? appartement.locataire.nom ~ ' ' ~ appartement.locataire.prenom : '' }}"
-                        data-proprietaire="{{ appartement.proprietaire ? appartement.proprietaire.nom ~ ' ' ~ appartement.proprietaire.prenom : '' }}">
-                        <td>{{ appartement.id }}</td>
-                        <td>{{ appartement.numero }}</td>
-                        <td>{{ appartement.type }}</td>
-                        <td>{{ appartement.etage }}</td>
-                        <td>{{ appartement.bloc ? appartement.bloc.nom : 'N/A' }}</td>
-                        <td>{{ appartement.estHabite ? '✅ Oui' : '❌ Non' }}</td>
-                        <td>{{ appartement.locataire ? appartement.locataire.nom ~ ' ' ~ appartement.locataire.prenom : 'X' }}</td>
-                        <td>{{ appartement.proprietaire ? appartement.proprietaire.nom ~ ' ' ~ appartement.proprietaire.prenom : 'X' }}</td>
-                        <td>
-                            <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}" class="btn btn-sm btn-primary">Voir</a>
-                            <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="9" class="text-center">Aucun appartement loué trouvé</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <div class="tab-pane fade" id="non-loues" role="tabpanel" aria-labelledby="non-loues-tab">
-            <table class="table table-bordered table-striped">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Numéro</th>
-                        <th>Type</th>
-                        <th>Étage</th>
-                        <th>Bloc</th>
-                        <th>Occupé</th>
-                        <th>Locataire</th>
-                        <th>Propriétaire</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for appartement in appartementsNonLoues %}
-                    <tr data-id="{{ appartement.id }}"
-                        data-type="non_loue"
-                        data-numero="{{ appartement.numero }}"
-                        data-type-appartement="{{ appartement.type }}"
-                        data-etage="{{ appartement.etage }}"
-                        data-bloc="{{ appartement.bloc ? appartement.bloc.nom : '' }}"
-                        data-occupe="{{ appartement.estHabite ? 'Oui' : 'Non' }}"
-                        data-locataire=""
-                        data-proprietaire="{{ appartement.proprietaire ? appartement.proprietaire.nom ~ ' ' ~ appartement.proprietaire.prenom : '' }}">
-                        <td>{{ appartement.id }}</td>
-                        <td>{{ appartement.numero }}</td>
-                        <td>{{ appartement.type }}</td>
-                        <td>{{ appartement.etage }}</td>
-                        <td>{{ appartement.bloc ? appartement.bloc.nom : 'N/A' }}</td>
-                        <td>{{ appartement.estHabite ? '✅ Oui' : '❌ Non' }}</td>
-                        <td><span class="text-muted">X</span></td>
-                        <td>{{ appartement.proprietaire ? appartement.proprietaire.nom ~ ' ' ~ appartement.proprietaire.prenom : 'X' }}</td>
-                        <td>
-                            <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}" class="btn btn-sm btn-primary">Voir</a>
-                            <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="9" class="text-center">Aucun appartement non loué trouvé</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped mb-5">
+            <thead class="table-light">
+                <tr>
+                    <th data-sort="id">ID<span class="sort-arrow"></span></th>
+                    <th data-sort="numero" class="sort-active sort-asc">Numéro<span class="sort-arrow"></span></th>
+                    <th data-sort="type-appartement">Type<span class="sort-arrow"></span></th>
+                    <th data-sort="etage">Étage<span class="sort-arrow"></span></th>
+                    <th data-sort="bloc">Bloc<span class="sort-arrow"></span></th>
+                    <th data-sort="occupe">Occupé<span class="sort-arrow"></span></th>
+                    <th data-sort="locataire">Locataire<span class="sort-arrow"></span></th>
+                    <th data-sort="proprietaire">Propriétaire<span class="sort-arrow"></span></th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for appartement in appartements %}
+                <tr data-id="{{ appartement.id }}"
+                    data-numero="{{ appartement.numero }}"
+                    data-type-appartement="{{ appartement.type }}"
+                    data-etage="{{ appartement.etage }}"
+                    data-bloc="{{ appartement.bloc ? appartement.bloc.nom : '' }}"
+                    data-occupe="{{ appartement.estHabite ? 'Oui' : 'Non' }}"
+                    data-locataire="{{ appartement.locataire ? appartement.locataire.nom ~ ' ' ~ appartement.locataire.prenom : '' }}"
+                    data-proprietaire="{{ appartement.proprietaire ? appartement.proprietaire.nom ~ ' ' ~ appartement.proprietaire.prenom : '' }}">
+                    <td>{{ appartement.id }}</td>
+                    <td>{{ appartement.numero }}</td>
+                    <td>{{ appartement.type }}</td>
+                    <td>{{ appartement.etage }}</td>
+                    <td>{{ appartement.bloc ? appartement.bloc.nom : 'N/A' }}</td>
+                    <td>{{ appartement.estHabite ? '✅ Oui' : '❌ Non' }}</td>
+                    <td>{{ appartement.locataire ? appartement.locataire.nom ~ ' ' ~ appartement.locataire.prenom : 'X' }}</td>
+                    <td>{{ appartement.proprietaire ? appartement.proprietaire.nom ~ ' ' ~ appartement.proprietaire.prenom : 'X' }}</td>
+                    <td>
+                        <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}" class="btn btn-sm btn-primary">Voir</a>
+                        <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="9" class="text-center">Aucun appartement trouvé</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
@@ -222,9 +156,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
+            let sortColumn = 'numero';
+            let sortDirection = 'asc';
+
             // Données pour les colonnes
             const columnData = {
-                type: { type: 'text' },
+                id: { type: 'number' },
                 numero: { type: 'text' },
                 'type-appartement': { type: 'text' },
                 etage: { type: 'text' },
@@ -242,6 +179,17 @@
                 { id: 'not_contains', text: 'Ne contient pas' },
                 { id: 'starts_with', text: 'Commence par' },
                 { id: 'ends_with', text: 'Finit par' },
+                { id: 'empty', text: 'Est vide' },
+                { id: 'not_empty', text: "N'est pas vide" }
+            ];
+
+            const numberOperators = [
+                { id: 'equals', text: 'Égal à (=)' },
+                { id: 'not_equals', text: 'Différent de (!=)' },
+                { id: 'greater', text: 'Supérieur à (>)' },
+                { id: 'greater_equal', text: 'Supérieur ou égal (>=)' },
+                { id: 'less', text: 'Inférieur à (<)' },
+                { id: 'less_equal', text: 'Inférieur ou égal (<=)' },
                 { id: 'empty', text: 'Est vide' },
                 { id: 'not_empty', text: "N'est pas vide" }
             ];
@@ -267,26 +215,22 @@
                 `;
                 $('#filterBuilder').append(filterHtml);
 
-                // Mettre à jour les opérateurs et les champs de valeur quand la colonne change
                 $(`[data-filter-id="${filterId}"] .filter-column`).change(function() {
                     updateFilterInputs(filterId);
                 }).trigger('change');
 
-                // Mettre à jour le champ de valeur quand l'opérateur change
                 $(`[data-filter-id="${filterId}"] .filter-operator`).change(function() {
                     updateFilterInputs(filterId);
                 });
             }
 
-            // Mettre à jour les inputs en fonction de la colonne et de l'opérateur sélectionnés
             function updateFilterInputs(filterId) {
                 const container = $(`[data-filter-id="${filterId}"]`);
                 const column = container.find('.filter-column').val();
                 const operator = container.find('.filter-operator').val();
                 const columnType = columnData[column].type;
 
-                // Mettre à jour les opérateurs disponibles
-                let operators = textOperators;
+                let operators = columnType === 'number' ? numberOperators : textOperators;
 
                 const operatorSelect = container.find('.filter-operator');
                 const currentOperator = operatorSelect.val();
@@ -295,12 +239,10 @@
                     operatorSelect.append(`<option value="${op.id}">${op.text}</option>`);
                 });
 
-                // Conserver l'opérateur sélectionné si possible
                 if (operators.some(op => op.id === currentOperator)) {
                     operatorSelect.val(currentOperator);
                 }
 
-                // Mettre à jour le champ de valeur
                 if (operator === 'empty' || operator === 'not_empty') {
                     container.find('.filter-value').hide();
                 } else {
@@ -308,22 +250,17 @@
                 }
             }
 
-            // Ajouter le premier filtre
             addFilter();
 
-            // Ajouter un nouveau filtre quand on clique sur le bouton
             $('#addFilterBtn').click(addFilter);
 
-            // Supprimer un filtre
             $('#filterBuilder').on('click', '.remove-filter', function() {
                 $(this).closest('.filter-container').remove();
             });
 
-            // Appliquer les filtres
             $('#applyFiltersBtn').click(function() {
                 const filters = [];
                 const logic = $('input[name="filterLogic"]:checked').val();
-                const appartementType = $('input[name="appartementType"]:checked').val();
 
                 $('.filter-container').each(function() {
                     const column = $(this).find('.filter-column').val();
@@ -340,34 +277,21 @@
                     filters.push({ column, operator, value1, logic });
                 });
 
-                applyFilters(filters, logic, appartementType);
+                applyFilters(filters, logic);
             });
 
-            // Réinitialiser les filtres
             $('#resetFiltersBtn').click(function() {
                 $('#filterBuilder').empty();
                 addFilter();
-                $('input[name="appartementType"][value="all"]').prop('checked', true);
                 $('table tbody tr').show();
+                sortTable(sortColumn, sortDirection);
             });
 
-            // Fonction pour appliquer les filtres
-            function applyFilters(filters, logic, appartementType) {
+            function applyFilters(filters, logic) {
                 $('table tbody tr').each(function() {
                     const row = $(this);
                     let matchResults = [];
 
-                    // Filtrer d'abord par type d'appartement
-                    if (appartementType !== 'all') {
-                        const rowType = row.data('type');
-                        if ((appartementType === 'loue' && rowType !== 'loue') || 
-                            (appartementType === 'non_loue' && rowType !== 'non_loue')) {
-                            row.hide();
-                            return;
-                        }
-                    }
-
-                    // Si aucun filtre, on affiche la ligne
                     if (filters.length === 0) {
                         row.show();
                         return;
@@ -379,45 +303,100 @@
                         let value = row.data(column);
                         let matches = false;
 
-                        // Gérer les cas vides
                         if (value === '' || value === null || value === undefined) {
                             if (operator === 'empty') matches = true;
                             else if (operator === 'not_empty') matches = false;
                             else matches = false;
-                            
                             matchResults.push(matches);
                             return;
                         }
 
-                        // Texte
-                        value = String(value).toLowerCase();
-                        const filterValue = String(filter.value1).toLowerCase();
-
-                        switch(operator) {
-                            case 'equals': matches = value === filterValue; break;
-                            case 'not_equals': matches = value !== filterValue; break;
-                            case 'contains': matches = value.includes(filterValue); break;
-                            case 'not_contains': matches = !value.includes(filterValue); break;
-                            case 'starts_with': matches = value.startsWith(filterValue); break;
-                            case 'ends_with': matches = value.endsWith(filterValue); break;
+                        if (columnData[column].type === 'number') {
+                            value = parseFloat(value);
+                            const filterValue = parseFloat(filter.value1);
+                            switch(operator) {
+                                case 'equals': matches = value === filterValue; break;
+                                case 'not_equals': matches = value !== filterValue; break;
+                                case 'greater': matches = value > filterValue; break;
+                                case 'greater_equal': matches = value >= filterValue; break;
+                                case 'less': matches = value < filterValue; break;
+                                case 'less_equal': matches = value <= filterValue; break;
+                            }
+                        } else {
+                            value = String(value).toLowerCase();
+                            const filterValue = String(filter.value1).toLowerCase();
+                            switch(operator) {
+                                case 'equals': matches = value === filterValue; break;
+                                case 'not_equals': matches = value !== filterValue; break;
+                                case 'contains': matches = value.includes(filterValue); break;
+                                case 'not_contains': matches = !value.includes(filterValue); break;
+                                case 'starts_with': matches = value.startsWith(filterValue); break;
+                                case 'ends_with': matches = value.endsWith(filterValue); break;
+                            }
                         }
 
                         matchResults.push(matches);
                     });
 
-                    // Appliquer la logique AND ou OR
                     let shouldShow;
                     if (logic === 'AND') {
                         shouldShow = matchResults.length > 0 && matchResults.every(m => m);
-                    } else { // OR
+                    } else {
                         shouldShow = matchResults.some(m => m);
                     }
 
                     row.toggle(shouldShow);
                 });
+
+                sortTable(sortColumn, sortDirection); // Reapply sorting after filtering
             }
 
-            // Fonction pour collecter les données visibles
+            function sortTable(column, direction) {
+                const $tbody = $('table tbody');
+                const $rows = $tbody.find('tr:visible').get();
+
+                $rows.sort(function(a, b) {
+                    const aValue = $(a).data(column);
+                    const bValue = $(b).data(column);
+                    let comparison = 0;
+
+                    if (columnData[column].type === 'number') {
+                        comparison = parseFloat(aValue) - parseFloat(bValue);
+                    } else {
+                        comparison = aValue.localeCompare(bValue);
+                    }
+
+                    return direction === 'asc' ? comparison : -comparison;
+                });
+
+                $.each($rows, function(index, row) {
+                    $tbody.append(row);
+                });
+
+                // Update sort indicators
+                $('th').removeClass('sort-active sort-asc sort-desc');
+                $(`th[data-sort="${column}"]`).addClass('sort-active sort-' + direction);
+            }
+
+            // Click handler for sorting
+            $('th[data-sort]').click(function() {
+                const $this = $(this);
+                const column = $this.data('sort');
+
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
+
+                sortTable(sortColumn, sortDirection);
+            });
+
+            // Initial sort
+            sortTable(sortColumn, sortDirection);
+
+            // Fonction pour collecter les données visibles et triées
             function collectVisibleData() {
                 const data = [];
                 const headers = ['ID', 'Numéro', 'Type', 'Étage', 'Bloc', 'Occupé', 'Locataire', 'Propriétaire'];
@@ -446,11 +425,9 @@
                 const doc = new jsPDF();
                 const { headers, data } = collectVisibleData();
 
-                // Ajouter un titre
                 doc.setFontSize(18);
                 doc.text('Liste des Appartements', 14, 22);
 
-                // Générer le tableau
                 doc.autoTable({
                     head: [headers],
                     body: data.map(row => headers.map(header => row[header])),
@@ -460,7 +437,6 @@
                     styles: { fontSize: 10 }
                 });
 
-                // Télécharger le PDF
                 doc.save('appartements.pdf');
             });
 
@@ -468,14 +444,9 @@
             $('#exportExcelBtn').click(function() {
                 const { headers, data } = collectVisibleData();
 
-                // Créer une feuille de calcul
                 const ws = XLSX.utils.json_to_sheet(data, { header: headers });
-
-                // Créer un classeur
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Appartements');
-
-                // Télécharger le fichier Excel
                 XLSX.writeFile(wb, 'appartements.xlsx');
             });
         });

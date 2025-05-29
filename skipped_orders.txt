@@ -1,0 +1,12 @@
+64: Error - 500 Server Error: Internal Server Error for url: https://www.pizza-demo-v3.fr/APITICKET/?key=aIWssw6NrP-j2ghBkS0h6uZrnt8VuEvbOm0_-oYB5xA&id=2421&methode=details_commande&id_commande=64
+308: Error - HTTPSConnectionPool(host='www.pizza-demo-v3.fr', port=443): Read timed out. (read timeout=5)
+362: Error - HTTPSConnectionPool(host='www.pizza-demo-v3.fr', port=443): Read timed out. (read timeout=5)
+510: Error - HTTPSConnectionPool(host='www.pizza-demo-v3.fr', port=443): Read timed out. (read timeout=5)
+522: Error - HTTPSConnectionPool(host='www.pizza-demo-v3.fr', port=443): Read timed out. (read timeout=5)
+528: Error - HTTPSConnectionPool(host='www.pizza-demo-v3.fr', port=443): Read timed out. (read timeout=5)
+678: Error - 500 Server Error: Internal Server Error for url: https://www.pizza-demo-v3.fr/APITICKET/?key=aIWssw6NrP-j2ghBkS0h6uZrnt8VuEvbOm0_-oYB5xA&id=2421&methode=details_commande&id_commande=678
+721: Error - 500 Server Error: Internal Server Error for url: https://www.pizza-demo-v3.fr/APITICKET/?key=aIWssw6NrP-j2ghBkS0h6uZrnt8VuEvbOm0_-oYB5xA&id=2421&methode=details_commande&id_commande=721
+735: Error - HTTPSConnectionPool(host='www.pizza-demo-v3.fr', port=443): Read timed out. (read timeout=5)
+772: Error - 500 Server Error: Internal Server Error for url: https://www.pizza-demo-v3.fr/APITICKET/?key=aIWssw6NrP-j2ghBkS0h6uZrnt8VuEvbOm0_-oYB5xA&id=2421&methode=details_commande&id_commande=772
+780: Error - 500 Server Error: Internal Server Error for url: https://www.pizza-demo-v3.fr/APITICKET/?key=aIWssw6NrP-j2ghBkS0h6uZrnt8VuEvbOm0_-oYB5xA&id=2421&methode=details_commande&id_commande=780
+848: Error - 500 Server Error: Internal Server Error for url: https://www.pizza-demo-v3.fr/APITICKET/?key=aIWssw6NrP-j2ghBkS0h6uZrnt8VuEvbOm0_-oYB5xA&id=2421&methode=details_commande&id_commande=848
