@@ -10,7 +10,6 @@
         <div class="card-body">
             <table class="table table-striped mb-0">
                 <tbody>
-                    
                     <tr>
                         <th>👤 Nom</th>
                         <td>{{ personne.nom }}</td>
@@ -40,45 +39,74 @@
         </div>
     </div>
 
-    <h2 class="mb-3">💰 Frais syndic</h2>
+    <h2 class="mb-3">💰 Frais Syndic Règlement</h2>
 
-    {% if personne.cautionnements is not empty %}
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Montant</th>
-                        <th>Date Paiement</th>
-                        <th>Mois</th>
-                        <th>Appartement</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for cautionnement in personne.cautionnements %}
-                    <tr>
-                        <td>{{ cautionnement.montant.montant}} DT</td>
-                        <td>{{ cautionnement.datePaiement ? cautionnement.datePaiement|date('d/m/Y') : '—' }}</td>
-                        <td>{{ cautionnement.mois }}</td>
-                        <td>{{ cautionnement.annee }}</td>
-                        <td>{{ cautionnement.appartement }}</td>
-                    </tr>
+    {% if personne.status == 'proprietaire' %}
+        {% if personne.fraisSyndicReglements is not empty %}
+            {% set fraisByYear = {} %}
+            {% for frais in personne.fraisSyndicReglements %}
+                {% if frais.annee > 0 %} {# Only include valid years #}
+                    {% set year = frais.annee %}
+                    {% set fraisByYear = fraisByYear|merge({ (year): (fraisByYear[year] ?? [])|merge([frais]) }) %}
+                {% endif %}
+            {% endfor %}
+
+            {% if fraisByYear is not empty %}
+                {% for year, fraisList in fraisByYear|sort %}
+                    <h3 class="mt-4">Année {{ year }}</h3>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Montant</th>
+                                    <th>Mois</th>
+                                    <th>Appartement</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for frais in fraisList %}
+                                    <tr>
+                                        <td>{{ frais.totale|default(0) }} TND</td>
+                                        <td>
+                                            {% set months = [] %}
+                                            {% if frais.Janvier %} {% set months = months|merge(['Janvier']) %} {% endif %}
+                                            {% if frais.fevrier %} {% set months = months|merge(['Février']) %} {% endif %}
+                                            {% if frais.mars %} {% set months = months|merge(['Mars']) %} {% endif %}
+                                            {% if frais.avril %} {% set months = months|merge(['Avril']) %} {% endif %}
+                                            {% if frais.mai %} {% set months = months|merge(['Mai']) %} {% endif %}
+                                            {% if frais.juin %} {% set months = months|merge(['Juin']) %} {% endif %}
+                                            {% if frais.juillet %} {% set months = months|merge(['Juillet']) %} {% endif %}
+                                            {% if frais.aout %} {% set months = months|merge(['Août']) %} {% endif %}
+                                            {% if frais.septembre %} {% set months = months|merge(['Septembre']) %} {% endif %}
+                                            {% if frais.octobre %} {% set months = months|merge(['Octobre']) %} {% endif %}
+                                            {% if frais.novembre %} {% set months = months|merge(['Novembre']) %} {% endif %}
+                                            {% if frais.decembre %} {% set months = months|merge(['Décembre']) %} {% endif %}
+                                            {{ months is not empty ? months|join(', ') : '—' }}
+                                        </td>
+                                        <td>{{ frais.appartement.numero|default('—') }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 {% endfor %}
-                </tbody>
-            </table>
-        </div>
+            {% else %}
+                <div class="alert alert-warning">❌ Aucun frais syndic règlement avec une année valide enregistré pour cette personne.</div>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-warning">❌ Aucun frais syndic règlement enregistré pour cette personne.</div>
+        {% endif %}
     {% else %}
-        <div class="alert alert-warning">❌ Aucun cautionnement enregistré pour cette personne.</div>
+        <div class="alert alert-info">ℹ️ Cette personne n'est pas propriétaire, aucun frais syndic règlement à afficher.</div>
     {% endif %}
 
     <div class="mt-4 d-flex gap-2">
         <a href="{{ path('app_personne_index') }}" class="btn btn-secondary">
             ⬅️ Retour à la liste
         </a>
-
         <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-primary">
             ✏️ Modifier
         </a>
-
         {{ include('personne/_delete_form.html.twig') }}
     </div>
 </div>

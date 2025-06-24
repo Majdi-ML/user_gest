@@ -9,6 +9,7 @@
         .filter-row th {
             padding: 8px 3px !important;
             vertical-align: top;
+            cursor: pointer;
         }
         .filter-container {
             display: flex;
@@ -36,6 +37,16 @@
         }
         .export-buttons {
             margin-bottom: 20px;
+        }
+        .sort-arrow {
+            display: inline-block;
+            margin-left: 5px;
+        }
+        .sort-asc::after {
+            content: " ↑";
+        }
+        .sort-desc::after {
+            content: " ↓";
         }
     </style>
 {% endblock %}
@@ -91,17 +102,17 @@
     <table id="employesTable" class="table table-bordered table-striped">
         <thead class="table-light">
             <tr>
-                <th>ID</th>
-                <th>Nom</th>
-                <th>Prénom</th>
-                <th>CIN</th>
-                <th>Salaire (DT)</th>
-                <th>NUM CNSS</th>
-                <th>Couverture</th>
-                <th>Téléphone</th>
-                <th>Fonction</th>
-                <th>Début</th>
-                <th>Fin</th>
+                <th data-sort="id">ID<span class="sort-arrow"></span></th>
+                <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
+                <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
+                <th data-sort="cin">CIN<span class="sort-arrow"></span></th>
+                <th data-sort="salaire">Salaire (DT)<span class="sort-arrow"></span></th>
+                <th data-sort="cnss">NUM CNSS<span class="sort-arrow"></span></th>
+                <th data-sort="couverture">Couverture<span class="sort-arrow"></span></th>
+                <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
+                <th data-sort="fonction">Fonction<span class="sort-arrow"></span></th>
+                <th data-sort="debut">Début<span class="sort-arrow"></span></th>
+                <th data-sort="fin">Fin<span class="sort-arrow"></span></th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -154,6 +165,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
+            let sortColumn = 'nom';
+            let sortDirection = 'asc';
+
             // Données pour les colonnes
             const columnData = {
                 id: { type: 'number' },
@@ -292,7 +306,7 @@
                 // Mettre à jour le champ de valeur
                 container.find('.filter-value, .filter-value-number, .filter-value-date, .date-range-filter, .filter-value-boolean').hide();
                 
-                if (operator === 'empty' || operator === 'not_empty') {
+                if (operator === 'empty' || operator === 'not_empty' || operator === 'is_true' || operator === 'is_false') {
                     // Pas de champ de valeur nécessaire
                 } else if (operator === 'between' && columnType === 'date') {
                     container.find('.date-range-filter').show();
@@ -356,6 +370,7 @@
                 });
                 
                 applyFilters(filters, logic);
+                sortTable(sortColumn, sortDirection); // Réappliquer le tri après filtrage
             });
             
             // Réinitialiser les filtres
@@ -363,12 +378,16 @@
                 $('#filterBuilder').empty();
                 addFilter();
                 $('#employesTable tbody tr').show();
+                sortColumn = 'nom';
+                sortDirection = 'asc';
+                sortTable(sortColumn, sortDirection); // Réinitialiser le tri
             });
             
             // Fonction pour appliquer les filtres
             function applyFilters(filters, logic) {
                 if (filters.length === 0) {
                     $('#employesTable tbody tr').show();
+                    sortTable(sortColumn, sortDirection);
                     return;
                 }
                 
@@ -478,7 +497,60 @@
                     
                     row.toggle(shouldShow);
                 });
+                sortTable(sortColumn, sortDirection); // Réappliquer le tri après filtrage
             }
+
+            // Fonction pour trier le tableau
+            function sortTable(column, direction) {
+                const $tbody = $('#employesTable tbody');
+                const $rows = $tbody.find('tr:visible').get();
+
+                $rows.sort(function(a, b) {
+                    const aValue = $(a).data(column);
+                    const bValue = $(b).data(column);
+                    let comparison = 0;
+
+                    if (columnData[column].type === 'number') {
+                        comparison = parseFloat(aValue) - parseFloat(bValue);
+                    } else if (columnData[column].type === 'date') {
+                        const dateA = aValue ? new Date(aValue) : new Date(0);
+                        const dateB = bValue ? new Date(bValue) : new Date(0);
+                        comparison = dateA - dateB;
+                    } else if (columnData[column].type === 'boolean') {
+                        comparison = (aValue === 'true' ? 1 : 0) - (bValue === 'true' ? 1 : 0);
+                    } else {
+                        comparison = String(aValue).localeCompare(String(bValue));
+                    }
+
+                    return direction === 'asc' ? comparison : -comparison;
+                });
+
+                $.each($rows, function(index, row) {
+                    $tbody.append(row);
+                });
+
+                // Mettre à jour les indicateurs de tri
+                $('#employesTable th').removeClass('sort-active sort-asc sort-desc');
+                $(`#employesTable th[data-sort="${column}"]`).addClass('sort-active sort-' + direction);
+            }
+
+            // Gestionnaire de clic pour le tri
+            $('#employesTable th[data-sort]').click(function() {
+                const $this = $(this);
+                const column = $this.data('sort');
+
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
+
+                sortTable(sortColumn, sortDirection);
+            });
+
+            // Tri initial
+            sortTable(sortColumn, sortDirection);
 
             // Fonction pour collecter les données visibles
             function collectVisibleData() {
@@ -494,7 +566,7 @@
                         'CIN': row.find('td').eq(3).text(),
                         'Salaire (DT)': row.find('td').eq(4).text(),
                         'NUM CNSS': row.find('td').eq(5).text(),
-                        'Couverture': row.find('td').eq(6).text(),
+                        'Couverture': row.find('td').eq(6).text().replace('✅', 'Oui').replace('❌', 'Non'),
                         'Téléphone': row.find('td').eq(7).text(),
                         'Fonction': row.find('td').eq(8).text(),
                         'Début': row.find('td').eq(9).text(),

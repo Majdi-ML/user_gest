@@ -47,9 +47,15 @@ class Appartement
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Personne $proprietaire = null;
 
+    #[ORM\OneToMany(mappedBy: 'appartement', targetEntity: FraisSyndicReglement::class)]
+    private Collection $fraisSyndicReglements;
+
+   
+
     public function __construct()
     {
         $this->cautionnements = new ArrayCollection();
+        $this->fraisSyndicReglements = new ArrayCollection();
     }
 
 
@@ -118,7 +124,7 @@ class Appartement
     public function __toString(): string
 {
     $blocNom = $this->bloc ? $this->bloc->getNom() : 'Bloc inconnu';
-    return sprintf('%s - Étage %s - N° %s', $blocNom, $this->etage, $this->numero);
+    return sprintf('%s', $this->numero);
 }
 
     public function getLocataire(): ?Personne
@@ -191,5 +197,36 @@ class Appartement
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, FraisSyndicReglement>
+     */
+    public function getFraisSyndicReglements(): Collection
+    {
+        return $this->fraisSyndicReglements;
+    }
+
+    public function addFraisSyndicReglement(FraisSyndicReglement $fraisSyndicReglement): static
+    {
+        if (!$this->fraisSyndicReglements->contains($fraisSyndicReglement)) {
+            $this->fraisSyndicReglements->add($fraisSyndicReglement);
+            $fraisSyndicReglement->setAppartement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFraisSyndicReglement(FraisSyndicReglement $fraisSyndicReglement): static
+    {
+        if ($this->fraisSyndicReglements->removeElement($fraisSyndicReglement)) {
+            // set the owning side to null (unless already changed)
+            if ($fraisSyndicReglement->getAppartement() === $this) {
+                $fraisSyndicReglement->setAppartement(null);
+            }
+        }
+
+        return $this;
+    }
+
 
 }

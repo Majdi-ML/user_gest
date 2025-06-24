@@ -9,6 +9,7 @@
         .filter-row th {
             padding: 8px 3px !important;
             vertical-align: top;
+            cursor: pointer;
         }
         .filter-container {
             display: flex;
@@ -39,6 +40,16 @@
         }
         .export-buttons {
             margin-bottom: 20px;
+        }
+        .sort-arrow {
+            display: inline-block;
+            margin-left: 5px;
+        }
+        .sort-asc::after {
+            content: " ↑";
+        }
+        .sort-desc::after {
+            content: " ↓";
         }
     </style>
 {% endblock %}
@@ -121,12 +132,12 @@
             <table class="table table-bordered table-striped mb-5">
                 <thead class="table-dark">
                     <tr>
-                        <th>Nom</th>
-                        <th>Prénom</th>
-                        <th>Email</th>
-                        <th>Téléphone</th>
-                        <th>Adresse</th>
-                        <th>Date d'achat</th>
+                        <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
+                        <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
+                        <th data-sort="email">Email<span class="sort-arrow"></span></th>
+                        <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
+                        <th data-sort="adresse">Adresse<span class="sort-arrow"></span></th>
+                        <th data-sort="date-achat">Date d'achat<span class="sort-arrow"></span></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -163,12 +174,12 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Nom</th>
-                        <th>Prénom</th>
-                        <th>Email</th>
-                        <th>Téléphone</th>
-                        <th>Adresse</th>
-                        <th>Date de location</th>
+                        <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
+                        <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
+                        <th data-sort="email">Email<span class="sort-arrow"></span></th>
+                        <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
+                        <th data-sort="adresse">Adresse<span class="sort-arrow"></span></th>
+                        <th data-sort="date-location">Date de location<span class="sort-arrow"></span></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -214,6 +225,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
+            let sortColumn = 'nom';
+            let sortDirection = 'asc';
+
             // Données pour les colonnes
             const columnData = {
                 type: { type: 'text' },
@@ -383,6 +397,7 @@
                 });
                 
                 applyFilters(filters, logic, personneType);
+                sortTable(sortColumn, sortDirection); // Réappliquer le tri après filtrage
             });
             
             // Réinitialiser les filtres
@@ -391,6 +406,9 @@
                 addFilter();
                 $('input[name="personneType"][value="all"]').prop('checked', true);
                 $('table tbody tr').show();
+                sortColumn = 'nom';
+                sortDirection = 'asc';
+                sortTable(sortColumn, sortDirection); // Réinitialiser le tri
             });
             
             // Fonction pour appliquer les filtres
@@ -500,12 +518,66 @@
                 return new Date(parts[2], parts[1] - 1, parts[0]);
             }
 
+            // Fonction pour trier le tableau
+            function sortTable(column, direction) {
+                const activeTab = $('.tab-pane.active');
+                const $tbody = activeTab.find('table tbody');
+                const $rows = $tbody.find('tr:visible').get();
+
+                $rows.sort(function(a, b) {
+                    const aValue = $(a).data(column);
+                    const bValue = $(b).data(column);
+                    let comparison = 0;
+
+                    if (columnData[column].type === 'date') {
+                        const dateA = aValue ? new Date(aValue) : new Date(0);
+                        const dateB = bValue ? new Date(bValue) : new Date(0);
+                        comparison = dateA - dateB;
+                    } else {
+                        comparison = String(aValue).localeCompare(String(bValue));
+                    }
+
+                    return direction === 'asc' ? comparison : -comparison;
+                });
+
+                $.each($rows, function(index, row) {
+                    $tbody.append(row);
+                });
+
+                // Mettre à jour les indicateurs de tri
+                $('.table th').removeClass('sort-active sort-asc sort-desc');
+                activeTab.find(`th[data-sort="${column}"]`).addClass('sort-active sort-' + direction);
+            }
+
+            // Gestionnaire de clic pour le tri
+            $('.table th[data-sort]').click(function() {
+                const $this = $(this);
+                const column = $this.data('sort');
+
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
+
+                sortTable(sortColumn, sortDirection);
+            });
+
+            // Tri initial
+            sortTable(sortColumn, sortDirection);
+
+            // Réappliquer le tri lors du changement d'onglet
+            $('#personneTab a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                sortTable(sortColumn, sortDirection);
+            });
+
             // Fonction pour collecter les données visibles
             function collectVisibleData() {
                 const data = [];
                 const headers = ['Nom', 'Prénom', 'Email', 'Téléphone', 'Adresse', 'Date d\'achat/Location'];
 
-                $('table tbody tr:visible').each(function() {
+                $('.tab-pane.active table tbody tr:visible').each(function() {
                     const row = $(this);
                     const rowData = {
                         Nom: row.find('td').eq(0).text(),

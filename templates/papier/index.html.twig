@@ -31,6 +31,19 @@
             font-weight: bold;
             margin: 0 10px;
         }
+        .sort-arrow {
+            display: inline-block;
+            margin-left: 5px;
+        }
+        .sort-asc::after {
+            content: " ↑";
+        }
+        .sort-desc::after {
+            content: " ↓";
+        }
+        th[data-sort] {
+            cursor: pointer;
+        }
     </style>
 {% endblock %}
 
@@ -79,11 +92,11 @@
         <table id="papierTable" class="table table-bordered table-hover align-middle">
             <thead class="table-light">
                 <tr>
-                    <th>ID</th>
-                    <th>Type</th>
-                    <th>Description</th>
-                    <th>Date</th>
-                    <th>Document</th>
+                    <th data-sort="id">ID<span class="sort-arrow"></span></th>
+                    <th data-sort="type">Type<span class="sort-arrow"></span></th>
+                    <th data-sort="description">Description<span class="sort-arrow"></span></th>
+                    <th data-sort="date">Date<span class="sort-arrow"></span></th>
+                    <th data-sort="document">Document<span class="sort-arrow"></span></th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -134,6 +147,9 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
     <script>
         $(document).ready(function() {
+            let sortColumn = 'id';
+            let sortDirection = 'asc';
+
             // Données pour les colonnes
             const columnData = {
                 id: { type: 'number' },
@@ -309,6 +325,7 @@
                 });
                 
                 applyFilters(filters, logic);
+                sortTable(sortColumn, sortDirection); // Réappliquer le tri après filtrage
             });
             
             // Réinitialiser les filtres
@@ -316,12 +333,16 @@
                 $('#filterBuilder').empty();
                 addFilter();
                 $('#papierTable tbody tr').show();
+                sortColumn = 'id';
+                sortDirection = 'asc';
+                sortTable(sortColumn, sortDirection); // Réinitialiser le tri
             });
             
             // Fonction pour appliquer les filtres
             function applyFilters(filters, logic) {
                 if (filters.length === 0) {
                     $('#papierTable tbody tr').show();
+                    sortTable(sortColumn, sortDirection);
                     return;
                 }
                 
@@ -371,7 +392,6 @@
                             }
                         } 
                         else if (columnData[column].type === 'date') {
-                            // Convertir les dates en objets Date pour comparaison
                             const dateValue = new Date(value);
                             const filterDate = new Date(filter.value1.split('/').reverse().join('-')); // Convertir jj/mm/aaaa en aaaa-mm-jj
                             
@@ -412,7 +432,60 @@
                     
                     row.toggle(shouldShow);
                 });
+                sortTable(sortColumn, sortDirection); // Réappliquer le tri après filtrage
             }
+
+            // Fonction pour trier le tableau
+            function sortTable(column, direction) {
+                const $tbody = $('#papierTable tbody');
+                const $rows = $tbody.find('tr:visible').get();
+
+                $rows.sort(function(a, b) {
+                    const aValue = $(a).data(column);
+                    const bValue = $(b).data(column);
+                    let comparison = 0;
+
+                    if (columnData[column].type === 'number') {
+                        comparison = parseFloat(aValue) - parseFloat(bValue);
+                    } else if (columnData[column].type === 'date') {
+                        const dateA = aValue ? new Date(aValue) : new Date(0);
+                        const dateB = bValue ? new Date(bValue) : new Date(0);
+                        comparison = dateA - dateB;
+                    } else if (columnData[column].type === 'boolean') {
+                        comparison = (aValue === 'true' ? 1 : 0) - (bValue === 'true' ? 1 : 0);
+                    } else {
+                        comparison = String(aValue).localeCompare(String(bValue));
+                    }
+
+                    return direction === 'asc' ? comparison : -comparison;
+                });
+
+                $.each($rows, function(index, row) {
+                    $tbody.append(row);
+                });
+
+                // Mettre à jour les indicateurs de tri
+                $('#papierTable th').removeClass('sort-active sort-asc sort-desc');
+                $(`#papierTable th[data-sort="${column}"]`).addClass('sort-active sort-' + direction);
+            }
+
+            // Gestionnaire de clic pour le tri
+            $('#papierTable th[data-sort]').click(function() {
+                const $this = $(this);
+                const column = $this.data('sort');
+
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
+
+                sortTable(sortColumn, sortDirection);
+            });
+
+            // Tri initial
+            sortTable(sortColumn, sortDirection);
         });
     </script>
 {% endblock %}

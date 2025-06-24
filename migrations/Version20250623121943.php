@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250526105125 extends AbstractMigration
+final class Version20250623121943 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -44,6 +44,12 @@ final class Version20250526105125 extends AbstractMigration
         $this->addSql('CREATE TABLE fonction_bureau (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, libelle VARCHAR(255) NOT NULL)');
         $this->addSql('CREATE TABLE fonction_employe (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, libelle VARCHAR(255) NOT NULL)');
         $this->addSql('CREATE TABLE frais_syndic (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, montant DOUBLE PRECISION NOT NULL)');
+        $this->addSql('CREATE TABLE frais_syndic_reglement (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, frais_id INTEGER DEFAULT NULL, appartement_id INTEGER DEFAULT NULL, personne_id INTEGER DEFAULT NULL, user_id INTEGER DEFAULT NULL, nature_paiement_id INTEGER DEFAULT NULL, annee INTEGER DEFAULT NULL, janvier BOOLEAN DEFAULT NULL, fevrier BOOLEAN DEFAULT NULL, mars BOOLEAN DEFAULT NULL, avril BOOLEAN DEFAULT NULL, mai BOOLEAN DEFAULT NULL, juin BOOLEAN DEFAULT NULL, juillet BOOLEAN DEFAULT NULL, aout BOOLEAN DEFAULT NULL, septembre BOOLEAN DEFAULT NULL, octobre BOOLEAN DEFAULT NULL, novembre BOOLEAN DEFAULT NULL, decembre BOOLEAN DEFAULT NULL, totale DOUBLE PRECISION DEFAULT NULL, CONSTRAINT FK_326465DEBF516DC4 FOREIGN KEY (frais_id) REFERENCES frais_syndic (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_326465DEE1729BBA FOREIGN KEY (appartement_id) REFERENCES appartement (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_326465DEA21BD112 FOREIGN KEY (personne_id) REFERENCES personne (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_326465DEA76ED395 FOREIGN KEY (user_id) REFERENCES user (id) NOT DEFERRABLE INITIALLY IMMEDIATE, CONSTRAINT FK_326465DE44CB3C2C FOREIGN KEY (nature_paiement_id) REFERENCES nature_paiement (id) NOT DEFERRABLE INITIALLY IMMEDIATE)');
+        $this->addSql('CREATE INDEX IDX_326465DEBF516DC4 ON frais_syndic_reglement (frais_id)');
+        $this->addSql('CREATE INDEX IDX_326465DEE1729BBA ON frais_syndic_reglement (appartement_id)');
+        $this->addSql('CREATE INDEX IDX_326465DEA21BD112 ON frais_syndic_reglement (personne_id)');
+        $this->addSql('CREATE INDEX IDX_326465DEA76ED395 ON frais_syndic_reglement (user_id)');
+        $this->addSql('CREATE INDEX IDX_326465DE44CB3C2C ON frais_syndic_reglement (nature_paiement_id)');
         $this->addSql('CREATE TABLE nature_paiement (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nature VARCHAR(255) NOT NULL)');
         $this->addSql('CREATE TABLE papier (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, type_papier_id INTEGER DEFAULT NULL, attached_file VARCHAR(255) DEFAULT NULL, description VARCHAR(255) DEFAULT NULL, date_creation DATE NOT NULL, CONSTRAINT FK_940A2D5E745A34FF FOREIGN KEY (type_papier_id) REFERENCES type_papier (id) NOT DEFERRABLE INITIALLY IMMEDIATE)');
         $this->addSql('CREATE INDEX IDX_940A2D5E745A34FF ON papier (type_papier_id)');
@@ -76,6 +82,7 @@ final class Version20250526105125 extends AbstractMigration
         $this->addSql('DROP TABLE fonction_bureau');
         $this->addSql('DROP TABLE fonction_employe');
         $this->addSql('DROP TABLE frais_syndic');
+        $this->addSql('DROP TABLE frais_syndic_reglement');
         $this->addSql('DROP TABLE nature_paiement');
         $this->addSql('DROP TABLE papier');
         $this->addSql('DROP TABLE personne');

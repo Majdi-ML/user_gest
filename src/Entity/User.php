@@ -45,12 +45,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Depense::class)]
     private Collection $depenses;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: FraisSyndicReglement::class)]
+    private Collection $fraisSyndicReglements;
+
     public function __construct()
     {
         
         
         $this->cautionnements = new ArrayCollection();
         $this->depenses = new ArrayCollection();
+        $this->fraisSyndicReglements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -230,6 +234,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($depense->getUser() === $this) {
                 $depense->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FraisSyndicReglement>
+     */
+    public function getFraisSyndicReglements(): Collection
+    {
+        return $this->fraisSyndicReglements;
+    }
+
+    public function addFraisSyndicReglement(FraisSyndicReglement $fraisSyndicReglement): static
+    {
+        if (!$this->fraisSyndicReglements->contains($fraisSyndicReglement)) {
+            $this->fraisSyndicReglements->add($fraisSyndicReglement);
+            $fraisSyndicReglement->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFraisSyndicReglement(FraisSyndicReglement $fraisSyndicReglement): static
+    {
+        if ($this->fraisSyndicReglements->removeElement($fraisSyndicReglement)) {
+            // set the owning side to null (unless already changed)
+            if ($fraisSyndicReglement->getUser() === $this) {
+                $fraisSyndicReglement->setUser(null);
             }
         }
 

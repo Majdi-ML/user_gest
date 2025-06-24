@@ -103,7 +103,7 @@
         <table class="table table-bordered table-striped mb-5">
             <thead class="table-light">
                 <tr>
-                    <th data-sort="id">ID<span class="sort-arrow"></span></th>
+                    
                     <th data-sort="numero" class="sort-active sort-asc">Numéro<span class="sort-arrow"></span></th>
                     <th data-sort="type-appartement">Type<span class="sort-arrow"></span></th>
                     <th data-sort="etage">Étage<span class="sort-arrow"></span></th>
@@ -124,7 +124,7 @@
                     data-occupe="{{ appartement.estHabite ? 'Oui' : 'Non' }}"
                     data-locataire="{{ appartement.locataire ? appartement.locataire.nom ~ ' ' ~ appartement.locataire.prenom : '' }}"
                     data-proprietaire="{{ appartement.proprietaire ? appartement.proprietaire.nom ~ ' ' ~ appartement.proprietaire.prenom : '' }}">
-                    <td>{{ appartement.id }}</td>
+                    
                     <td>{{ appartement.numero }}</td>
                     <td>{{ appartement.type }}</td>
                     <td>{{ appartement.etage }}</td>
@@ -399,19 +399,18 @@
             // Fonction pour collecter les données visibles et triées
             function collectVisibleData() {
                 const data = [];
-                const headers = ['ID', 'Numéro', 'Type', 'Étage', 'Bloc', 'Occupé', 'Locataire', 'Propriétaire'];
+                const headers = ['Numéro', 'Type', 'Étage', 'Bloc', 'Occupé', 'Locataire', 'Propriétaire'];
 
                 $('table tbody tr:visible').each(function() {
                     const row = $(this);
                     const rowData = {
-                        ID: row.find('td').eq(0).text(),
-                        Numéro: row.find('td').eq(1).text(),
-                        Type: row.find('td').eq(2).text(),
-                        Étage: row.find('td').eq(3).text(),
-                        Bloc: row.find('td').eq(4).text(),
-                        Occupé: row.find('td').eq(5).text().replace('✅', '').replace('❌', '').trim(),
-                        Locataire: row.find('td').eq(6).text(),
-                        Propriétaire: row.find('td').eq(7).text()
+                        Numéro: row.find('td').eq(0).text(),
+                        Type: row.find('td').eq(1).text(),
+                        Étage: row.find('td').eq(2).text(),
+                        Bloc: row.find('td').eq(3).text(),
+                        Occupé: row.find('td').eq(4).text().replace('✅', '').replace('❌', '').trim(),
+                        Locataire: row.find('td').eq(5).text(),
+                        Propriétaire: row.find('td').eq(6).text()
                     };
                     data.push(rowData);
                 });

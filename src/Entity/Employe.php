@@ -49,9 +49,13 @@ class Employe
     #[ORM\OneToMany(mappedBy: 'employe', targetEntity: Cnss::class)]
     private Collection $cnsses;
 
+    #[ORM\OneToMany(mappedBy: 'employe', targetEntity: Conge::class)]
+    private Collection $conges;
+
     public function __construct()
     {
         $this->cnsses = new ArrayCollection();
+        $this->conges = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -203,6 +207,36 @@ class Employe
             // set the owning side to null (unless already changed)
             if ($cnss->getEmploye() === $this) {
                 $cnss->setEmploye(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Conge>
+     */
+    public function getConges(): Collection
+    {
+        return $this->conges;
+    }
+
+    public function addConge(Conge $conge): static
+    {
+        if (!$this->conges->contains($conge)) {
+            $this->conges->add($conge);
+            $conge->setEmploye($this);
+        }
+
+        return $this;
+    }
+
+    public function removeConge(Conge $conge): static
+    {
+        if ($this->conges->removeElement($conge)) {
+            // set the owning side to null (unless already changed)
+            if ($conge->getEmploye() === $this) {
+                $conge->setEmploye(null);
             }
         }
 

@@ -9,6 +9,7 @@
         .filter-row th {
             padding: 8px 3px !important;
             vertical-align: top;
+            cursor: pointer;
         }
         .filter-container {
             display: flex;
@@ -36,6 +37,16 @@
         }
         .export-buttons {
             margin-bottom: 20px;
+        }
+        .sort-arrow {
+            display: inline-block;
+            margin-left: 5px;
+        }
+        .sort-asc::after {
+            content: " ↑";
+        }
+        .sort-desc::after {
+            content: " ↓";
         }
     </style>
 {% endblock %}
@@ -80,7 +91,7 @@
     </div>
 
     <div class="export-buttons text-end">
-        <button id="exportPdfBtn" class="btn btn-danger btn-sm me-2">
+        <button id="exportPdfBtn" class=" cursor: pointer;btn btn-danger btn-sm me-2">
             <i class="bi bi-file-pdf"></i> Exporter en PDF
         </button>
         <button id="exportExcelBtn" class="btn btn-success btn-sm">
@@ -91,14 +102,14 @@
     <table id="bureausTable" class="table table-bordered table-striped">
         <thead class="table-light">
             <tr>
-                <th>ID</th>
-                <th>Nom</th>
-                <th>Prénom</th>
-                <th>Téléphone</th>
-                <th>Statut</th>
-                <th>Fonction</th>
-                <th>Année Début</th>
-                <th>Année Fin</th>
+                <th data-sort="id">ID<span class="sort-arrow"></span></th>
+                <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
+                <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
+                <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
+                <th data-sort="statut">Statut<span class="sort-arrow"></span></th>
+                <th data-sort="fonction">Fonction<span class="sort-arrow"></span></th>
+                <th data-sort="annee-debut">Année Début<span class="sort-arrow"></span></th>
+                <th data-sort="annee-fin">Année Fin<span class="sort-arrow"></span></th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -145,6 +156,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
+            let sortColumn = 'nom';
+            let sortDirection = 'asc';
+
             // Données pour les colonnes
             const columnData = {
                 id: { type: 'number' },
@@ -284,6 +298,7 @@
                 });
                 
                 applyFilters(filters, logic);
+                sortTable(sortColumn, sortDirection); // Réappliquer le tri après filtrage
             });
             
             // Réinitialiser les filtres
@@ -291,12 +306,16 @@
                 $('#filterBuilder').empty();
                 addFilter();
                 $('#bureausTable tbody tr').show();
+                sortColumn = 'nom';
+                sortDirection = 'asc';
+                sortTable(sortColumn, sortDirection); // Réinitialiser le tri
             });
             
             // Fonction pour appliquer les filtres
             function applyFilters(filters, logic) {
                 if (filters.length === 0) {
                     $('#bureausTable tbody tr').show();
+                    sortTable(sortColumn, sortDirection);
                     return;
                 }
                 
@@ -363,7 +382,54 @@
                     
                     row.toggle(shouldShow);
                 });
+                sortTable(sortColumn, sortDirection); // Réappliquer le tri après filtrage
             }
+
+            // Fonction pour trier le tableau
+            function sortTable(column, direction) {
+                const $tbody = $('#bureausTable tbody');
+                const $rows = $tbody.find('tr:visible').get();
+
+                $rows.sort(function(a, b) {
+                    const aValue = $(a).data(column);
+                    const bValue = $(b).data(column);
+                    let comparison = 0;
+
+                    if (columnData[column].type === 'number') {
+                        comparison = parseFloat(aValue) - parseFloat(bValue);
+                    } else {
+                        comparison = String(aValue).localeCompare(String(bValue));
+                    }
+
+                    return direction === 'asc' ? comparison : -comparison;
+                });
+
+                $.each($rows, function(index, row) {
+                    $tbody.append(row);
+                });
+
+                // Mettre à jour les indicateurs de tri
+                $('#bureausTable th').removeClass('sort-active sort-asc sort-desc');
+                $(`#bureausTable th[data-sort="${column}"]`).addClass('sort-active sort-' + direction);
+            }
+
+            // Gestionnaire de clic pour le tri
+            $('#bureausTable th[data-sort]').click(function() {
+                const $this = $(this);
+                const column = $this.data('sort');
+
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
+
+                sortTable(sortColumn, sortDirection);
+            });
+
+            // Tri initial
+            sortTable(sortColumn, sortDirection);
 
             // Fonction pour collecter les données visibles
             function collectVisibleData() {

@@ -21,9 +21,13 @@ class NaturePaiement
     #[ORM\OneToMany(mappedBy: 'Nature_Paiement', targetEntity: Cautionnement::class)]
     private Collection $cautionnements;
 
+    #[ORM\OneToMany(mappedBy: 'nature_paiement', targetEntity: FraisSyndicReglement::class)]
+    private Collection $fraisSyndicReglements;
+
     public function __construct()
     {
         $this->cautionnements = new ArrayCollection();
+        $this->fraisSyndicReglements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -67,6 +71,36 @@ class NaturePaiement
             // set the owning side to null (unless already changed)
             if ($cautionnement->getNaturePaiement() === $this) {
                 $cautionnement->setNaturePaiement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FraisSyndicReglement>
+     */
+    public function getFraisSyndicReglements(): Collection
+    {
+        return $this->fraisSyndicReglements;
+    }
+
+    public function addFraisSyndicReglement(FraisSyndicReglement $fraisSyndicReglement): static
+    {
+        if (!$this->fraisSyndicReglements->contains($fraisSyndicReglement)) {
+            $this->fraisSyndicReglements->add($fraisSyndicReglement);
+            $fraisSyndicReglement->setNaturePaiement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFraisSyndicReglement(FraisSyndicReglement $fraisSyndicReglement): static
+    {
+        if ($this->fraisSyndicReglements->removeElement($fraisSyndicReglement)) {
+            // set the owning side to null (unless already changed)
+            if ($fraisSyndicReglement->getNaturePaiement() === $this) {
+                $fraisSyndicReglement->setNaturePaiement(null);
             }
         }
 

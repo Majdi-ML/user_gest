@@ -98,8 +98,20 @@
                     </thead>
                     <tbody>
                         {% set annualTotal = 0 %}
+                        {% set categoryTotals = {
+                            'SALAIRE': 0,
+                            'CNSS': 0,
+                            'STEG': 0,
+                            'SONEDE': 0,
+                            'IMPOTS': 0,
+                            'JARDINAGE': 0,
+                            'PRODUITS_ENTRETIEN': 0,
+                            'GROS_ŒUVRES_ENTRETIEN': 0,
+                            'FRAIS_JURIDIQUE': 0,
+                            'DIVERS': 0
+                        } %}
                         {% for month, expenses in yearDepenses|sort %}
-                            {% set monthlyTotal = (expenses['SALAIRE']|default(0) + expenses['CNSS']|default(0) + expenses['STEG']|default(0) + expenses['SONEDE']|default(0) + expenses['IMPOTS']|default(0) + expenses['JARDINAGE']|default(0) + expenses['PRODUITS D\'ENTRETIEN']|default(0) + expenses['GROS ŒUVRES & ENTRETIEN']|default(0) + expenses['FRAIS JURIDIQUE']|default(0) + expenses['DIVERS']|default(0)) %}
+                            {% set monthlyTotal = (expenses['SALAIRE']|default(0) + expenses['CNSS']|default(0) + expenses['STEG']|default(0) + expenses['SONEDE']|default(0) + expenses['IMPOTS']|default(0) + expenses['JARDINAGE']|default(0) + expenses['PRODUITS_ENTRETIEN']|default(0) + expenses['GROS_ŒUVRES_ENTRETIEN']|default(0) + expenses['FRAIS_JURIDIQUE']|default(0) + expenses['DIVERS']|default(0)) %}
                             <tr>
                                 <td>{{ month }}</td>
                                 <td>{{ expenses['SALAIRE']|default(0)|number_format(2, '.', ',') }}</td>
@@ -115,6 +127,18 @@
                                 <td>{{ monthlyTotal|number_format(2, '.', ',') }}</td>
                             </tr>
                             {% set annualTotal = annualTotal + monthlyTotal %}
+                            {% set categoryTotals = {
+                                'SALAIRE': categoryTotals['SALAIRE'] + expenses['SALAIRE']|default(0),
+                                'CNSS': categoryTotals['CNSS'] + expenses['CNSS']|default(0),
+                                'STEG': categoryTotals['STEG'] + expenses['STEG']|default(0),
+                                'SONEDE': categoryTotals['SONEDE'] + expenses['SONEDE']|default(0),
+                                'IMPOTS': categoryTotals['IMPOTS'] + expenses['IMPOTS']|default(0),
+                                'JARDINAGE': categoryTotals['JARDINAGE'] + expenses['JARDINAGE']|default(0),
+                                'PRODUITS_ENTRETIEN': categoryTotals['PRODUITS_ENTRETIEN'] + expenses['PRODUITS_ENTRETIEN']|default(0),
+                                'GROS_ŒUVRES_ENTRETIEN': categoryTotals['GROS_ŒUVRES_ENTRETIEN'] + expenses['GROS_ŒUVRES_ENTRETIEN']|default(0),
+                                'FRAIS_JURIDIQUE': categoryTotals['FRAIS_JURIDIQUE'] + expenses['FRAIS_JURIDIQUE']|default(0),
+                                'DIVERS': categoryTotals['DIVERS'] + expenses['DIVERS']|default(0)
+                            } %}
                         {% else %}
                             <tr>
                                 <td colspan="12" class="text-center text-muted">Aucune dépense trouvée pour {{ year }}.</td>
@@ -123,6 +147,20 @@
                     </tbody>
                     {% if yearDepenses|length > 0 %}
                         <tfoot>
+                            <tr class="table-info fw-bold">
+                                <td>Totaux par catégorie</td>
+                                <td>{{ categoryTotals['SALAIRE']|number_format(2, '.', ',') }}</td>
+                                <td>{{ categoryTotals['CNSS']|number_format(2, '.', ',') }}</td>
+                                <td>{{ categoryTotals['STEG']|number_format(2, '.', ',') }}</td>
+                                <td>{{ categoryTotals['SONEDE']|number_format(2, '.', ',') }}</td>
+                                <td>{{ categoryTotals['IMPOTS']|number_format(2, '.', ',') }}</td>
+                                <td>{{ categoryTotals['JARDINAGE']|number_format(2, '.', ',') }}</td>
+                                <td>{{ categoryTotals['PRODUITS_ENTRETIEN']|number_format(2, '.', ',') }}</td>
+                                <td>{{ categoryTotals['GROS_ŒUVRES_ENTRETIEN']|number_format(2, '.', ',') }}</td>
+                                <td>{{ categoryTotals['FRAIS_JURIDIQUE']|number_format(2, '.', ',') }}</td>
+                                <td>{{ categoryTotals['DIVERS']|number_format(2, '.', ',') }}</td>
+                                <td></td>
+                            </tr>
                             <tr class="table-info fw-bold">
                                 <td colspan="11">Total {{ year }}</td>
                                 <td>{{ annualTotal|number_format(2, '.', ',') }}</td>
@@ -160,6 +198,12 @@
                     </table>
                 </div>
                 <div class="modal-footer">
+                    <button id="modalExportPdfBtn" class="btn btn-danger btn-sm me-2">
+                        <i class="bi bi-file-pdf"></i> Exporter en PDF
+                    </button>
+                    <button id="modalExportExcelBtn" class="btn btn-success btn-sm me-2">
+                        <i class="bi bi-file-excel"></i> Exporter en Excel
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                 </div>
             </div>
@@ -182,8 +226,6 @@
             }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
-    console.log('depensesData:', depensesData);
-
     const deleteRoute = "{{ path('app_depense_delete', {'id': 'placeholder'}) }}".replace('placeholder', '');
 </script>
 {% endblock %}
@@ -198,7 +240,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Filter setup (simplified, adjust as needed)
+            // Filter setup
             const columnData = {
                 mois: { type: 'text' },
                 salaire: { type: 'number' },
@@ -289,7 +331,7 @@
                 });
             }
 
-            // Export functions
+            // Export functions for main table
             function collectVisibleData(year) {
                 const data = []; const headers = Object.keys(columnData);
                 $('#depensesTable-' + year + ' tbody tr:visible').each(function() {
@@ -297,17 +339,32 @@
                     row.find('td').each(function(i) { rowData[headers[i]] = $(this).text(); });
                     data.push(rowData);
                 });
-                const total = $('#depensesTable-' + year + ' tfoot td:last').text();
-                if (total) data.push({ mois: 'Total ' + year, [headers.slice(-1)[0]]: total });
+                const totalRow = {};
+                $('#depensesTable-' + year + ' tfoot tr:first td').each(function(i) {
+                    if (i > 0) totalRow[headers[i]] = $(this).text();
+                });
+                data.push(totalRow);
+                const annualTotal = $('#depensesTable-' + year + ' tfoot tr:last td:last').text();
+                data.push({ mois: 'Total ' + year, [headers.slice(-1)[0]]: annualTotal });
                 return { headers, data };
             }
 
             $('#exportPdfBtn').click(function() {
-                const { jsPDF } = window.jspdf; const doc = new jsPDF();
+                const { jsPDF } = window.jspdf; 
+                const doc = new jsPDF();
                 const activeYear = $('#yearTabs .nav-link.active').text();
                 const { headers, data } = collectVisibleData(activeYear);
-                doc.text('Liste des Dépenses - ' + activeYear, 14, 22);
-                doc.autoTable({ head: [headers], body: data.map(row => headers.map(h => row[h])), startY: 30 });
+                
+                // Set smaller font size
+                doc.setFontSize(8);
+                doc.text('Liste des Dépenses - ' + activeYear, 14, 15);
+                doc.autoTable({
+                    head: [headers],
+                    body: data.map(row => headers.map(h => row[h] || '')),
+                    startY: 20,
+                    styles: { fontSize: 7, cellPadding: 1 },
+                    columnStyles: { 0: { cellWidth: 20 } }
+                });
                 doc.save('depenses-' + activeYear + '.pdf');
             });
 
@@ -321,39 +378,33 @@
             });
 
             // Modal functionality for column types
+            let currentModalData = []; // Store current modal data for export
             $('.clickable-header').click(function() {
-                console.log('Clicked on:', $(this).data('type'));
                 const type = $(this).data('type');
                 const activeYear = $('#yearTabs .nav-link.active').text();
-                console.log('Active Year:', activeYear);
 
-                // Normalize strings for comparison
-                const normalizeString = (str) => {
-                    return str.trim().replace(/[\u2018\u2019]/g, "'"); // Replace curly quotes with straight quotes
-                };
+                const normalizeString = (str) => str.trim().replace(/[\u2018\u2019]/g, "'");
 
                 // Filter expenses by type and year
-                const filteredDepenses = depensesData.filter(depense => {
+                currentModalData = depensesData.filter(depense => {
                     const typeMatch = normalizeString(depense.type).toUpperCase() === normalizeString(type).toUpperCase();
                     const yearMatch = depense.dateDepense && depense.dateDepense.split('-')[0] === activeYear;
-                    console.log(`Depense: ${JSON.stringify(depense)}, Type Match: ${typeMatch}, Year Match: ${yearMatch}`);
                     return typeMatch && yearMatch;
                 });
-                console.log('Filtered Depenses for ' + type + ':', filteredDepenses);
 
                 // Populate the modal
                 $('#expenseModalLabel').text(`Dépenses de type ${type} pour ${activeYear}`);
                 const modalBody = $('#expenseModalBody');
                 modalBody.empty();
 
-                if (filteredDepenses.length === 0) {
+                if (currentModalData.length === 0) {
                     modalBody.append('<tr><td colspan="6" class="text-center">Aucune dépense trouvée.</td></tr>');
                 } else {
-                    filteredDepenses.forEach(depense => {
+                    currentModalData.forEach(depense => {
                         const fileCell = depense.attachedFile ? (
                             depense.attachedFile.endsWith('.pdf') ?
-                            `<a href="/uploads/depenses/${depense.attachedFile}" target="_blank"><i class="fas fa-file-pdf"></i> Voir le PDF</a>` :
-                            `<a href="/uploads/depenses/${depense.attachedFile}" target="_blank"><img src="/uploads/depenses/${depense.attachedFile}" alt="Fichier joint" style="max-height: 200px;"></a>`
+                            `<a href="/Uploads/depenses/${depense.attachedFile}" target="_blank"><i class="fas fa-file-pdf"></i> Voir le PDF</a>` :
+                            `<a href="/Uploads/depenses/${depense.attachedFile}" target="_blank"><img src="/Uploads/depenses/${depense.attachedFile}" alt="Fichier joint" style="max-height: 200px;"></a>`
                         ) : 'Aucun fichier joint';
 
                         const deleteForm = `
@@ -373,8 +424,8 @@
                                 <td>${depense.type}</td>
                                 <td>${fileCell}</td>
                                 <td>
-                                   
-                                     <a href="/depense/${depense.id}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i> Voir</a>
+                                    <a href="/depense/${depense.id}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i> Voir</a>
+                                    ${deleteForm}
                                 </td>
                             </tr>
                         `);
@@ -382,7 +433,47 @@
                 }
 
                 $('#expenseModal').modal('show');
-                console.log('Modal should be visible');
+            });
+
+            // Modal export functions
+            $('#modalExportPdfBtn').click(function() {
+                const { jsPDF } = window.jspdf; 
+                const doc = new jsPDF();
+                const title = $('#expenseModalLabel').text();
+                
+                // Set smaller font size
+                doc.setFontSize(8);
+                doc.text(title, 14, 15);
+                doc.autoTable({
+                    head: [['Montant', 'Date Dépense', 'Description', 'Type', 'Fichier Joint']],
+                    body: currentModalData.map(depense => [
+                        depense.montant,
+                        depense.dateDepense,
+                        depense.description || '—',
+                        depense.type,
+                        depense.attachedFile ? 'Oui' : 'Non'
+                    ]),
+                    startY: 20,
+                    styles: { fontSize: 7, cellPadding: 1 },
+                    columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 30 }, 2: { cellWidth: 80 } }
+                });
+                doc.save('depenses-' + title.replace(/ /g, '_') + '.pdf');
+            });
+
+            $('#modalExportExcelBtn').click(function() {
+                const title = $('#expenseModalLabel').text();
+                const headers = ['Montant', 'Date Dépense', 'Description', 'Type', 'Fichier Joint'];
+                const data = currentModalData.map(depense => ({
+                    Montant: depense.montant,
+                    'Date Dépense': depense.dateDepense,
+                    Description: depense.description || '—',
+                    Type: depense.type,
+                    'Fichier Joint': depense.attachedFile ? 'Oui' : 'Non'
+                }));
+                const ws = XLSX.utils.json_to_sheet(data, { header: headers });
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Dépenses');
+                XLSX.writeFile(wb, 'depenses-' + title.replace(/ /g, '_') + '.xlsx');
             });
         });
     </script>

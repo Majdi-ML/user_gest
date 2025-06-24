@@ -1,70 +1,38 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste des Frais Syndics{% endblock %}
+{% block title %}Liste des Congés{% endblock %}
 
 {% block css %}
     {{ parent() }}
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
-        .filter-row th {
-            padding: 8px 3px !important;
-            vertical-align: top;
-        }
-        .filter-container {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .filter-select {
-            width: 100%;
-            min-width: 120px;
-        }
-        .filter-input {
-            width: 100%;
-            min-width: 150px;
-        }
-        .btn-add-condition {
-            margin-top: 5px;
-        }
-        .date-filter {
-            display: none;
-        }
-        .logic-operator {
-            font-weight: bold;
-            margin: 0 10px;
-        }
-        .export-buttons {
-            margin-bottom: 20px;
-        }
-        .nav-tabs {
-            margin-bottom: 10px;
-        }
-        .paid-month {
-            color: green;
-        }
-        .unpaid-month {
-            color: red;
-        }
-        .table-responsive {
-            overflow-x: auto;
-        }
-        .table {
-            font-size: 0.85rem;
-        }
-        .month-btn {
-            font-size: 0.8rem;
-            padding: 2px 6px;
-        }
+        .filter-row th { padding: 8px 3px !important; vertical-align: top; }
+        .filter-container { display: flex; gap: 5px; align-items: center; margin-bottom: 10px; }
+        .filter-select { width: 100%; min-width: 120px; }
+        .filter-input { width: 100%; min-width: 150px; }
+        .btn-add-condition { margin-top: 5px; }
+        .date-filter { display: none; }
+        .logic-operator { font-weight: bold; margin: 0 10px; }
+        .export-buttons { margin-bottom: 20px; }
+        .nav-tabs { margin-bottom: 10px; }
+        .table-responsive { overflow-x: auto; }
+        .table { font-size: 0.85rem; }
+        .table-footer { font-weight: bold; background-color: #f8f9fa; }
+        .sortable { cursor: pointer; }
+        .sortable::after { content: ''; display: inline-block; width: 0; height: 0; margin-left: 5px; border-left: 5px solid transparent; border-right: 5px solid transparent; }
+        .sortable.asc::after { border-bottom: 5px solid #000; }
+        .sortable.desc::after { border-top: 5px solid #000; }
     </style>
 {% endblock %}
 
 {% block body %}
 <div class="container mt-4">
-    <h1 class="mb-4">💰 Frais Syndic</h1>
+    <h1 class="mb-4">📅 Liste des Congés</h1>
 
     <div class="mb-3 text-end">
-        <a href="{{ path('app_cautionnement_new') }}" class="btn btn-success">➕ Nouveau</a>
+        <a href="{{ path('app_conge_new') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Nouveau congé
+        </a>
     </div>
 
     <div class="card mb-4">
@@ -83,9 +51,7 @@
                 </div>
             </div>
             
-            <div id="filterBuilder">
-                <!-- Les filtres seront ajoutés ici dynamiquement -->
-            </div>
+            <div id="filterBuilder"></div>
             <button id="addFilterBtn" class="btn btn-primary btn-sm btn-add-condition mt-2">
                 <i class="bi bi-plus"></i> Ajouter une condition
             </button>
@@ -107,12 +73,8 @@
         </button>
     </div>
 
-    <div class="alert alert-info">
-        💵 Total des Frais : <strong id="totalMontant">{{ totalMontant }} TND</strong>
-    </div>
-
     <ul class="nav nav-tabs" id="yearTabs" role="tablist">
-        {% for year, yearData in dataByYear %}
+        {% for year, yearData in dataByYear|sort %}
             <li class="nav-item" role="presentation">
                 <button class="nav-link {% if loop.first %}active{% endif %}" id="year-{{ year }}-tab" data-bs-toggle="tab" data-bs-target="#year-{{ year }}" type="button" role="tab" aria-controls="year-{{ year }}" aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ year }}</button>
             </li>
@@ -120,80 +82,55 @@
     </ul>
 
     <div class="tab-content" id="yearTabContent">
-        {% for year, yearData in dataByYear %}
+        {% for year, yearData in dataByYear|sort %}
             <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="year-{{ year }}" role="tabpanel" aria-labelledby="year-{{ year }}-tab">
                 <div class="table-responsive">
-                    <table id="cautionnementsTable-{{ year }}" class="table table-bordered table-hover align-middle">
+                    <table id="congeTable-{{ year }}" class="table table-bordered table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th>Appartement</th>
-                                <th>Propriétaire</th>
-                                <th>Année</th>
-                                <th>Jan</th>
-                                <th>Fév</th>
-                                <th>Mar</th>
-                                <th>Avr</th>
-                                <th>Mai</th>
-                                <th>Juin</th>
-                                <th>Juil</th>
-                                <th>Août</th>
-                                <th>Sep</th>
-                                <th>Oct</th>
-                                <th>Nov</th>
-                                <th>Déc</th>
-                                <th>Total</th>
+                                <th class="sortable" data-sort="id">ID</th>
+                                <th class="sortable" data-sort="responsable">Employé</th>
+                                <th class="sortable" data-sort="date_debut">Date de début</th>
+                                <th class="sortable" data-sort="date_fin">Date de fin</th>
+                                <th class="sortable" data-sort="motif">Motif</th>
+                                <th class="sortable" data-sort="attachedfile">Document</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for appartement, data in yearData %}
-                                <tr data-nom="{{ data.nom }}"
-                                    data-appartement="{{ data.appartement }}"
-                                    data-proprietaire="{{ data.proprietaire }}"
-                                    data-annee="{{ year }}"
-                                    data-details="{{ data.details|json_encode }}">
-                                    <td>{{ data.appartement }}</td>
-                                    <td>{{ data.nom }}</td>
-                                    <td>{{ year }}</td>
-                                    {% for month in 1..12 %}
-                                        <td class="text-center {% if data.months[month] == 'Oui' %}paid-month{% else %}unpaid-month{% endif %}">
-    {% if data.months[month] == 'Oui' %}
-        {% set monthStr = month %}
-        {% set monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'] %}
-        {% set cautionnement = data.details|filter(d => d.mois == monthStr or d.mois == month|format_number({min_integer_digit: 2}) or d.mois|lower == monthNames[month-1]|lower)|first %}
-        {% if cautionnement and cautionnement.id %}
-            <a href="{{ path('app_cautionnement_show', {'id': cautionnement.id}) }}" 
-               class="btn btn-sm btn-outline-success month-btn" 
-               title="Voir les détails du paiement" 
-               data-bs-toggle="tooltip">✅</a>
-        {% else %}
-            <span class="text-warning" title="Aucun paiement trouvé pour ce mois" data-bs-toggle="tooltip">✅</span>
-            <!-- Debug: Aucun Cautionnement trouvé pour mois {{ month }} dans details: {{ data.details|json_encode }} -->
-        {% endif %}
-    {% else %}
-        ❌
-    {% endif %}
-</td>
-                                    {% endfor %}
-                                    <td class="text-center">
-                                        {% set total = 0 %}
-                                        {% for detail in data.details %}
-                                            {% set total = total + detail.montant %}
-                                        {% endfor %}
-                                        {{ total }} TND
+                            {% for congeId, data in yearData %}
+                                <tr data-id="{{ data.id }}"
+                                    data-responsable="{{ data.responsable|default('') }}"
+                                    data-date_debut="{{ data.date_debut|default('') }}"
+                                    data-date_fin="{{ data.date_fin|default('') }}"
+                                    data-motif="{{ data.motif|default('') }}"
+                                    data-attachedfile="{{ data.attachedfile ? 'true' : 'false' }}">
+                                    <td>{{ data.id }}</td>
+                                    <td>{{ data.responsable|default('—') }}</td>
+                                    <td>{{ data.date_debut|default('—') }}</td>
+                                    <td>{{ data.date_fin|default('—') }}</td>
+                                    <td>{{ data.motif|default('—') }}</td>
+                                    <td>
+                                        {% if data.attachedfile %}
+                                            <span class="badge bg-success">Document joint</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Aucun document</span>
+                                        {% endif %}
                                     </td>
                                     <td>
-                                        {% if data.details[0] is defined %}
-                                            <a href="{{ path('app_cautionnement_show', {'id': data.details[0].id}) }}" class="btn btn-sm btn-outline-primary">Afficher</a>
-                                            <a href="{{ path('app_cautionnement_edit', {'id': data.details[0].id}) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
-                                        {% else %}
-                                            <span class="text-muted">Aucune action disponible</span>
-                                        {% endif %}
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ path('app_conge_show', {'id': data.id}) }}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ path('app_conge_edit', {'id': data.id}) }}" class="btn btn-sm btn-warning">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                             {% else %}
                                 <tr>
-                                    <td colspan="18" class="text-center">Aucun cautionnement trouvé pour {{ year }}.</td>
+                                    <td colspan="7" class="text-center text-muted">Aucun congé trouvé pour {{ year }}.</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -205,16 +142,17 @@
 </div>
 
 <script type="text/javascript">
-    const cautionnementsDataByYear = {
-        {% for year, yearData in dataByYear %}
+    const congeDataByYear = {
+        {% for year, yearData in dataByYear|sort %}
             "{{ year }}": [
-                {% for appartement, data in yearData %}
+                {% for congeId, data in yearData %}
                     {
-                        nom: "{{ data.nom }}",
-                        appartement: "{{ data.appartement }}",
-                        proprietaire: "{{ data.proprietaire }}",
-                        details: {{ data.details|json_encode|raw }},
-                        months: {{ data.months|json_encode|raw }}
+                        id: "{{ data.id }}",
+                        responsable: "{{ data.responsable|default('') }}",
+                        date_debut: "{{ data.date_debut|default('') }}",
+                        date_fin: "{{ data.date_fin|default('') }}",
+                        motif: "{{ data.motif|default('') }}",
+                        attachedfile: {{ data.attachedfile ? 'true' : 'false' }}
                     }{% if not loop.last %},{% endif %}
                 {% endfor %}
             ]{% if not loop.last %},{% endif %}
@@ -233,21 +171,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Activer les tooltips Bootstrap
             $('[data-bs-toggle="tooltip"]').tooltip();
 
-            // Données pour les colonnes
             const columnData = {
-                nom: { type: 'text', display: 'Nom' },
-                appartement: { type: 'text', display: 'Appartement' },
-                proprietaire: { type: 'text', display: 'Propriétaire' },
-                annee: { type: 'number', display: 'Année' },
-                montant: { type: 'number', display: 'Montant' },
-                'nature-paiement': { type: 'text', display: 'Nature Paiement' },
-                utilisateur: { type: 'text', display: 'Utilisateur' }
+                id: { type: 'number', display: 'ID' },
+                responsable: { type: 'text', display: 'Employé' },
+                date_debut: { type: 'date', display: 'Date de début' },
+                date_fin: { type: 'date', display: 'Date de fin' },
+                motif: { type: 'text', display: 'Motif' },
+                attachedfile: { type: 'boolean', display: 'Document' }
             };
             
-            // Opérateurs par type de colonne
             const textOperators = [
                 { id: 'equals', text: 'Égal à' },
                 { id: 'not_equals', text: 'Différent de' },
@@ -270,7 +204,22 @@
                 { id: 'not_empty', text: "N'est pas vide" }
             ];
             
-            // Ajouter un nouveau filtre
+            const dateOperators = [
+                { id: 'equals', text: 'Égal à' },
+                { id: 'not_equals', text: 'Différent de' },
+                { id: 'greater', text: 'Après' },
+                { id: 'greater_equal', text: 'Après ou égal' },
+                { id: 'less', text: 'Avant' },
+                { id: 'less_equal', text: 'Avant ou égal' },
+                { id: 'empty', text: 'Est vide' },
+                { id: 'not_empty', text: "N'est pas vide" }
+            ];
+            
+            const booleanOperators = [
+                { id: 'is_true', text: 'Document joint (✅)' },
+                { id: 'is_false', text: 'Aucun document (❌)' }
+            ];
+            
             function addFilter() {
                 const filterId = Date.now();
                 const filterHtml = `
@@ -284,13 +233,23 @@
                         ${textOperators.map(op => `<option value="${op.id}">${op.text}</option>`).join('')}
                     </select>
                     <input type="text" class="form-control form-control-sm filter-value" placeholder="Valeur" style="display: none;">
+                    <input type="text" class="form-control form-control-sm filter-value-date date-filter" placeholder="YYYY-MM-DD" style="display: none;">
                     <input type="number" class="form-control form-control-sm filter-value-number number-filter" placeholder="Valeur numérique" style="display: none;">
+                    <select class="form-select form-select-sm filter-value-boolean boolean-filter" style="display: none; width: 150px;">
+                        <option value="true">Document joint (✅)</option>
+                        <option value="false">Aucun document (❌)</option>
+                    </select>
                     <button class="btn btn-danger btn-sm remove-filter" type="button">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
                 `;
                 $('#filterBuilder').append(filterHtml);
+                
+                flatpickr($(`[data-filter-id="${filterId}"] .filter-value-date`), {
+                    dateFormat: "Y-m-d",
+                    locale: "fr"
+                });
                 
                 $(`[data-filter-id="${filterId}"] .filter-column`).change(function() {
                     updateFilterInputs(filterId);
@@ -309,6 +268,8 @@
                 
                 let operators;
                 if (columnType === 'number') operators = numberOperators;
+                else if (columnType === 'date') operators = dateOperators;
+                else if (columnType === 'boolean') operators = booleanOperators;
                 else operators = textOperators;
                 
                 const operatorSelect = container.find('.filter-operator');
@@ -322,13 +283,15 @@
                     operatorSelect.val(currentOperator);
                 }
                 
-                container.find('.filter-value, .filter-value-number').hide();
+                container.find('.filter-value, .filter-value-number, .filter-value-date, .filter-value-boolean').hide();
                 
-                if (operator === 'empty' || operator === 'not_empty') {
-                    // No value field needed
-                } else {
+                if (operator !== 'empty' && operator !== 'not_empty' && operator !== 'is_true' && operator !== 'is_false') {
                     if (columnType === 'number') {
                         container.find('.filter-value-number').show();
+                    } else if (columnType === 'date') {
+                        container.find('.filter-value-date').show();
+                    } else if (columnType === 'boolean') {
+                        container.find('.filter-value-boolean').show();
                     } else {
                         container.find('.filter-value').show();
                     }
@@ -352,13 +315,17 @@
                     const operator = $(this).find('.filter-operator').val();
                     let value1;
                     
-                    if (operator === 'empty' || operator === 'not_empty') {
+                    if (operator === 'empty' || operator === 'not_empty' || operator === 'is_true' || operator === 'is_false') {
                         filters.push({ column, operator, logic });
                         return;
                     }
                     
                     if (columnData[column].type === 'number') {
                         value1 = $(this).find('.filter-value-number').val();
+                    } else if (columnData[column].type === 'date') {
+                        value1 = $(this).find('.filter-value-date').val();
+                    } else if (columnData[column].type === 'boolean') {
+                        value1 = $(this).find('.filter-value-boolean').val();
                     } else {
                         value1 = $(this).find('.filter-value').val();
                     }
@@ -374,108 +341,96 @@
                 $('#filterBuilder').empty();
                 addFilter();
                 $('.tab-pane table tbody tr').show();
-                updateTotalMontant();
+                $('.tab-pane table tfoot').show();
             });
             
             function applyFilters(filters, logic) {
                 if (filters.length === 0) {
                     $('.tab-pane table tbody tr').show();
-                    updateTotalMontant();
+                    $('.tab-pane table tfoot').show();
                     return;
                 }
                 
                 $('.tab-pane').each(function() {
                     const year = $(this).attr('id').replace('year-', '');
-                    const yearData = cautionnementsDataByYear[year] || [];
+                    const yearData = congeDataByYear[year] || [];
                     
+                    let anyRowVisible = false;
                     $(this).find('tbody tr').each(function() {
                         const row = $(this);
-                        const rowNom = row.data('nom');
-                        const rowAppartement = row.data('appartement');
-                        const rowProprietaire = row.data('proprietaire');
-                        const rowAnnee = row.data('annee');
-                        const details = JSON.parse(row.data('details'));
+                        const rowId = row.data('id');
+                        const rowResponsable = row.data('responsable');
+                        const rowDateDebut = row.data('date_debut');
+                        const rowDateFin = row.data('date_fin');
+                        const rowMotif = row.data('motif');
+                        const rowAttachedFile = row.data('attachedfile');
                         let matchResults = [];
                         
                         filters.forEach(filter => {
                             const column = filter.column;
                             const operator = filter.operator;
+                            let value;
+                            
+                            switch(column) {
+                                case 'id': value = rowId; break;
+                                case 'responsable': value = rowResponsable; break;
+                                case 'date_debut': value = rowDateDebut; break;
+                                case 'date_fin': value = rowDateFin; break;
+                                case 'motif': value = rowMotif; break;
+                                case 'attachedfile': value = rowAttachedFile; break;
+                            }
+                            
                             let matches = false;
                             
-                            if (['nom', 'appartement', 'proprietaire', 'annee'].includes(column)) {
-                                let value = row.data(column);
-                                if (value === '' || value === null || value === undefined) {
-                                    if (operator === 'empty') matches = true;
-                                    else if (operator === 'not_empty') matches = false;
-                                    else matches = false;
-                                    matchResults.push(matches);
-                                    return;
-                                }
-                                
-                                if (column === 'annee') {
-                                    value = parseFloat(value);
-                                    const filterValue = parseFloat(filter.value1);
-                                    switch(operator) {
-                                        case 'equals': matches = value === filterValue; break;
-                                        case 'not_equals': matches = value !== filterValue; break;
-                                        case 'greater': matches = value > filterValue; break;
-                                        case 'greater_equal': matches = value >= filterValue; break;
-                                        case 'less': matches = value < filterValue; break;
-                                        case 'less_equal': matches = value <= filterValue; break;
-                                    }
-                                } else {
-                                    value = String(value).toLowerCase();
-                                    const filterValue = String(filter.value1).toLowerCase();
-                                    switch(operator) {
-                                        case 'equals': matches = value === filterValue; break;
-                                        case 'not_equals': matches = value !== filterValue; break;
-                                        case 'contains': matches = value.includes(filterValue); break;
-                                        case 'not_contains': matches = !value.includes(filterValue); break;
-                                        case 'starts_with': matches = value.startsWith(filterValue); break;
-                                        case 'ends_with': matches = value.endsWith(filterValue); break;
-                                    }
-                                }
+                            if (value === '' || value === null || value === undefined) {
+                                if (operator === 'empty') matches = true;
+                                else if (operator === 'not_empty') matches = false;
+                                else matches = false;
                                 matchResults.push(matches);
                                 return;
                             }
                             
-                            let detailMatches = details.map(detail => {
-                                let value = detail[column];
-                                if (value === '' || value === null || value === undefined) {
-                                    if (operator === 'empty') return true;
-                                    else if (operator === 'not_empty') return false;
-                                    else return false;
+                            if (columnData[column].type === 'number') {
+                                value = parseFloat(value);
+                                const filterValue = parseFloat(filter.value1);
+                                switch(operator) {
+                                    case 'equals': matches = value === filterValue; break;
+                                    case 'not_equals': matches = value !== filterValue; break;
+                                    case 'greater': matches = value > filterValue; break;
+                                    case 'greater_equal': matches = value >= filterValue; break;
+                                    case 'less': matches = value < filterValue; break;
+                                    case 'less_equal': matches = value <= filterValue; break;
                                 }
-                                
-                                if (columnData[column].type === 'number') {
-                                    value = parseFloat(value);
-                                    const filterValue = parseFloat(filter.value1);
-                                    switch(operator) {
-                                        case 'equals': return value === filterValue;
-                                        case 'not_equals': return value !== filterValue;
-                                        case 'greater': return value > filterValue;
-                                        case 'greater_equal': return value >= filterValue;
-                                        case 'less': return value < filterValue;
-                                        case 'less_equal': return value <= filterValue;
-                                        case 'empty': return isNaN(value);
-                                        case 'not_empty': return !isNaN(value);
-                                    }
-                                } else {
-                                    value = String(value).toLowerCase();
-                                    const filterValue = String(filter.value1).toLowerCase();
-                                    switch(operator) {
-                                        case 'equals': return value === filterValue;
-                                        case 'not_equals': return value !== filterValue;
-                                        case 'contains': return value.includes(filterValue);
-                                        case 'not_contains': return !value.includes(filterValue);
-                                        case 'starts_with': return value.startsWith(filterValue);
-                                        case 'ends_with': return value.endsWith(filterValue);
-                                    }
+                            } else if (columnData[column].type === 'date') {
+                                const valueDate = new Date(value);
+                                const filterDate = new Date(filter.value1);
+                                switch(operator) {
+                                    case 'equals': matches = valueDate.getTime() === filterDate.getTime(); break;
+                                    case 'not_equals': matches = valueDate.getTime() !== filterDate.getTime(); break;
+                                    case 'greater': matches = valueDate > filterDate; break;
+                                    case 'greater_equal': matches = valueDate >= filterDate; break;
+                                    case 'less': matches = valueDate < filterDate; break;
+                                    case 'less_equal': matches = valueDate <= filterDate; break;
                                 }
-                                return false;
-                            });
-                            
-                            matches = detailMatches.some(m => m);
+                            } else if (columnData[column].type === 'boolean') {
+                                value = String(value).toLowerCase() === 'true';
+                                const filterValue = filter.value1.toLowerCase() === 'true';
+                                switch(operator) {
+                                    case 'is_true': matches = value === true; break;
+                                    case 'is_false': matches = value === false; break;
+                                }
+                            } else {
+                                value = String(value).toLowerCase();
+                                const filterValue = String(filter.value1).toLowerCase();
+                                switch(operator) {
+                                    case 'equals': matches = value === filterValue; break;
+                                    case 'not_equals': matches = value !== filterValue; break;
+                                    case 'contains': matches = value.includes(filterValue); break;
+                                    case 'not_contains': matches = !value.includes(filterValue); break;
+                                    case 'starts_with': matches = value.startsWith(filterValue); break;
+                                    case 'ends_with': matches = value.endsWith(filterValue); break;
+                                }
+                            }
                             matchResults.push(matches);
                         });
                         
@@ -487,30 +442,16 @@
                         }
                         
                         row.toggle(shouldShow);
+                        if (shouldShow) anyRowVisible = true;
                     });
+                    
+                    $(this).find('tfoot').toggle(anyRowVisible);
                 });
-                
-                updateTotalMontant();
-            }
-
-            function updateTotalMontant() {
-                let total = 0;
-                $('.tab-pane.show.active table tbody tr:visible').each(function() {
-                    const details = JSON.parse($(this).data('details'));
-                    details.forEach(detail => {
-                        const montant = parseFloat(detail.montant);
-                        if (!isNaN(montant)) {
-                            total += montant;
-                        }
-                    });
-                });
-                total = total.toFixed(2);
-                $('#totalMontant').text(total + ' TND');
             }
 
             function collectVisibleData() {
                 const activeYear = $('#yearTabs .nav-link.active').text();
-                const table = $(`#cautionnementsTable-${activeYear}`);
+                const table = $(`#congeTable-${activeYear}`);
                 
                 const headers = [];
                 table.find('thead th').each(function() {
@@ -522,8 +463,8 @@
                     const rowData = {};
                     $(this).find('td').each(function(index) {
                         const header = headers[index];
-                        if (['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'].includes(header)) {
-                            rowData[header] = $(this).find('.month-btn').length ? '✅' : $(this).text().trim();
+                        if (header === 'Document') {
+                            rowData[header] = $(this).find('.badge').hasClass('bg-success') ? 'Document joint' : 'Aucun document';
                         } else if (header === 'Actions') {
                             rowData[header] = '';
                         } else {
@@ -550,7 +491,7 @@
                 const { year, headers, data } = collectVisibleData();
                 
                 doc.setFontSize(12);
-                doc.text(`Frais Syndic - Année ${year}`, 14, 10);
+                doc.text(`Congés - Année ${year}`, 14, 10);
                 
                 const exportDate = new Date().toLocaleDateString('fr-FR');
                 doc.setFontSize(8);
@@ -571,23 +512,13 @@
                         cellPadding: 2
                     },
                     columnStyles: {
-                        0: { cellWidth: 20 },
-                        1: { cellWidth: 30 },
-                        2: { cellWidth: 15 },
-                        3: { cellWidth: 10 },
-                        4: { cellWidth: 10 },
-                        5: { cellWidth: 10 },
-                        6: { cellWidth: 10 },
-                        7: { cellWidth: 10 },
-                        8: { cellWidth: 10 },
-                        9: { cellWidth: 10 },
-                        10: { cellWidth: 10 },
-                        11: { cellWidth: 10 },
-                        12: { cellWidth: 10 },
-                        13: { cellWidth: 10 },
-                        14: { cellWidth: 10 },
-                        15: { cellWidth: 15 },
-                        16: { cellWidth: 25 }
+                        0: { cellWidth: 15 },
+                        1: { cellWidth: 40 },
+                        2: { cellWidth: 25 },
+                        3: { cellWidth: 25 },
+                        4: { cellWidth: 50 },
+                        5: { cellWidth: 30 },
+                        6: { cellWidth: 30 }
                     },
                     styles: {
                         overflow: 'linebreak',
@@ -601,7 +532,7 @@
                     ...options
                 });
                 
-                doc.save(`frais-syndic-${year}.pdf`);
+                doc.save(`conges-${year}.pdf`);
             });
 
             $('#exportExcelBtn').click(function() {
@@ -616,12 +547,42 @@
                 
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
                 
-                XLSX.utils.book_append_sheet(wb, ws, `Frais Syndic ${year}`);
+                XLSX.utils.book_append_sheet(wb, ws, `Congés ${year}`);
                 
-                XLSX.writeFile(wb, `frais-syndic-${year}.xlsx`);
+                XLSX.writeFile(wb, `conges-${year}.xlsx`);
             });
 
-            updateTotalMontant();
+            $('.sortable').click(function() {
+                const table = $(this).closest('table');
+                const column = $(this).data('sort');
+                const isAsc = $(this).hasClass('asc');
+                
+                table.find('.sortable').removeClass('asc desc');
+                $(this).addClass(isAsc ? 'desc' : 'asc');
+                
+                const sortOrder = isAsc ? -1 : 1;
+                
+                const rows = table.find('tbody tr:visible').get();
+                rows.sort(function(a, b) {
+                    const aValue = $(a).data(column);
+                    const bValue = $(b).data(column);
+                    let comparison = 0;
+                    
+                    if (columnData[column].type === 'number') {
+                        comparison = parseFloat(aValue) - parseFloat(bValue);
+                    } else if (columnData[column].type === 'date') {
+                        comparison = new Date(aValue) - new Date(bValue);
+                    } else if (columnData[column].type === 'boolean') {
+                        comparison = (aValue === 'true' ? 1 : 0) - (bValue === 'true' ? 1 : 0);
+                    } else {
+                        comparison = String(aValue).localeCompare(String(bValue));
+                    }
+                    
+                    return comparison * sortOrder;
+                });
+                
+                table.find('tbody').empty().append(rows);
+            });
         });
     </script>
 {% endblock %}

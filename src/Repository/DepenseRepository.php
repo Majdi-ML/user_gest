@@ -59,7 +59,33 @@ public function findYearlyTotals(): array
 
     return $resultSet->fetchAllAssociative();
 }
+public function findByMonth(): array
+    {
+$conn = $this->getEntityManager()->getConnection();
 
+    $sql = "
+        SELECT 
+            strftime('%Y-%m', date_depense) as month,
+            SUM(montant) as total
+        FROM depense
+        GROUP BY month
+        ORDER BY month
+    ";
+
+    $stmt = $conn->prepare($sql);
+    $resultSet = $stmt->executeQuery();
+
+    return $resultSet->fetchAllAssociative();
+}
+
+    public function findByType(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->select('d.type AS type, SUM(d.montant) AS total')
+            ->groupBy('d.type')
+            ->getQuery()
+            ->getResult();
+    }
 public function findTotalsByType(): array
 {
     return $this->createQueryBuilder('d')

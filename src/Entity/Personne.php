@@ -49,6 +49,13 @@ class Personne
     #[ORM\Column(type: Types::DATE_MUTABLE , nullable: true)]
     private ?\DateTimeInterface $date_achat = null;
 
+    #[ORM\OneToMany(mappedBy: 'Personne', targetEntity: FraisSyndicReglement::class)]
+    private Collection $fraisSyndicReglements;
+
+ 
+
+    
+
     public function __construct()
     {
        
@@ -56,6 +63,9 @@ class Personne
         $this->appartements = new ArrayCollection();
         $this->cautionnements = new ArrayCollection();
         $this->appartementsProp = new ArrayCollection();
+        $this->appartement = new ArrayCollection();
+        $this->fraisSyndicReglements = new ArrayCollection();
+     
     }
 
     public function getId(): ?int
@@ -255,4 +265,38 @@ class Personne
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, FraisSyndicReglement>
+     */
+    public function getFraisSyndicReglements(): Collection
+    {
+        return $this->fraisSyndicReglements;
+    }
+
+    public function addFraisSyndicReglement(FraisSyndicReglement $fraisSyndicReglement): static
+    {
+        if (!$this->fraisSyndicReglements->contains($fraisSyndicReglement)) {
+            $this->fraisSyndicReglements->add($fraisSyndicReglement);
+            $fraisSyndicReglement->setPersonne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFraisSyndicReglement(FraisSyndicReglement $fraisSyndicReglement): static
+    {
+        if ($this->fraisSyndicReglements->removeElement($fraisSyndicReglement)) {
+            // set the owning side to null (unless already changed)
+            if ($fraisSyndicReglement->getPersonne() === $this) {
+                $fraisSyndicReglement->setPersonne(null);
+            }
+        }
+
+        return $this;
+    }
+
+   
+    
+    
 }

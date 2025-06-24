@@ -6,56 +6,25 @@
     {{ parent() }}
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
-        .filter-row th {
-            padding: 8px 3px !important;
-            vertical-align: top;
-        }
-        .filter-container {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .filter-select {
-            width: 100%;
-            min-width: 120px;
-        }
-        .filter-input {
-            width: 100%;
-            min-width: 150px;
-        }
-        .btn-add-condition {
-            margin-top: 5px;
-        }
-        .date-filter {
-            display: none;
-        }
-        .logic-operator {
-            font-weight: bold;
-            margin: 0 10px;
-        }
-        .export-buttons {
-            margin-bottom: 20px;
-        }
-        .nav-tabs {
-            margin-bottom: 10px;
-        }
-        .paid-month {
-            color: green;
-        }
-        .unpaid-month {
-            color: red;
-        }
-        .table-responsive {
-            overflow-x: auto;
-        }
-        .table {
-            font-size: 0.85rem;
-        }
-        .month-btn {
-            font-size: 0.8rem;
-            padding: 2px 6px;
-        }
+        .filter-row th { padding: 8px 3px !important; vertical-align: top; }
+        .filter-container { display: flex; gap: 5px; align-items: center; margin-bottom: 10px; }
+        .filter-select { width: 100%; min-width: 120px; }
+        .filter-input { width: 100%; min-width: 150px; }
+        .btn-add-condition { margin-top: 5px; }
+        .date-filter { display: none; }
+        .logic-operator { font-weight: bold; margin: 0 10px; }
+        .export-buttons { margin-bottom: 20px; }
+        .nav-tabs { margin-bottom: 10px; }
+        .paid-month { color: green; }
+        .unpaid-month { color: red; }
+        .table-responsive { overflow-x: auto; }
+        .table { font-size: 0.85rem; }
+        .month-btn { font-size: 0.8rem; padding: 2px 6px; }
+        .table-footer { font-weight: bold; background-color: #f8f9fa; }
+        .sortable { cursor: pointer; }
+        .sortable::after { content: ''; display: inline-block; width: 0; height: 0; margin-left: 5px; border-left: 5px solid transparent; border-right: 5px solid transparent; }
+        .sortable.asc::after { border-bottom: 5px solid #000; }
+        .sortable.desc::after { border-top: 5px solid #000; }
     </style>
 {% endblock %}
 
@@ -64,7 +33,7 @@
     <h1 class="mb-4">💰 Frais Syndic</h1>
 
     <div class="mb-3 text-end">
-        <a href="{{ path('app_cautionnement_new') }}" class="btn btn-success">➕ Nouveau</a>
+        <a href="{{ path('app_frais_syndic_reglement_new') }}" class="btn btn-success">➕ Nouveau</a>
     </div>
 
     <div class="card mb-4">
@@ -74,8 +43,8 @@
         <div class="card-body">
             <div class="mb-3">
                 <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="filterLogic" id="filterLogicAnd" value="AND" checked>
-                    <label class="form-check-label" for="filterLogicAnd">Toutes les conditions (AND)</label>
+                    <input class="form-check-input" type="radio" name="filterLogic" value="AND" checked>
+                    <label class="form-check-label" for="filterLogicAnd">Toutes les conditions</label>
                 </div>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="filterLogic" id="filterLogicOr" value="OR">
@@ -83,9 +52,7 @@
                 </div>
             </div>
             
-            <div id="filterBuilder">
-                <!-- Les filtres seront ajoutés ici dynamiquement -->
-            </div>
+            <div id="filterBuilder"></div>
             <button id="addFilterBtn" class="btn btn-primary btn-sm btn-add-condition mt-2">
                 <i class="bi bi-plus"></i> Ajouter une condition
             </button>
@@ -107,12 +74,8 @@
         </button>
     </div>
 
-    <div class="alert alert-info">
-        💵 Total des Frais : <strong id="totalMontant">{{ totalMontant }} TND</strong>
-    </div>
-
     <ul class="nav nav-tabs" id="yearTabs" role="tablist">
-        {% for year, yearData in dataByYear %}
+        {% for year, yearData in dataByYear|sort %}
             <li class="nav-item" role="presentation">
                 <button class="nav-link {% if loop.first %}active{% endif %}" id="year-{{ year }}-tab" data-bs-toggle="tab" data-bs-target="#year-{{ year }}" type="button" role="tab" aria-controls="year-{{ year }}" aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ year }}</button>
             </li>
@@ -120,14 +83,14 @@
     </ul>
 
     <div class="tab-content" id="yearTabContent">
-        {% for year, yearData in dataByYear %}
+        {% for year, yearData in dataByYear|sort %}
             <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="year-{{ year }}" role="tabpanel" aria-labelledby="year-{{ year }}-tab">
                 <div class="table-responsive">
-                    <table id="cautionnementsTable-{{ year }}" class="table table-bordered table-hover align-middle">
+                    <table id="fraisSyndicReglementsTable-{{ year }}" class="table table-bordered table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th>Appartement</th>
-                                <th>Propriétaire</th>
+                                <th class="sortable" data-sort="appartement">Appartement</th>
+                                <th class="sortable" data-sort="nom">Propriétaire</th>
                                 <th>Année</th>
                                 <th>Jan</th>
                                 <th>Fév</th>
@@ -151,52 +114,49 @@
                                     data-appartement="{{ data.appartement }}"
                                     data-proprietaire="{{ data.proprietaire }}"
                                     data-annee="{{ year }}"
-                                    data-details="{{ data.details|json_encode }}">
+                                    data-details="{{ data.details|json_encode|escape('html_attr') }}"
+                                    data-appartement-id="{{ data.appartementId }}">
                                     <td>{{ data.appartement }}</td>
                                     <td>{{ data.nom }}</td>
                                     <td>{{ year }}</td>
                                     {% for month in 1..12 %}
                                         <td class="text-center {% if data.months[month] == 'Oui' %}paid-month{% else %}unpaid-month{% endif %}">
-    {% if data.months[month] == 'Oui' %}
-        {% set monthStr = month %}
-        {% set monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'] %}
-        {% set cautionnement = data.details|filter(d => d.mois == monthStr or d.mois == month|format_number({min_integer_digit: 2}) or d.mois|lower == monthNames[month-1]|lower)|first %}
-        {% if cautionnement and cautionnement.id %}
-            <a href="{{ path('app_cautionnement_show', {'id': cautionnement.id}) }}" 
-               class="btn btn-sm btn-outline-success month-btn" 
-               title="Voir les détails du paiement" 
-               data-bs-toggle="tooltip">✅</a>
-        {% else %}
-            <span class="text-warning" title="Aucun paiement trouvé pour ce mois" data-bs-toggle="tooltip">✅</span>
-            <!-- Debug: Aucun Cautionnement trouvé pour mois {{ month }} dans details: {{ data.details|json_encode }} -->
-        {% endif %}
-    {% else %}
-        ❌
-    {% endif %}
-</td>
+                                            {{ data.months[month] == 'Oui' ? '✅' : '❌' }}
+                                        </td>
                                     {% endfor %}
                                     <td class="text-center">
-                                        {% set total = 0 %}
-                                        {% for detail in data.details %}
-                                            {% set total = total + detail.montant %}
-                                        {% endfor %}
-                                        {{ total }} TND
+                                        {{ data.details[0].montant|default(0) }} TND
                                     </td>
                                     <td>
-                                        {% if data.details[0] is defined %}
-                                            <a href="{{ path('app_cautionnement_show', {'id': data.details[0].id}) }}" class="btn btn-sm btn-outline-primary">Afficher</a>
-                                            <a href="{{ path('app_cautionnement_edit', {'id': data.details[0].id}) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                                        {% if data.details[0] is defined and data.details[0].id is defined %}
+                                            <a href="{{ path('app_frais_syndic_reglement_show', {'id': data.details[0].id}) }}" class="btn btn-sm btn-outline-primary">Afficher</a>
+                                            <a href="{{ path('app_frais_syndic_reglement_edit', {'id': data.details[0].id}) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
                                         {% else %}
-                                            <span class="text-muted">Aucune action disponible</span>
+                                            <a href="{{ path('app_frais_syndic_reglement_new', {'appartementId': data.appartementId, 'annee': year}) }}" class="btn btn-sm btn-outline-primary">Créer</a>
                                         {% endif %}
                                     </td>
                                 </tr>
                             {% else %}
                                 <tr>
-                                    <td colspan="18" class="text-center">Aucun cautionnement trouvé pour {{ year }}.</td>
+                                    <td colspan="17" class="text-center">Aucun règlement trouvé pour {{ year }}.</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
+                        <tfoot class="table-footer">
+                            <tr>
+                                <td colspan="15" class="text-end">Total pour {{ year }} :</td>
+                                <td class="text-center">
+                                    {% set yearTotal = 0 %}
+                                    {% for appartement, data in yearData %}
+                                        {% if data.details[0] is defined %}
+                                            {% set yearTotal = yearTotal + data.details[0].montant|default(0) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ yearTotal }} TND
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -205,14 +165,15 @@
 </div>
 
 <script type="text/javascript">
-    const cautionnementsDataByYear = {
-        {% for year, yearData in dataByYear %}
+    const fraisSyndicReglementsDataByYear = {
+        {% for year, yearData in dataByYear|sort %}
             "{{ year }}": [
                 {% for appartement, data in yearData %}
                     {
                         nom: "{{ data.nom }}",
                         appartement: "{{ data.appartement }}",
                         proprietaire: "{{ data.proprietaire }}",
+                        appartementId: "{{ data.appartementId }}",
                         details: {{ data.details|json_encode|raw }},
                         months: {{ data.months|json_encode|raw }}
                     }{% if not loop.last %},{% endif %}
@@ -233,10 +194,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Activer les tooltips Bootstrap
             $('[data-bs-toggle="tooltip"]').tooltip();
 
-            // Données pour les colonnes
             const columnData = {
                 nom: { type: 'text', display: 'Nom' },
                 appartement: { type: 'text', display: 'Appartement' },
@@ -247,7 +206,6 @@
                 utilisateur: { type: 'text', display: 'Utilisateur' }
             };
             
-            // Opérateurs par type de colonne
             const textOperators = [
                 { id: 'equals', text: 'Égal à' },
                 { id: 'not_equals', text: 'Différent de' },
@@ -270,7 +228,6 @@
                 { id: 'not_empty', text: "N'est pas vide" }
             ];
             
-            // Ajouter un nouveau filtre
             function addFilter() {
                 const filterId = Date.now();
                 const filterHtml = `
@@ -325,7 +282,6 @@
                 container.find('.filter-value, .filter-value-number').hide();
                 
                 if (operator === 'empty' || operator === 'not_empty') {
-                    // No value field needed
                 } else {
                     if (columnType === 'number') {
                         container.find('.filter-value-number').show();
@@ -374,27 +330,34 @@
                 $('#filterBuilder').empty();
                 addFilter();
                 $('.tab-pane table tbody tr').show();
-                updateTotalMontant();
+                $('.tab-pane table tfoot').show();
             });
             
             function applyFilters(filters, logic) {
                 if (filters.length === 0) {
                     $('.tab-pane table tbody tr').show();
-                    updateTotalMontant();
+                    $('.tab-pane table tfoot').show();
                     return;
                 }
                 
                 $('.tab-pane').each(function() {
                     const year = $(this).attr('id').replace('year-', '');
-                    const yearData = cautionnementsDataByYear[year] || [];
+                    const yearData = fraisSyndicReglementsDataByYear[year] || [];
                     
+                    let anyRowVisible = false;
                     $(this).find('tbody tr').each(function() {
                         const row = $(this);
                         const rowNom = row.data('nom');
                         const rowAppartement = row.data('appartement');
                         const rowProprietaire = row.data('proprietaire');
                         const rowAnnee = row.data('annee');
-                        const details = JSON.parse(row.data('details'));
+                        let details;
+                        try {
+                            details = JSON.parse(row.data('details'));
+                        } catch (e) {
+                            console.error('Invalid JSON in data-details:', row.data('details'));
+                            details = [];
+                        }
                         let matchResults = [];
                         
                         filters.forEach(filter => {
@@ -487,30 +450,16 @@
                         }
                         
                         row.toggle(shouldShow);
+                        if (shouldShow) anyRowVisible = true;
                     });
+                    
+                    $(this).find('tfoot').toggle(anyRowVisible);
                 });
-                
-                updateTotalMontant();
-            }
-
-            function updateTotalMontant() {
-                let total = 0;
-                $('.tab-pane.show.active table tbody tr:visible').each(function() {
-                    const details = JSON.parse($(this).data('details'));
-                    details.forEach(detail => {
-                        const montant = parseFloat(detail.montant);
-                        if (!isNaN(montant)) {
-                            total += montant;
-                        }
-                    });
-                });
-                total = total.toFixed(2);
-                $('#totalMontant').text(total + ' TND');
             }
 
             function collectVisibleData() {
                 const activeYear = $('#yearTabs .nav-link.active').text();
-                const table = $(`#cautionnementsTable-${activeYear}`);
+                const table = $(`#fraisSyndicReglementsTable-${activeYear}`);
                 
                 const headers = [];
                 table.find('thead th').each(function() {
@@ -523,7 +472,7 @@
                     $(this).find('td').each(function(index) {
                         const header = headers[index];
                         if (['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'].includes(header)) {
-                            rowData[header] = $(this).find('.month-btn').length ? '✅' : $(this).text().trim();
+                            rowData[header] = $(this).text().trim() === '✅' ? 'Oui' : 'Non';
                         } else if (header === 'Actions') {
                             rowData[header] = '';
                         } else {
@@ -532,6 +481,31 @@
                     });
                     data.push(rowData);
                 });
+                
+                // Add total row for export
+                const totalRow = {};
+                headers.forEach(header => {
+                    if (header === 'Total') {
+                        let yearTotal = 0;
+                        table.find('tbody tr:visible').each(function() {
+                            let details;
+                            try {
+                                details = JSON.parse($(this).data('details'));
+                                if (details.length > 0) {
+                                    yearTotal += parseFloat(details[0].montant || 0);
+                                }
+                            } catch (e) {
+                                console.error('Invalid JSON in collectVisibleData:', $(this).data('details'));
+                            }
+                        });
+                        totalRow[header] = yearTotal.toFixed(2) + ' TND';
+                    } else if (['Appartement', 'Propriétaire', 'Année', 'Actions'].includes(header)) {
+                        totalRow[header] = header === 'Appartement' ? 'Total' : '';
+                    } else {
+                        totalRow[header] = '';
+                    }
+                });
+                data.push(totalRow);
                 
                 return {
                     year: activeYear,
@@ -592,6 +566,12 @@
                     styles: {
                         overflow: 'linebreak',
                         fontSize: 7
+                    },
+                    footStyles: {
+                        fillColor: [200, 200, 200],
+                        textColor: 0,
+                        fontSize: 7,
+                        fontStyle: 'bold'
                     }
                 };
                 
@@ -621,7 +601,29 @@
                 XLSX.writeFile(wb, `frais-syndic-${year}.xlsx`);
             });
 
-            updateTotalMontant();
+            // Sorting functionality
+            $('.sortable').click(function() {
+                const table = $(this).closest('table');
+                const column = $(this).data('sort');
+                const isAsc = $(this).hasClass('asc');
+                
+                // Reset all sort indicators
+                table.find('.sortable').removeClass('asc desc');
+                
+                // Set new sort indicator
+                $(this).addClass(isAsc ? 'desc' : 'asc');
+                
+                const sortOrder = isAsc ? -1 : 1;
+                
+                const rows = table.find('tbody tr').get();
+                rows.sort(function(a, b) {
+                    const aValue = $(a).data(column).toString().toLowerCase();
+                    const bValue = $(b).data(column).toString().toLowerCase();
+                    return aValue.localeCompare(bValue) * sortOrder;
+                });
+                
+                table.find('tbody').empty().append(rows);
+            });
         });
     </script>
 {% endblock %}

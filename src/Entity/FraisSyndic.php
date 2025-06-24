@@ -21,9 +21,13 @@ class FraisSyndic
     #[ORM\OneToMany(mappedBy: 'Montant', targetEntity: Cautionnement::class)]
     private Collection $cautionnements;
 
+    #[ORM\OneToMany(mappedBy: 'frais', targetEntity: FraisSyndicReglement::class)]
+    private Collection $fraisSyndicReglements;
+
     public function __construct()
     {
         $this->cautionnements = new ArrayCollection();
+        $this->fraisSyndicReglements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -67,6 +71,36 @@ class FraisSyndic
             // set the owning side to null (unless already changed)
             if ($cautionnement->getMontant() === $this) {
                 $cautionnement->setMontant(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FraisSyndicReglement>
+     */
+    public function getFraisSyndicReglements(): Collection
+    {
+        return $this->fraisSyndicReglements;
+    }
+
+    public function addFraisSyndicReglement(FraisSyndicReglement $fraisSyndicReglement): static
+    {
+        if (!$this->fraisSyndicReglements->contains($fraisSyndicReglement)) {
+            $this->fraisSyndicReglements->add($fraisSyndicReglement);
+            $fraisSyndicReglement->setFrais($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFraisSyndicReglement(FraisSyndicReglement $fraisSyndicReglement): static
+    {
+        if ($this->fraisSyndicReglements->removeElement($fraisSyndicReglement)) {
+            // set the owning side to null (unless already changed)
+            if ($fraisSyndicReglement->getFrais() === $this) {
+                $fraisSyndicReglement->setFrais(null);
             }
         }
 

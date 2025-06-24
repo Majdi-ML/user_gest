@@ -29,6 +29,26 @@ class CautionnementRepository extends ServiceEntityRepository
         ->getQuery()
         ->getResult();
 }
+public function findByMonth()
+    {
+        return $this->createQueryBuilder('c')
+            ->select('c.Mois AS month, SUM(f.montant) AS total')
+            ->leftJoin('c.Montant', 'f') // Join with FraisSyndic
+            ->groupBy('c.Mois')
+            ->getQuery()
+            ->getResult();
+    }
+
+
+    public function findByYear(): array
+    {
+       return $this->createQueryBuilder('c')
+            ->select('c.annee AS year, SUM(f.montant) AS total')
+            ->leftJoin('c.Montant', 'f') // Join with FraisSyndic
+            ->groupBy('c.annee')
+            ->getQuery()
+            ->getResult();
+    }
 
 public function findYearlyTotals(): array
 {

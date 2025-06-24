@@ -116,8 +116,9 @@ $dataByYear[$year][$appartementKey]['details'][] = [
 
 
    #[Route('/new', name: 'app_cautionnement_new', methods: ['GET', 'POST'])]
-public function new(Request $request, EntityManagerInterface $entityManager, Security $security): Response
-{$cautionnement = new Cautionnement();
+public function new(Request $request, EntityManagerInterface $entityManager, Security $security, CautionnementRepository $cautionnementRepository): Response
+{
+    $cautionnement = new Cautionnement();
     $form = $this->createForm(CautionnementType::class, $cautionnement);
     $form->handleRequest($request);
     $user = $security->getUser();
@@ -125,13 +126,7 @@ public function new(Request $request, EntityManagerInterface $entityManager, Sec
     if ($form->isSubmitted() && $form->isValid()) {
         $moisSelectionnes = $form->get('Mois')->getData();
 
-        if (empty($moisSelectionnes)) {
-            $this->addFlash('error', 'Veuillez sélectionner au moins un mois.');
-            return $this->renderForm('cautionnement/new.html.twig', [
-                'cautionnement' => $cautionnement,
-                'form' => $form,
-            ]);
-        }
+       
 
         $appartements = $form->get('appartement')->getData();
         if (empty($appartements)) {
@@ -153,11 +148,32 @@ public function new(Request $request, EntityManagerInterface $entityManager, Sec
             }
 
             foreach ($moisSelectionnes as $mois) {
+                // Vérifier si un paiement existe déjà pour ce propriétaire, mois, année, et appartement
+                $existingCautionnement = $cautionnementRepository->findOneBy([
+                    'Personne' => $proprietaire,
+                    'Mois' => $mois,
+                    'annee' => $cautionnement->getAnnee(),
+                    'appartement' => $appartement,
+                ]);
+
+                if ($existingCautionnement) {
+                    $this->addFlash('error', sprintf(
+                        'Le propriétaire %s a déjà payé les frais de syndic pour le mois %s %s pour cet appartement.',
+                        $proprietaire->getNom() . ' ' . $proprietaire->getPrenom(),
+                        $mois,
+                        $cautionnement->getAnnee()
+                    ));
+                    return $this->renderForm('cautionnement/new.html.twig', [
+                        'cautionnement' => $cautionnement,
+                        'form' => $form,
+                    ]);
+                }
+
                 $newCautionnement = new Cautionnement();
                 $newCautionnement->setMontant($cautionnement->getMontant());
                 $newCautionnement->setAnnee($cautionnement->getAnnee());
                 $newCautionnement->setMois($mois);
-                $newCautionnement->setPersonne($proprietaire); // Set proprietor based on apartment
+                $newCautionnement->setPersonne($proprietaire);
                 $newCautionnement->setAppartement($appartement);
                 $newCautionnement->setNaturePaiement($cautionnement->getNaturePaiement());
                 $newCautionnement->setDatePaiement(new \DateTime());
@@ -169,6 +185,7 @@ public function new(Request $request, EntityManagerInterface $entityManager, Sec
 
         $entityManager->flush();
 
+        $this->addFlash('success', 'Les frais de syndic ont été enregistrés avec succès.');
         return $this->redirectToRoute('app_cautionnement_index', [], Response::HTTP_SEE_OTHER);
     }
 

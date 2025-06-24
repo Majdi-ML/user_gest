@@ -45,18 +45,17 @@ class CautionnementType extends AbstractType
                     'Décembre' => 'Décembre',
                 ],
                 'multiple' => true,
-                'expanded' => false,
+                'expanded' => false, // Render as <select multiple>
                 'mapped' => false,
-                'attr' => ['class' => 'form-select']
+                'attr' => ['class' => 'form-select multiselect'] // Add multiselect class
             ])
             ->add('appartement', EntityType::class, [
                 'class' => Appartement::class,
                 'choice_label' => fn(Appartement $a) => (string) $a,
-                'placeholder' => 'Sélectionnez les appartements',
                 'multiple' => true,
-                'expanded' => false,
+                'expanded' => false, // Render as <select multiple>
                 'mapped' => false,
-                'attr' => ['class' => 'form-select appartement-select']
+                'attr' => ['class' => 'form-select multiselect appartement-select'] // Add multiselect class
             ])
             ->add('Nature_Paiement', EntityType::class, [
                 'class' => NaturePaiement::class,

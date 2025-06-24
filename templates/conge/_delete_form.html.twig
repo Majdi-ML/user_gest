@@ -1,0 +1,7 @@
+
+<form method="post" action="{{ path('app_conge_delete', {'id': conge.id}) }}" class="delete-form">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ conge.id) }}">
+    <button type="button" class="btn btn-danger btn-delete">
+        <i class="bi bi-trash"></i> Supprimer
+    </button>
+</form>
