@@ -6,65 +6,322 @@
     {{ parent() }}
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
-        .filter-row th {
-            padding: 8px 3px !important;
-            vertical-align: top;
-            cursor: pointer;
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 24px rgba(65, 84, 241, 0.2);
+            animation: fadeIn 0.5s ease-out;
         }
+        
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .page-header-icon {
+            font-size: 2.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Filters Card */
+        .filters-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .filters-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        
+        .filters-card .card-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #212529;
+            padding: 20px;
+            border-bottom: 3px solid #7c3aed;
+        }
+        
+        .filters-card .card-header h5 {
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
         .filter-container {
             display: flex;
-            gap: 5px;
+            gap: 8px;
             align-items: center;
             margin-bottom: 10px;
+            padding: 12px;
+            background: linear-gradient(135deg, rgba(65, 84, 241, 0.03) 0%, rgba(65, 84, 241, 0.01) 100%);
+            border-radius: 12px;
+            transition: all 0.3s ease;
         }
+        
+        .filter-container:hover {
+            background: linear-gradient(135deg, rgba(65, 84, 241, 0.08) 0%, rgba(65, 84, 241, 0.02) 100%);
+            transform: translateX(4px);
+        }
+        
+        .filter-select, .filter-input {
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-select:focus, .filter-input:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+        
         .filter-select {
             width: 100%;
-            min-width: 120px;
+            min-width: 140px;
         }
+        
         .filter-input {
             width: 100%;
-            min-width: 150px;
+            min-width: 180px;
         }
-        .btn-add-condition {
-            margin-top: 5px;
-        }
-        .date-filter {
-            display: none;
-        }
-        .logic-operator {
-            font-weight: bold;
-            margin: 0 10px;
-        }
-        .person-type-tabs {
-            margin-bottom: 20px;
-        }
+        
+        /* Export & Action Buttons */
         .export-buttons {
             margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
+        
+        .export-buttons .btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-add {
+            background: linear-gradient(135deg, #198754 0%, #0f6943 100%);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(25, 135, 84, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(25, 135, 84, 0.3);
+            color: white;
+        }
+        
+        /* Tabs */
+        .person-type-tabs {
+            margin-bottom: 25px;
+            border-bottom: 3px solid #e9ecef;
+        }
+        
+        .person-type-tabs .nav-link {
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 14px 28px;
+            color: #6c757d;
+            border: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .person-type-tabs .nav-link:hover {
+            color: #7c3aed;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(124, 58, 237, 0.01) 100%);
+        }
+        
+        .person-type-tabs .nav-link.active {
+            color: #7c3aed;
+            border-bottom-color: #7c3aed;
+            background: white;
+            box-shadow: 0 -2px 8px rgba(124, 58, 237, 0.1);
+        }
+        
+        /* Table */
+        .table-wrapper {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .table {
+            margin-bottom: 0;
+        }
+        
+        .table thead th {
+            background: linear-gradient(135deg, #343a40 0%, #23272b 100%);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 18px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        
+        .table thead th:hover {
+            background: linear-gradient(135deg, #23272b 0%, #1a1d20 100%);
+        }
+        
+        .table tbody tr {
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .table tbody tr:hover {
+            background: linear-gradient(90deg, rgba(124, 58, 237, 0.05) 0%, rgba(124, 58, 237, 0.02) 100%);
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .table tbody td {
+            padding: 16px;
+            vertical-align: middle;
+        }
+        
         .sort-arrow {
             display: inline-block;
-            margin-left: 5px;
+            margin-left: 6px;
+            transition: transform 0.3s ease;
         }
-        .sort-asc::after {
+        
+        .sort-asc .sort-arrow::after {
             content: " ↑";
+            color: #7c3aed;
         }
-        .sort-desc::after {
+        
+        .sort-desc .sort-arrow::after {
             content: " ↓";
+            color: #7c3aed;
+        }
+        
+        /* Action Buttons in Table */
+        .table .btn {
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            margin: 0 3px;
+        }
+        
+        /* Form Controls */
+        .form-check-input:checked {
+            background-color: #7c3aed;
+            border-color: #7c3aed;
+        }
+        
+        .form-check-label {
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        /* Pagination */
+        .pagination-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        
+        .pagination-info {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .export-buttons {
+                justify-content: center;
+            }
+            
+            .table {
+                font-size: 0.875rem;
+            }
+        }
+        
+        /* Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
         }
     </style>
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">👥 Personnes (Propriétaires & Locataires)</h1>
-
-    <div class="mb-3 text-end">
-        <a href="{{ path('app_personne_new') }}" class="btn btn-success">➕ Ajouter une nouvelle personne</a>
+<div class="container-fluid mt-4 px-4 fade-in">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">👥</span>
+            Gestion des Personnes
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Gérez vos propriétaires et locataires de manière efficace</p>
     </div>
 
-    <div class="card mb-4">
+    <div class="mb-3 text-end">
+        <a href="{{ path('app_personne_new') }}" class="btn-add">
+            <i class="bi bi-person-plus-fill"></i>
+            Ajouter une nouvelle personne
+        </a>
+    </div>
+
+    <div class="card filters-card mb-4">
         <div class="card-header">
-            <h5 class="mb-0">Filtres Avancés</h5>
+            <h5><i class="bi bi-funnel-fill"></i> Filtres Avancés</h5>
         </div>
         <div class="card-body">
             <div class="mb-3">
@@ -109,38 +366,43 @@
         </div>
     </div>
 
-    <div class="export-buttons text-end">
-        <button id="exportPdfBtn" class="btn btn-danger btn-sm me-2">
-            <i class="bi bi-file-pdf"></i> Exporter en PDF
+    <div class="export-buttons">
+        <button id="exportPdfBtn" class="btn btn-danger">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Exporter PDF
         </button>
-        <button id="exportExcelBtn" class="btn btn-success btn-sm">
-            <i class="bi bi-file-excel"></i> Exporter en Excel
+        <button id="exportExcelBtn" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel-fill"></i> Exporter Excel
         </button>
     </div>
 
     <ul class="nav nav-tabs person-type-tabs" id="personneTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="proprietaires-tab" data-bs-toggle="tab" data-bs-target="#proprietaires" type="button" role="tab" aria-controls="proprietaires" aria-selected="true">📌 Propriétaires</button>
+            <button class="nav-link active" id="proprietaires-tab" data-bs-toggle="tab" data-bs-target="#proprietaires" type="button" role="tab" aria-controls="proprietaires" aria-selected="true">
+                <i class="bi bi-house-fill"></i> Propriétaires
+            </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="locataires-tab" data-bs-toggle="tab" data-bs-target="#locataires" type="button" role="tab" aria-controls="locataires" aria-selected="false">🏠 Locataires</button>
+            <button class="nav-link" id="locataires-tab" data-bs-toggle="tab" data-bs-target="#locataires" type="button" role="tab" aria-controls="locataires" aria-selected="false">
+                <i class="bi bi-key-fill"></i> Locataires
+            </button>
         </li>
     </ul>
 
     <div class="tab-content" id="personneTabContent">
         <div class="tab-pane fade show active" id="proprietaires" role="tabpanel" aria-labelledby="proprietaires-tab">
-            <table class="table table-bordered table-striped mb-5">
-                <thead class="table-dark">
-                    <tr>
-                        <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
-                        <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
-                        <th data-sort="email">Email<span class="sort-arrow"></span></th>
-                        <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
-                        <th data-sort="adresse">Adresse<span class="sort-arrow"></span></th>
-                        <th data-sort="date-achat">Date d'achat<span class="sort-arrow"></span></th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+            <div class="table-wrapper">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
+                            <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
+                            <th data-sort="email">Email<span class="sort-arrow"></span></th>
+                            <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
+                            <th data-sort="adresse">Adresse<span class="sort-arrow"></span></th>
+                            <th data-sort="date-achat">Date d'achat<span class="sort-arrow"></span></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                 <tbody>
                 {% for personne in proprietaires %}
                     <tr data-id="{{ personne.id }}" 
@@ -158,9 +420,13 @@
                         <td>{{ personne.telephone }}</td>
                         <td>{{ personne.adresse }}</td>
                         <td>{{ personne.dateAchat ? personne.dateAchat|date('d/m/Y') : 'N/A' }}</td>
-                        <td>
-                            <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-sm btn-info">Voir</a>
-                            <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                        <td class="table-actions">
+                            <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-info">
+                                <i class="bi bi-eye-fill"></i> Voir
+                            </a>
+                            <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-warning">
+                                <i class="bi bi-pencil-fill"></i> Modifier
+                            </a>
                         </td>
                     </tr>
                 {% else %}
@@ -168,21 +434,33 @@
                 {% endfor %}
                 </tbody>
             </table>
+            </div>
+            <div class="pagination-wrapper d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <small class="pagination-info">
+                    <i class="bi bi-info-circle"></i> 
+                    Page {{ proprietaires.currentPageNumber }} / {{ proprietaires.pageCount }} · 
+                    <strong>{{ proprietaires.getTotalItemCount }}</strong> résultats
+                </small>
+                <div>
+                    {{ knp_pagination_render(proprietaires) }}
+                </div>
+            </div>
         </div>
 
         <div class="tab-pane fade" id="locataires" role="tabpanel" aria-labelledby="locataires-tab">
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
-                        <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
-                        <th data-sort="email">Email<span class="sort-arrow"></span></th>
-                        <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
-                        <th data-sort="adresse">Adresse<span class="sort-arrow"></span></th>
-                        <th data-sort="date-location">Date de location<span class="sort-arrow"></span></th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
+            <div class="table-wrapper">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
+                            <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
+                            <th data-sort="email">Email<span class="sort-arrow"></span></th>
+                            <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
+                            <th data-sort="adresse">Adresse<span class="sort-arrow"></span></th>
+                            <th data-sort="date-location">Date de location<span class="sort-arrow"></span></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                 <tbody>
                 {% for personne in locataires %}
                     <tr data-id="{{ personne.id }}" 
@@ -200,9 +478,13 @@
                         <td>{{ personne.telephone }}</td>
                         <td>{{ personne.adresse }}</td>
                         <td>{{ personne.DateLocation ? personne.DateLocation|date('d/m/Y') : 'N/A' }}</td>
-                        <td>
-                            <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-sm btn-info">Voir</a>
-                            <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                        <td class="table-actions">
+                            <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-info">
+                                <i class="bi bi-eye-fill"></i> Voir
+                            </a>
+                            <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-warning">
+                                <i class="bi bi-pencil-fill"></i> Modifier
+                            </a>
                         </td>
                     </tr>
                 {% else %}
@@ -210,6 +492,17 @@
                 {% endfor %}
                 </tbody>
             </table>
+            </div>
+            <div class="pagination-wrapper d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <small class="pagination-info">
+                    <i class="bi bi-info-circle"></i> 
+                    Page {{ locataires.currentPageNumber }} / {{ locataires.pageCount }} · 
+                    <strong>{{ locataires.getTotalItemCount }}</strong> résultats
+                </small>
+                <div>
+                    {{ knp_pagination_render(locataires) }}
+                </div>
+            </div>
         </div>
     </div>
 </div>

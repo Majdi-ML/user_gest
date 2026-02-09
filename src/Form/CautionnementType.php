@@ -4,7 +4,6 @@ namespace App\Form;
 
 use App\Entity\Cautionnement;
 use App\Entity\Appartement;
-use App\Entity\NaturePaiement;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -57,10 +56,12 @@ class CautionnementType extends AbstractType
                 'mapped' => false,
                 'attr' => ['class' => 'form-select multiselect appartement-select'] // Add multiselect class
             ])
-            ->add('Nature_Paiement', EntityType::class, [
-                'class' => NaturePaiement::class,
-                'choice_label' => 'nature',
+            ->add('Nature_Paiement', ChoiceType::class, [
                 'label' => 'Nature du paiement',
+                'choices' => [
+                    'Espèce' => 'espece',
+                    'Bancaire' => 'bancaire',
+                ],
                 'attr' => ['class' => 'form-select'],
                 'placeholder' => 'Sélectionnez une nature de paiement',
                 'required' => false,

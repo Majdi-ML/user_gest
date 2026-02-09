@@ -25,8 +25,8 @@ class FraisSyndicReglement
     #[ORM\ManyToOne(inversedBy: 'fraisSyndicReglements')]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(inversedBy: 'fraisSyndicReglements')]
-    private ?NaturePaiement $nature_paiement = null;
+    #[ORM\Column(length: 255)]
+    private ?string $nature_paiement = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $annee = null;
@@ -123,12 +123,12 @@ class FraisSyndicReglement
         return $this;
     }
 
-    public function getNaturePaiement(): ?NaturePaiement
+    public function getNaturePaiement(): ?string
     {
         return $this->nature_paiement;
     }
 
-    public function setNaturePaiement(?NaturePaiement $nature_paiement): static
+    public function setNaturePaiement(?string $nature_paiement): static
     {
         $this->nature_paiement = $nature_paiement;
 

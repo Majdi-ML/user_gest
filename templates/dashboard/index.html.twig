@@ -4,7 +4,7 @@
 
 {% block css %}
     {{ parent() }}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <style>
         .card {
             border-radius: 12px;
@@ -37,7 +37,7 @@
             text-align: center;
         }
         th, td {
-            text-align: right;
+            text-align: center;
             padding: 12px;
             vertical-align: middle;
         }
@@ -60,7 +60,7 @@
             font-size: 2rem;
             color: #343a40;
         }
-        .btn-primary, .btn-success, .btn-info {
+        .btn-primary, .btn-success, .btn-info, .btn-danger {
             border-radius: 8px;
             padding: 8px 16px;
         }
@@ -77,38 +77,79 @@
     </style>
 {% endblock %}
 
-
 {% block body %}
 <div class="container-fluid py-5">
     <h1 class="mb-5 text-center">État Financier</h1>
 
-    <!-- Initial Balance -->
+    <!-- Form to Add New Caisse -->
     <div class="card mb-5">
         <div class="card-header">
-            Solde Ancien Syndic ({{ systemDate|date('d F Y', null, 'fr_FR') }})
+            Ajouter un Solde de Caisse
         </div>
         <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>CAISSE</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{{ initialCaisse|number_format(3, '.', ',') }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            {{ form_start(caisseForm) }}
+            <div class="row">
+                <div class="col-md-4">
+                    {{ form_row(caisseForm.solde, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-4">
+                    {{ form_row(caisseForm.annee, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary mt-4">Ajouter</button>
+                </div>
+            </div>
+            {{ form_end(caisseForm) }}
         </div>
     </div>
+
+    <!-- Display All Caisses -->
+    {% if caisses is not empty %}
+        <div class="card mb-5">
+            <div class="card-header">
+                Soldes de Caisse par Année
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ANNÉE</th>
+                            <th>SOLDE</th>
+                            {% if isAdmin %}
+                                <th>ACTIONS</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for caisse in caisses %}
+                            <tr>
+                                <td>{{ caisse.annee }}</td>
+                                <td>{{ caisse.solde|number_format(3, '.', ',') }}</td>
+                                {% if isAdmin %}
+                                    <td>
+                                        <a href="{{ path('edit_caisse', {'id': caisse.id}) }}" class="btn btn-primary btn-sm">Modifier</a>
+                                        <form method="post" action="{{ path('delete_caisse', {'id': caisse.id}) }}" style="display:inline;" onsubmit="return confirm('Voulez-vous vraiment supprimer la caisse pour l\'année {{ caisse.annee }} ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ caisse.id) }}">
+                                            <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                                        </form>
+                                    </td>
+                                {% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">Aucune caisse enregistrée.</div>
+    {% endif %}
 
     <!-- Yearly Tables -->
     {% if financialData is not empty %}
         {% for year, data in financialData %}
             <div class="card mb-5">
                 <div class="card-header">
-                    {{ year }}
+                    {{ year }} (Solde initial de {{ data.initialCaisseYear }}: {{ data.initialCaisse|number_format(3, '.', ',') }})
                 </div>
                 <div class="card-body">
                     <div class="export-btns">
@@ -119,43 +160,44 @@
                         <table id="table-{{ year }}" class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th style="text-align: left;">MOIS</th>
-                                    <th>RECETTES TOTAL</th>
-                                    {% for nature in naturePaiements %}
-                                        <th>RECETTES {{ nature|upper }}</th>
-                                    {% endfor %}
-                                    <th>DÉPENSES</th>
+                                    <th style="text-align: center;">MOIS</th>
+                                    <th>RECETTE ESPÈCE</th>
+                                    <th>RECETTE BANQUE</th>
+                                    <th>TOTAL RECETTE</th>
+                                    <th>DÉPENSE ESPÈCE</th>
+                                    <th>DÉPENSE BANQUE</th>
+                                    <th>TOTAL DÉPENSE</th>
                                     <th>SOLDE CAISSE</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for month, values in data.months %}
                                     <tr>
-                                        <td style="text-align: left;">{{ month }}</td>
-                                        <td>{{ values.recettes|number_format(3, '.', ',') }}</td>
-                                        {% for nature in naturePaiements %}
-                                            <td>{{ values.recettesByNature[nature]|number_format(3, '.', ',') }}</td>
-                                        {% endfor %}
-                                        <td>{{ values.depenses|number_format(3, '.', ',') }}</td>
+                                        <td style="text-align: center;">{{ month }}</td>
+                                        <td>{{ values.recette_espece|number_format(3, '.', ',') }}</td>
+                                        <td>{{ values.recette_banque|number_format(3, '.', ',') }}</td>
+                                        <td>{{ values.total_recette|number_format(3, '.', ',') }}</td>
+                                        <td>{{ values.depense_espece|number_format(3, '.', ',') }}</td>
+                                        <td>{{ values.depense_banque|number_format(3, '.', ',') }}</td>
+                                        <td>{{ values.total_depense|number_format(3, '.', ',') }}</td>
                                         <td>{{ values.caisse|number_format(3, '.', ',') }}</td>
                                     </tr>
                                 {% endfor %}
                                 <tr class="total-row">
                                     <td>TOTAL {{ year }}</td>
+                                    <td colspan="2"></td>
                                     <td>{{ data.recettes|number_format(3, '.', ',') }}</td>
-                                    {% for nature in naturePaiements %}
-                                        <td></td>
-                                    {% endfor %}
+                                    <td colspan="2"></td>
                                     <td>{{ data.depenses|number_format(3, '.', ',') }}</td>
                                     <td></td>
                                 </tr>
                                 <tr class="total-row">
                                     <td>RECETTES - DÉPENSES {{ year }}</td>
-                                    <td colspan="{{ 3 + naturePaiements|length }}">{{ data.net|number_format(3, '.', ',') }}</td>
+                                    <td colspan="7">{{ data.net|number_format(3, '.', ',') }}</td>
                                 </tr>
                                 <tr class="total-row">
-                                    <td>SOLDE CAISSE AU {% if year == 2025 %}20 MAI{% else %}31 DÉCEMBRE{% endif %} {{ year }}</td>
-                                    <td colspan="{{ 3 + naturePaiements|length }}">{{ (data.months|last.caisse)|number_format(3, '.', ',') }}</td>
+                                    <td>SOLDE CAISSE AU 31 DÉCEMBRE {{ year }}</td>
+                                    <td colspan="7">{{ (data.months|last.caisse)|number_format(3, '.', ',') }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -176,25 +218,29 @@
                             <th>ANNÉE</th>
                             <th>RECETTES</th>
                             <th>DÉPENSES</th>
+                            <th>NET</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for year, data in financialData %}
                             <tr>
-                                <td>{{ year }}{% if year == 2025 %} (5 mois){% endif %}</td>
+                                <td>{{ year }}</td>
                                 <td>{{ data.recettes|number_format(3, '.', ',') }}</td>
                                 <td>{{ data.depenses|number_format(3, '.', ',') }}</td>
+                                <td>{{ data.net|number_format(3, '.', ',') }}</td>
                             </tr>
                         {% endfor %}
                         <tr class="total-row">
                             <td>TOTAL</td>
                             <td>{{ totalRecettes|number_format(3, '.', ',') }}</td>
                             <td>{{ totalDepenses|number_format(3, '.', ',') }}</td>
+                            <td>{{ (totalRecettes - totalDepenses)|number_format(3, '.', ',') }}</td>
                         </tr>
                         <tr class="total-row">
                             <td>MOYENNE ANNUELLE</td>
                             <td>{{ averageRecettes|number_format(3, '.', ',') }}</td>
                             <td>{{ averageDepenses|number_format(3, '.', ',') }}</td>
+                            <td>{{ (averageRecettes - averageDepenses)|number_format(3, '.', ',') }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -212,11 +258,14 @@
 {% endblock %}
 
 {% block js %}
+    {{ parent() }} <!-- Inclut les scripts de base.html.twig -->
+
+    <!-- Scripts spécifiques à l'exportation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.25/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.25/dist/jspdf.plugin.autotable.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -232,32 +281,31 @@
 
             // Export individual table to PDF
             window.exportToPDF = async function(year) {
-    try {
-        const jsPDF = window.jspdf?.jsPDF;
-        if (!jsPDF) throw new Error('jsPDF non chargé');
+                try {
+                    const jsPDF = window.jspdf?.jsPDF;
+                    if (!jsPDF) throw new Error('jsPDF non chargé');
 
-        const doc = new jsPDF();
-        const table = document.getElementById(`table-${year}`);
-        if (!table) throw new Error(`Table table-${year} non trouvée`);
+                    const doc = new jsPDF();
+                    const table = document.getElementById(`table-${year}`);
+                    if (!table) throw new Error(`Table table-${year} non trouvée`);
 
-        const title = `État Financier ${year}`;
-        doc.setFontSize(16);
-        doc.text(title, 14, 20);
-        doc.autoTable({
-            html: table,
-            startY: 30,
-            styles: { cellPadding: 3, fontSize: 10, halign: 'right' },
-            headStyles: { fillColor: [100, 100, 100], textColor: [255, 255, 255] },
-            bodyStyles: { textColor: [0, 0, 0] },
-            margin: { top: 30 }
-        });
-        doc.save(`etat_financier_${year}.pdf`);
-    } catch (e) {
-        console.error('Erreur PDF :', e);
-        alert('Erreur PDF : ' + e.message);
-    }
-};
-
+                    const title = `État Financier ${year}`;
+                    doc.setFontSize(16);
+                    doc.text(title, 14, 20);
+                    doc.autoTable({
+                        html: table,
+                        startY: 30,
+                        styles: { cellPadding: 3, fontSize: 10, halign: 'right' },
+                        headStyles: { fillColor: [100, 100, 100], textColor: [255, 255, 255] },
+                        bodyStyles: { textColor: [0, 0, 0] },
+                        margin: { top: 30 }
+                    });
+                    doc.save(`etat_financier_${year}.pdf`);
+                } catch (e) {
+                    console.error('Erreur PDF :', e);
+                    alert('Erreur PDF : ' + e.message);
+                }
+            };
 
             // Export individual table to Excel
             window.exportToExcel = function(year) {
@@ -274,51 +322,50 @@
             };
 
             // Export entire page to PDF
-           window.exportAllToPDF = async function() {
-    try {
-        const jsPDF = window.jspdf?.jsPDF;
-        if (!jsPDF) throw new Error('jsPDF non chargé');
-        if (!html2canvas) throw new Error('html2canvas non chargé');
+            window.exportAllToPDF = async function() {
+                try {
+                    const jsPDF = window.jspdf?.jsPDF;
+                    if (!jsPDF) throw new Error('jsPDF non chargé');
+                    if (!html2canvas) throw new Error('html2canvas non chargé');
 
-        const doc = new jsPDF('p', 'pt', 'a4');
-        const content = document.querySelector('.container-fluid');
-        if (!content) throw new Error('Conteneur non trouvé');
+                    const doc = new jsPDF('p', 'pt', 'a4');
+                    const content = document.querySelector('.container-fluid');
+                    if (!content) throw new Error('Conteneur non trouvé');
 
-        // Masquer les boutons avant capture
-        const exportButtons = document.querySelectorAll('.export-btns, .export-all-btn');
-        exportButtons.forEach(btn => btn.style.display = 'none');
+                    // Masquer les boutons avant capture
+                    const exportButtons = document.querySelectorAll('.export-btns, .export-all-btn');
+                    exportButtons.forEach(btn => btn.style.display = 'none');
 
-        // Attendre une frame pour que les boutons soient bien masqués
-        await new Promise(resolve => setTimeout(resolve, 100));
+                    // Attendre une frame pour que les boutons soient bien masqués
+                    await new Promise(resolve => setTimeout(resolve, 100));
 
-        const canvas = await html2canvas(content, { scale: 2 });
-        const imgData = canvas.toDataURL('image/png');
-        const imgWidth = 595.28;
-        const pageHeight = 841.89;
-        const imgHeight = canvas.height * imgWidth / canvas.width;
-        let heightLeft = imgHeight;
-        let position = 0;
+                    const canvas = await html2canvas(content, { scale: 2 });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = 595.28;
+                    const pageHeight = 841.89;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 0;
 
-        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
 
-        while (heightLeft >= 0) {
-            position = heightLeft - imgHeight;
-            doc.addPage();
-            doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
-        }
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        doc.addPage();
+                        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
 
-        // Réafficher les boutons après l’export
-        exportButtons.forEach(btn => btn.style.display = '');
+                    // Réafficher les boutons après l’export
+                    exportButtons.forEach(btn => btn.style.display = '');
 
-        doc.save('etat_financier_complet.pdf');
-    } catch (e) {
-        console.error('Erreur PDF global :', e);
-        alert('Erreur : ' + e.message);
-    }
-};
-
+                    doc.save('etat_financier_complet.pdf');
+                } catch (e) {
+                    console.error('Erreur PDF global :', e);
+                    alert('Erreur : ' + e.message);
+                }
+            };
         });
     </script>
 {% endblock %}

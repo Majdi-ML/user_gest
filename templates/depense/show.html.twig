@@ -23,7 +23,16 @@
             <tr>
                 <th>Type</th>
                 <td>{{ depense.type }}</td>
-            </tr><tr>
+            </tr>
+            <tr>
+                <th>Nature</th>
+                <td>
+                    <span class="badge-modern {% if depense.natureDepense == 'Bancaire' %}bg-primary{% else %}bg-warning{% endif %}">
+                        {{ depense.natureDepense }}
+                    </span>
+                </td>
+            </tr>
+            <tr>
                 <th>Fichier joint</th>
                 <td>
                     {% if depense.attachedFile %}

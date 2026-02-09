@@ -4,6 +4,7 @@
 
 {% block css %}
     {{ parent() }}
+    {% include '_modern_index_styles.html.twig' %}
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
         .filter-row th {
@@ -48,13 +49,19 @@
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">📋 Liste des Déclarations CNSS</h1>
-
-    <div class="mb-3 text-end">
-        <a href="{{ path('app_cnss_new') }}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Nouvelle déclaration
-        </a>
+<div class="container-fluid p-4">
+    <div class="page-header">
+        <div class="page-header-content">
+            <div>
+                <h1><i class="bi bi-file-earmark-text"></i> Déclarations CNSS</h1>
+                <p class="page-subtitle">Gestion des déclarations trimestrielles</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ path('app_cnss_new') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nouvelle Déclaration
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="card mb-4">
@@ -121,15 +128,13 @@
                             <span class="badge bg-secondary">Aucun document</span>
                         {% endif %}
                     </td>
-                    <td>
-                        <div class="btn-group" role="group">
-                            <a href="{{ path('app_cnss_show', {'id': cnss.id}) }}" class="btn btn-sm btn-primary">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            <a href="{{ path('app_cnss_edit', {'id': cnss.id}) }}" class="btn btn-sm btn-warning">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                        </div>
+                    <td class="table-actions">
+                        <a href="{{ path('app_cnss_show', {'id': cnss.id}) }}" class="btn btn-info">
+                            <i class="bi bi-eye-fill"></i> Voir
+                        </a>
+                        <a href="{{ path('app_cnss_edit', {'id': cnss.id}) }}" class="btn btn-warning">
+                            <i class="bi bi-pencil-fill"></i> Modifier
+                        </a>
                     </td>
                 </tr>
             {% else %}

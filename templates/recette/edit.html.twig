@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Recette{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_form_styles.html.twig' %}
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">✏️</span>
+            Modifier la recette
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Modifiez les informations de la recette</p>
+    </div>
+
+    <div class="form-card">
+        <div class="card-header">
+            <i class="bi bi-pencil-square"></i> Formulaire de modification
+        </div>
+        <div class="card-body">
+            {{ include('recette/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ path('app_recette_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Retour à la liste
+        </a>
+        {{ include('recette/_delete_form.html.twig') }}
+    </div>
+</div>
+{% endblock %}

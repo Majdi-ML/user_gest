@@ -1,6 +1,0 @@
-<form method="post" action="{{ path('app_status_bureau_delete', {'id': status_bureau.id}) }}" class="delete-form">
-    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ status_bureau.id) }}">
-    <button type="button" class="btn btn-danger btn-delete">
-        <i class="bi bi-trash"></i> Supprimer
-    </button>
-</form>

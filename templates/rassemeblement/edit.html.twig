@@ -1,13 +1,32 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Rassemeblement{% endblock %}
+{% block title %}Modifier Rassemblement{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_form_styles.html.twig' %}
+{% endblock %}
 
 {% block body %}
-    <h1>Edit Rassemeblement</h1>
+<div class="container-fluid p-4">
+    <div class="page-header">
+        <div class="page-header-content">
+            <div>
+                <h1><i class="bi bi-pencil-square"></i> Modifier Rassemblement</h1>
+                <p class="page-subtitle">Mise à jour du rassemblement #{{ rassemeblement.id }}</p>
+            </div>
+        </div>
+    </div>
 
-    {{ include('rassemeblement/_form.html.twig', {'button_label': 'Update'}) }}
+    <div class="form-card">
+        {{ include('rassemeblement/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+    </div>
 
-    <a href="{{ path('app_rassemeblement_index') }}">back to list</a>
-
-    {{ include('rassemeblement/_delete_form.html.twig') }}
+    <div class="action-buttons mt-3">
+        <a href="{{ path('app_rassemeblement_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+        {{ include('rassemeblement/_delete_form.html.twig') }}
+    </div>
+</div>
 {% endblock %}

@@ -1,0 +1,694 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Configuration{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+        }
+
+        .page-header-icon {
+            font-size: 2.5rem;
+            margin-right: 1rem;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #7c3aed;
+            margin-bottom: 2rem;
+        }
+
+        .nav-tabs .nav-link {
+            color: #6d28d9;
+            font-weight: 600;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-bottom-color: #a78bfa;
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #7c3aed;
+            border-bottom-color: #7c3aed;
+            background: rgba(124, 58, 237, 0.1);
+        }
+
+        .config-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .config-table {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .config-table th {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+        }
+
+        .config-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .config-table tbody tr:hover {
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+            color: white;
+        }
+
+        .btn-edit {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit:hover {
+            background: #d97706;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .input-group-custom {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group-custom input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group-custom input:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #9ca3af;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">⚙️</span>
+            Configuration du Système
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Gérer les paramètres et types de données</p>
+    </div>
+
+    <ul class="nav nav-tabs" id="configTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="type-papier-tab" data-bs-toggle="tab" data-bs-target="#type-papier" type="button" role="tab">
+                <i class="bi bi-file-text"></i> Type Papier
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="type-rassemblement-tab" data-bs-toggle="tab" data-bs-target="#type-rassemblement" type="button" role="tab">
+                <i class="bi bi-people"></i> Type Rassemblement
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="status-bureau-tab" data-bs-toggle="tab" data-bs-target="#status-bureau" type="button" role="tab">
+                <i class="bi bi-bookmark"></i> Status Bureau
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="fonction-bureau-tab" data-bs-toggle="tab" data-bs-target="#fonction-bureau" type="button" role="tab">
+                <i class="bi bi-briefcase"></i> Fonction Bureau
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="frais-syndic-tab" data-bs-toggle="tab" data-bs-target="#frais-syndic" type="button" role="tab">
+                <i class="bi bi-cash-coin"></i> Frais
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="fonction-employe-tab" data-bs-toggle="tab" data-bs-target="#fonction-employe" type="button" role="tab">
+                <i class="bi bi-person-badge"></i> Fonction Employé
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="configTabContent">
+        <!-- Type Papier -->
+        <div class="tab-pane fade show active" id="type-papier" role="tabpanel">
+            <div class="config-card">
+                <h3><i class="bi bi-file-text"></i> Types de Papier</h3>
+                <div class="input-group-custom">
+                    <input type="text" id="new-type-papier" placeholder="Nouveau type de papier..." class="form-control">
+                    <button onclick="addTypePapier()" class="btn btn-add">
+                        <i class="bi bi-plus-circle"></i> Ajouter
+                    </button>
+                </div>
+                <table class="config-table table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Libellé</th>
+                            <th style="width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="type-papier-list">
+                        {% for item in type_papiers %}
+                        <tr data-id="{{ item.id }}">
+                            <td>{{ item.id }}</td>
+                            <td class="libelle">{{ item.libelle }}</td>
+                            <td>
+                                <button onclick="editRow('type-papier', {{ item.id }}, '{{ item.libelle }}')" class="btn btn-edit btn-sm">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </button>
+                                <button onclick="deleteItem('type-papier', {{ item.id }})" class="btn btn-delete btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>Aucun type de papier</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Type Rassemblement -->
+        <div class="tab-pane fade" id="type-rassemblement" role="tabpanel">
+            <div class="config-card">
+                <h3><i class="bi bi-people"></i> Types de Rassemblement</h3>
+                <div class="input-group-custom">
+                    <input type="text" id="new-type-rassemblement" placeholder="Nouveau type de rassemblement..." class="form-control">
+                    <button onclick="addTypeRassemblement()" class="btn btn-add">
+                        <i class="bi bi-plus-circle"></i> Ajouter
+                    </button>
+                </div>
+                <table class="config-table table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Libellé</th>
+                            <th style="width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="type-rassemblement-list">
+                        {% for item in type_rassemblements %}
+                        <tr data-id="{{ item.id }}">
+                            <td>{{ item.id }}</td>
+                            <td class="libelle">{{ item.libelle }}</td>
+                            <td>
+                                <button onclick="editRow('type-rassemblement', {{ item.id }}, '{{ item.libelle }}')" class="btn btn-edit btn-sm">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </button>
+                                <button onclick="deleteItem('type-rassemblement', {{ item.id }})" class="btn btn-delete btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>Aucun type de rassemblement</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Status Bureau -->
+        <div class="tab-pane fade" id="status-bureau" role="tabpanel">
+            <div class="config-card">
+                <h3><i class="bi bi-bookmark"></i> Status Bureau</h3>
+                <div class="input-group-custom">
+                    <input type="text" id="new-status-bureau" placeholder="Nouveau status bureau..." class="form-control">
+                    <button onclick="addStatusBureau()" class="btn btn-add">
+                        <i class="bi bi-plus-circle"></i> Ajouter
+                    </button>
+                </div>
+                <table class="config-table table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Libellé</th>
+                            <th style="width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="status-bureau-list">
+                        {% for item in status_bureaux %}
+                        <tr data-id="{{ item.id }}">
+                            <td>{{ item.id }}</td>
+                            <td class="libelle">{{ item.libelle }}</td>
+                            <td>
+                                <button onclick="editRow('status-bureau', {{ item.id }}, '{{ item.libelle }}')" class="btn btn-edit btn-sm">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </button>
+                                <button onclick="deleteItem('status-bureau', {{ item.id }})" class="btn btn-delete btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>Aucun status bureau</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Fonction Bureau -->
+        <div class="tab-pane fade" id="fonction-bureau" role="tabpanel">
+            <div class="config-card">
+                <h3><i class="bi bi-briefcase"></i> Fonctions Bureau</h3>
+                <div class="input-group-custom">
+                    <input type="text" id="new-fonction-bureau" placeholder="Nouvelle fonction bureau..." class="form-control">
+                    <button onclick="addFonctionBureau()" class="btn btn-add">
+                        <i class="bi bi-plus-circle"></i> Ajouter
+                    </button>
+                </div>
+                <table class="config-table table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Libellé</th>
+                            <th style="width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fonction-bureau-list">
+                        {% for item in fonction_bureaux %}
+                        <tr data-id="{{ item.id }}">
+                            <td>{{ item.id }}</td>
+                            <td class="libelle">{{ item.libelle }}</td>
+                            <td>
+                                <button onclick="editRow('fonction-bureau', {{ item.id }}, '{{ item.libelle }}')" class="btn btn-edit btn-sm">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </button>
+                                <button onclick="deleteItem('fonction-bureau', {{ item.id }})" class="btn btn-delete btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>Aucune fonction bureau</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Frais Syndic -->
+        <div class="tab-pane fade" id="frais-syndic" role="tabpanel">
+            <div class="config-card">
+                <h3><i class="bi bi-cash-coin"></i> Montants des Frais</h3>
+                <div class="input-group-custom">
+                    <input type="number" step="0.01" id="new-frais-syndic" placeholder="Nouveau montant..." class="form-control">
+                    <button onclick="addFraisSyndic()" class="btn btn-add">
+                        <i class="bi bi-plus-circle"></i> Ajouter
+                    </button>
+                </div>
+                <table class="config-table table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Montant (DT)</th>
+                            <th style="width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="frais-syndic-list">
+                        {% for item in frais_syndics %}
+                        <tr data-id="{{ item.id }}">
+                            <td>{{ item.id }}</td>
+                            <td class="montant">{{ item.montant|number_format(2, '.', ',') }} DT</td>
+                            <td>
+                                <button onclick="editFraisRow({{ item.id }}, {{ item.montant }})" class="btn btn-edit btn-sm">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </button>
+                                <button onclick="deleteItem('frais-syndic', {{ item.id }})" class="btn btn-delete btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>Aucun frais</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Fonction Employé -->
+        <div class="tab-pane fade" id="fonction-employe" role="tabpanel">
+            <div class="config-card">
+                <h3><i class="bi bi-person-badge"></i> Fonctions Employé</h3>
+                <div class="input-group-custom">
+                    <input type="text" id="new-fonction-employe" placeholder="Nouvelle fonction employé..." class="form-control">
+                    <button onclick="addFonctionEmploye()" class="btn btn-add">
+                        <i class="bi bi-plus-circle"></i> Ajouter
+                    </button>
+                </div>
+                <table class="config-table table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Libellé</th>
+                            <th style="width: 150px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fonction-employe-list">
+                        {% for item in fonction_employes %}
+                        <tr data-id="{{ item.id }}">
+                            <td>{{ item.id }}</td>
+                            <td class="libelle">{{ item.libelle }}</td>
+                            <td>
+                                <button onclick="editRow('fonction-employe', {{ item.id }}, '{{ item.libelle }}')" class="btn btn-edit btn-sm">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </button>
+                                <button onclick="deleteItem('fonction-employe', {{ item.id }})" class="btn btn-delete btn-sm">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>Aucune fonction employé</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Type Papier
+function addTypePapier() {
+    const input = document.getElementById('new-type-papier');
+    const libelle = input.value.trim();
+    if (!libelle) return;
+
+    fetch('{{ path('app_configuration_type_papier_add') }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'libelle=' + encodeURIComponent(libelle)
+    })
+    .then(r => r.json())
+    .then(data => {
+        addRowToTable('type-papier', data.id, data.libelle);
+        input.value = '';
+    });
+}
+
+// Type Rassemblement
+function addTypeRassemblement() {
+    const input = document.getElementById('new-type-rassemblement');
+    const libelle = input.value.trim();
+    if (!libelle) return;
+
+    fetch('{{ path('app_configuration_type_rassemblement_add') }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'libelle=' + encodeURIComponent(libelle)
+    })
+    .then(r => r.json())
+    .then(data => {
+        addRowToTable('type-rassemblement', data.id, data.libelle);
+        input.value = '';
+    });
+}
+
+// Status Bureau
+function addStatusBureau() {
+    const input = document.getElementById('new-status-bureau');
+    const libelle = input.value.trim();
+    if (!libelle) return;
+
+    fetch('{{ path('app_configuration_status_bureau_add') }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'libelle=' + encodeURIComponent(libelle)
+    })
+    .then(r => r.json())
+    .then(data => {
+        addRowToTable('status-bureau', data.id, data.libelle);
+        input.value = '';
+    });
+}
+
+// Fonction Bureau
+function addFonctionBureau() {
+    const input = document.getElementById('new-fonction-bureau');
+    const libelle = input.value.trim();
+    if (!libelle) return;
+
+    fetch('{{ path('app_configuration_fonction_bureau_add') }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'libelle=' + encodeURIComponent(libelle)
+    })
+    .then(r => r.json())
+    .then(data => {
+        addRowToTable('fonction-bureau', data.id, data.libelle);
+        input.value = '';
+    });
+}
+
+// Frais Syndic
+function addFraisSyndic() {
+    const input = document.getElementById('new-frais-syndic');
+    const montant = input.value.trim();
+    if (!montant) return;
+
+    fetch('{{ path('app_configuration_frais_syndic_add') }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'montant=' + encodeURIComponent(montant)
+    })
+    .then(r => r.json())
+    .then(data => {
+        addFraisRowToTable(data.id, data.montant);
+        input.value = '';
+    });
+}
+
+// Fonction Employé
+function addFonctionEmploye() {
+    const input = document.getElementById('new-fonction-employe');
+    const libelle = input.value.trim();
+    if (!libelle) return;
+
+    fetch('{{ path('app_configuration_fonction_employe_add') }}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'libelle=' + encodeURIComponent(libelle)
+    })
+    .then(r => r.json())
+    .then(data => {
+        addRowToTable('fonction-employe', data.id, data.libelle);
+        input.value = '';
+    });
+}
+
+// Generic functions
+function addRowToTable(type, id, libelle) {
+    const tbody = document.getElementById(type + '-list');
+    const emptyRow = tbody.querySelector('.empty-state');
+    if (emptyRow) emptyRow.parentElement.remove();
+
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-id', id);
+    tr.innerHTML = `
+        <td>${id}</td>
+        <td class="libelle">${libelle}</td>
+        <td>
+            <button onclick="editRow('${type}', ${id}, '${libelle}')" class="btn btn-edit btn-sm">
+                <i class="bi bi-pencil"></i> Modifier
+            </button>
+            <button onclick="deleteItem('${type}', ${id})" class="btn btn-delete btn-sm">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+}
+
+function addFraisRowToTable(id, montant) {
+    const tbody = document.getElementById('frais-syndic-list');
+    const emptyRow = tbody.querySelector('.empty-state');
+    if (emptyRow) emptyRow.parentElement.remove();
+
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-id', id);
+    tr.innerHTML = `
+        <td>${id}</td>
+        <td class="montant">${parseFloat(montant).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')} DT</td>
+        <td>
+            <button onclick="editFraisRow(${id}, ${montant})" class="btn btn-edit btn-sm">
+                <i class="bi bi-pencil"></i> Modifier
+            </button>
+            <button onclick="deleteItem('frais-syndic', ${id})" class="btn btn-delete btn-sm">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
+}
+
+function editRow(type, id, currentValue) {
+    const newValue = prompt('Modifier le libellé:', currentValue);
+    if (!newValue || newValue === currentValue) return;
+
+    fetch(`/configuration/${type}/${id}/edit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'libelle=' + encodeURIComponent(newValue)
+    })
+    .then(r => r.json())
+    .then(data => {
+        const row = document.querySelector(`#${type}-list tr[data-id="${id}"]`);
+        row.querySelector('.libelle').textContent = data.libelle;
+        row.querySelector('.btn-edit').setAttribute('onclick', `editRow('${type}', ${id}, '${data.libelle}')`);
+    });
+}
+
+function editFraisRow(id, currentValue) {
+    const newValue = prompt('Modifier le montant:', currentValue);
+    if (!newValue || newValue === currentValue) return;
+
+    fetch(`/configuration/frais-syndic/${id}/edit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'montant=' + encodeURIComponent(newValue)
+    })
+    .then(r => r.json())
+    .then(data => {
+        const row = document.querySelector(`#frais-syndic-list tr[data-id="${id}"]`);
+        row.querySelector('.montant').textContent = parseFloat(data.montant).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') + ' DT';
+        row.querySelector('.btn-edit').setAttribute('onclick', `editFraisRow(${id}, ${data.montant})`);
+    });
+}
+
+function deleteItem(type, id) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return;
+
+    fetch(`/configuration/${type}/${id}/delete`, {
+        method: 'POST'
+    })
+    .then(r => r.json())
+    .then(() => {
+        const row = document.querySelector(`#${type}-list tr[data-id="${id}"]`);
+        row.remove();
+        
+        const tbody = document.getElementById(type + '-list');
+        if (tbody.children.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="3" class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>Aucun élément</p>
+                    </td>
+                </tr>
+            `;
+        }
+    });
+}
+</script>
+{% endblock %}

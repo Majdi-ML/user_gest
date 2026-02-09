@@ -42,6 +42,27 @@ class FraisSyndicReglementController extends AbstractController
         return new JsonResponse($data);
     }
 
+    #[Route('/get-all-appartements', name: 'get_all_appartements')]
+    public function getAllAppartements(AppartementRepository $appartementRepo): JsonResponse
+    {
+        $appartements = $appartementRepo->findAll();
+        $data = [];
+
+        foreach ($appartements as $appartement) {
+            $proprietaire = $appartement->getProprietaire();
+            $proprietaireNom = $proprietaire ? $proprietaire->getNom() . ' ' . $proprietaire->getPrenom() : 'Sans propriétaire';
+            
+            $data[] = [
+                'id' => $appartement->getId(),
+                'text' => 'Appart ' . $appartement->getNumero() . ' - ' . $proprietaireNom,
+                'numero' => $appartement->getNumero(),
+                'proprietaire' => $proprietaireNom,
+            ];
+        }
+
+        return new JsonResponse($data);
+    }
+
    #[Route('/', name: 'app_frais_syndic_reglement_index', methods: ['GET'])]
     public function index(Request $request, FraisSyndicReglementRepository $fraisSyndicReglementRepository, AppartementRepository $appartementRepository): Response
     {
@@ -146,136 +167,146 @@ class FraisSyndicReglementController extends AbstractController
     }
 
    #[Route('/new', name: 'app_frais_syndic_reglement_new', methods: ['GET', 'POST'])]
-    public function new(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        Security $security,
-        FraisSyndicReglementRepository $fraisSyndicReglementRepository,
-        AppartementRepository $appartementRepository
-    ): Response {
-        $fraisSyndicReglement = new FraisSyndicReglement();
-        $user = $security->getUser();
+public function new(
+    Request $request,
+    EntityManagerInterface $entityManager,
+    Security $security,
+    FraisSyndicReglementRepository $fraisSyndicReglementRepository,
+    AppartementRepository $appartementRepository
+): Response {
+    $fraisSyndicReglement = new FraisSyndicReglement();
+    $user = $security->getUser();
 
-        // Pre-fill appartement and annee from query parameters
-        $appartementId = $request->query->get('appartementId');
-        $annee = $request->query->get('annee');
+    // Pré-remplir appartement et année depuis les paramètres de requête
+    $appartementId = $request->query->get('appartementId');
+    $annee = $request->query->get('annee');
 
-        if ($appartementId) {
-            $appartement = $appartementRepository->find($appartementId);
-            if ($appartement) {
-                $fraisSyndicReglement->setAppartement($appartement);
-                $fraisSyndicReglement->setPersonne($appartement->getProprietaire());
+    if ($appartementId) {
+        $appartement = $appartementRepository->find($appartementId);
+        if ($appartement) {
+            $fraisSyndicReglement->setAppartement($appartement);
+            $fraisSyndicReglement->setPersonne($appartement->getProprietaire());
+        }
+    }
+
+    if ($annee) {
+        $fraisSyndicReglement->setAnnee($annee);
+    }
+
+    $form = $this->createForm(FraisSyndicReglementType::class, $fraisSyndicReglement);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+        $appartements = $form->get('appartement')->getData();
+        if (empty($appartements)) {
+            $this->addFlash('error', 'Veuillez sélectionner au moins un appartement.');
+            return $this->renderForm('frais_syndic_reglement/new.html.twig', [
+                'frais_syndic_reglement' => $fraisSyndicReglement,
+                'form' => $form,
+            ]);
+        }
+
+        // Collecter les mois sélectionnés
+        $selectedMonths = [];
+        $monthFields = [
+            'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
+            'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
+        ];
+        foreach ($monthFields as $month) {
+            $getter = 'is' . $month;
+            if ($fraisSyndicReglement->$getter()) {
+                $selectedMonths[] = $month;
             }
         }
 
-        if ($annee) {
-            $fraisSyndicReglement->setAnnee($annee);
+        if (empty($selectedMonths)) {
+            $this->addFlash('error', 'Veuillez sélectionner au moins un mois.');
+            return $this->renderForm('frais_syndic_reglement/new.html.twig', [
+                'frais_syndic_reglement' => $fraisSyndicReglement,
+                'form' => $form,
+            ]);
         }
 
-        $form = $this->createForm(FraisSyndicReglementType::class, $fraisSyndicReglement);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $appartements = $form->get('appartement')->getData();
-            if (empty($appartements)) {
-                $this->addFlash('error', 'Veuillez sélectionner au moins un appartement.');
+        foreach ($appartements as $appartement) {
+            $proprietaire = $appartement->getProprietaire();
+            if (!$proprietaire) {
+                $this->addFlash('error', sprintf(
+                    'L\'appartement "%s" n\'a pas de propriétaire.',
+                    $appartement->getNom() ?? 'Appartement ' . $appartement->getId()
+                ));
                 return $this->renderForm('frais_syndic_reglement/new.html.twig', [
                     'frais_syndic_reglement' => $fraisSyndicReglement,
                     'form' => $form,
                 ]);
             }
 
-            // Collect selected months
-            $selectedMonths = [];
-            $monthFields = [
-                'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
-                'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
-            ];
-            foreach ($monthFields as $month) {
-                $getter = 'is' . $month;
-                if ($fraisSyndicReglement->$getter()) {
-                    $selectedMonths[] = $month;
-                }
-            }
+            // Vérifier si un règlement existe déjà pour cet appartement, propriétaire et année
+            $existingReglement = $fraisSyndicReglementRepository->findOneBy([
+                'Personne' => $proprietaire,
+                'annee' => $fraisSyndicReglement->getAnnee(),
+                'appartement' => $appartement,
+            ]);
 
-            
-
-            foreach ($appartements as $appartement) {
-                $proprietaire = $appartement->getProprietaire();
-                if (!$proprietaire) {
-                    $this->addFlash('error', sprintf(
-                        'L\'appartement "%s" n\'a pas de propriétaire.',
-                        $appartement->getNom() ?? 'Appartement ' . $appartement->getId()
-                    ));
-                    return $this->renderForm('frais_syndic_reglement/new.html.twig', [
-                        'frais_syndic_reglement' => $fraisSyndicReglement,
-                        'form' => $form,
-                    ]);
-                }
-
-                $existingReglement = $fraisSyndicReglementRepository->findOneBy([
-                    'Personne' => $proprietaire,
-                    'annee' => $fraisSyndicReglement->getAnnee(),
-                    'appartement' => $appartement,
-                ]);
-
-                if ($existingReglement) {
-                    foreach ($selectedMonths as $month) {
-                        $getter = 'is' . $month;
-                        if ($existingReglement->$getter()) {
-                            $this->addFlash('error', sprintf(
-                                'Le propriétaire %s a déjà payé les frais de syndic pour le mois %s %s pour cet appartement.',
-                                $proprietaire->getNom() . ' ' . $proprietaire->getPrenom(),
-                                $month,
-                                $fraisSyndicReglement->getAnnee()
-                            ));
-                            return $this->renderForm('frais_syndic_reglement/new.html.twig', [
-                                'frais_syndic_reglement' => $fraisSyndicReglement,
-                                'form' => $form,
-                            ]);
-                        }
+            // Si un règlement existe, vérifier les mois déjà payés
+            if ($existingReglement) {
+                foreach ($selectedMonths as $month) {
+                    $getter = 'is' . $month;
+                    if ($existingReglement->$getter()) {
+                        $this->addFlash('error', sprintf(
+                            'Le propriétaire %s a déjà payé les frais de syndic pour le mois %s %s pour cet appartement.',
+                            $proprietaire->getNom() . ' ' . $proprietaire->getPrenom(),
+                            $month,
+                            $fraisSyndicReglement->getAnnee()
+                        ));
+                        return $this->renderForm('frais_syndic_reglement/new.html.twig', [
+                            'frais_syndic_reglement' => $fraisSyndicReglement,
+                            'form' => $form,
+                        ]);
                     }
                 }
-
-                $newReglement = $existingReglement ?: new FraisSyndicReglement();
-                $newReglement->setFrais($fraisSyndicReglement->getFrais());
-                $newReglement->setAnnee($fraisSyndicReglement->getAnnee());
-                $newReglement->setPersonne($proprietaire);
-                $newReglement->setAppartement($appartement);
-                $newReglement->setNaturePaiement($fraisSyndicReglement->getNaturePaiement());
-                $newReglement->setUser($user);
-
-                // Explicitly reset all months to false to ensure unpaid months are Non
-                foreach ($monthFields as $month) {
-                    $setter = 'set' . $month;
-                    $newReglement->$setter(false);
-                }
-
-                // Set selected months to true and calculate total
-                $montantMensuel = $fraisSyndicReglement->getFrais()->getMontant();
-                $total = $existingReglement ? $newReglement->getTotale() : 0;
-                foreach ($selectedMonths as $month) {
-                    $setter = 'set' . $month;
-                    $newReglement->$setter(true);
-                    $total += $montantMensuel;
-                }
-                $newReglement->setTotale($total);
-
-                $entityManager->persist($newReglement);
             }
 
-            $entityManager->flush();
+            // Utiliser le règlement existant ou en créer un nouveau
+            $reglement = $existingReglement ?: new FraisSyndicReglement();
+            $reglement->setFrais($fraisSyndicReglement->getFrais());
+            $reglement->setAnnee($fraisSyndicReglement->getAnnee());
+            $reglement->setPersonne($proprietaire);
+            $reglement->setAppartement($appartement);
+            $reglement->setNaturePaiement($fraisSyndicReglement->getNaturePaiement());
+            $reglement->setUser($user);
 
-            $this->addFlash('success', 'Les frais de syndic ont été enregistrés avec succès.');
-            return $this->redirectToRoute('app_frais_syndic_reglement_index', [], Response::HTTP_SEE_OTHER);
+            // Si c'est un nouveau règlement, initialiser tous les mois à false
+            if (!$existingReglement) {
+                foreach ($monthFields as $month) {
+                    $setter = 'set' . $month;
+                    $reglement->$setter(false);
+                }
+            }
+
+            // Mettre à jour les mois sélectionnés et calculer le total
+            $montantMensuel = $fraisSyndicReglement->getFrais()->getMontant();
+            $total = $existingReglement ? $reglement->getTotale() : 0;
+            foreach ($selectedMonths as $month) {
+                $setter = 'set' . $month;
+                $reglement->$setter(true);
+                $total += $montantMensuel;
+            }
+            $reglement->setTotale($total);
+
+            $entityManager->persist($reglement);
         }
 
-        return $this->renderForm('frais_syndic_reglement/new.html.twig', [
-            'frais_syndic_reglement' => $fraisSyndicReglement,
-            'form' => $form,
-        ]);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Les frais de syndic ont été enregistrés avec succès.');
+        return $this->redirectToRoute('app_frais_syndic_reglement_index', [], Response::HTTP_SEE_OTHER);
     }
 
+    return $this->renderForm('frais_syndic_reglement/new.html.twig', [
+        'frais_syndic_reglement' => $fraisSyndicReglement,
+        'form' => $form,
+    ]);
+}
 
     #[Route('/{id}', name: 'app_frais_syndic_reglement_show', methods: ['GET'])]
     public function show(FraisSyndicReglement $fraisSyndicReglement): Response

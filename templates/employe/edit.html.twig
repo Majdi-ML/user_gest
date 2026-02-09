@@ -1,13 +1,36 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Employe{% endblock %}
+{% block title %}Modifier Employé{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_form_styles.html.twig' %}
+{% endblock %}
 
 {% block body %}
-    <h1>Edit Employe</h1>
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">✏️</span>
+            Modifier {{ employe.nom }} {{ employe.prenom }}
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Modifiez les informations de l'employé</p>
+    </div>
 
-    {{ include('employe/_form.html.twig', {'button_label': 'Update'}) }}
+    <div class="form-card">
+        <div class="card-header">
+            <i class="bi bi-pencil-square"></i> Formulaire de modification
+        </div>
+        <div class="card-body">
+            {{ include('employe/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+        </div>
+    </div>
 
-    <a href="{{ path('app_employe_index') }}">back to list</a>
-
-    {{ include('employe/_delete_form.html.twig') }}
+    <div class="action-buttons">
+        <a href="{{ path('app_employe_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Retour à la liste
+        </a>
+        {{ include('employe/_delete_form.html.twig') }}
+    </div>
+</div>
 {% endblock %}

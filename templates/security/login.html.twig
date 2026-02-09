@@ -1,149 +1,265 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>GestSyndic</title>
+  <title>GestSyndic - Connexion</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
   <!-- Favicons -->
- 
   <link href="{{asset('assetsback/img/Logo_GestSyndic.png')}}" rel="icon">
-  <link href="{{asset('assetsback/img/Logo_GestSyndic.png')}}"rel="apple-touch-icon">
+  <link href="{{asset('assetsback/img/Logo_GestSyndic.png')}}" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
-  <link href="{{asset('https://fonts.gstatic.com')}}" rel="preconnect">
-  <link href="{{asset('https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i')}}" rel="stylesheet">
+  <link href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Vendor CSS Files -->
   <link href="{{asset('assetsback/vendor/bootstrap/css/bootstrap.min.css')}}" rel="stylesheet">
   <link href="{{asset('assetsback/vendor/bootstrap-icons/bootstrap-icons.css')}}" rel="stylesheet">
-  <link href="{{asset('assetsback/vendor/boxicons/css/boxicons.min.css')}}" rel="stylesheet">
-  <link href="{{asset('assetsback/vendor/quill/quill.snow.css')}}" rel="stylesheet">
-  <link href="{{asset('assetsback/vendor/quill/quill.bubble.css')}}" rel="stylesheet">
-  <link href="{{asset('assetsback/vendor/remixicon/remixicon.css')}}" rel="stylesheet">
-  <link href="{{asset('assetsback/vendor/simple-datatables/style.css')}}" rel="stylesheet">
 
-  <!-- Template Main CSS File -->
-  <link href="{{asset('assetsback/css/style.css')}}" rel="stylesheet">
+  <!-- Custom Login Styles -->
+  <style>
+    :root {
+      --primary-violet: #7c3aed;
+      --primary-violet-dark: #6d28d9;
+      --primary-violet-light: #a78bfa;
+    }
 
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-  <!-- =======================================================
-  * Template Name: NiceAdmin
-  * Updated: Jul 27 2023 with Bootstrap v5.3.1
-  * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .login-header {
+      background: linear-gradient(135deg, var(--primary-violet) 0%, var(--primary-violet-dark) 100%);
+      padding: 40px 30px;
+      text-align: center;
+      color: white;
+    }
+
+    .login-header img {
+      max-width: 300px;
+      margin-bottom: 20px;
+      filter: brightness(0) invert(1);
+    }
+
+    .login-header h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin: 0 0 10px 0;
+    }
+
+    .login-header p {
+      margin: 0;
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+
+    .login-body {
+      padding: 35px 30px;
+    }
+
+    .form-label {
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+    }
+
+    .input-group-text {
+      background: linear-gradient(135deg, var(--primary-violet) 0%, var(--primary-violet-dark) 100%);
+      color: white;
+      border: none;
+      border-radius: 8px 0 0 8px;
+    }
+
+    .form-control {
+      border: 2px solid #e5e7eb;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 15px;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-violet);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    }
+
+    .input-group .form-control {
+      border-left: none;
+    }
+
+    .btn-login {
+      background: linear-gradient(135deg, var(--primary-violet) 0%, var(--primary-violet-dark) 100%);
+      border: none;
+      color: white;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(124, 58, 237, 0.3);
+      background: linear-gradient(135deg, var(--primary-violet-dark) 0%, var(--primary-violet) 100%);
+    }
+
+    .alert {
+      border-radius: 8px;
+      border: none;
+      padding: 12px 15px;
+      font-size: 0.9rem;
+    }
+
+    .alert-danger {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    .register-link {
+      text-align: center;
+      padding-top: 15px;
+      border-top: 1px solid #e5e7eb;
+      margin-top: 20px;
+    }
+
+    .register-link a {
+      color: var(--primary-violet);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .register-link a:hover {
+      color: var(--primary-violet-dark);
+      text-decoration: underline;
+    }
+
+    .password-input {
+      border-radius: 8px !important;
+    }
+
+    @media (max-width: 576px) {
+      .login-header {
+        padding: 30px 20px;
+      }
+
+      .login-body {
+        padding: 25px 20px;
+      }
+
+      .login-header h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-  <main>
-    <div class="container">
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <img src="{{asset('assetsback/img/GestSyndic_1_-removebg-preview.png')}}" alt="GestSyndic Logo">
+        <h1>Bienvenue</h1>
+        <p>Connectez-vous à votre compte</p>
+      </div>
 
-      <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
-        <div class="container">
-          <div class="row justify-content-center">
-            <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+      <div class="login-body">
+        {% if error %}
+          <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            {{ error.messageKey|trans(error.messageData, 'security') }}
+          </div>
+        {% endif %}
 
-             
+        {% if app.user %}
+          <div class="alert alert-info" role="alert">
+            Vous êtes connecté en tant que {{ app.user.userIdentifier }}
+            <a href="{{ path('app_logout') }}" class="alert-link">Déconnexion</a>
+          </div>
+        {% endif %}
 
-              <div class="card mb-3">
-
-                <div class="card-body">
-
-                  <div class="pt-4 pb-2">
-                  <div class="d-flex justify-content-center py-4">
-                <a href="index.html" class="logo d-flex align-items-center w-auto">
-                  <img src="{{asset('assetsback/img/GestSyndic.png')}}" alt="" >
-
-                  
-                </a>
-              </div>
-                    <h5 class="card-title text-center pb-0 fs-4">Login to Your Account</h5>
-                    <p class="text-center small">Enter your email & password to login</p>
-                  </div>
-
-                  <form class="row g-3 needs-validation" novalidate method="post">
-                  
-{% if error %}
-        <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-    {% endif %}
-
-    {% if app.user %}
-        <div class="mb-3">
-            You are logged in as {{ app.user.userIdentifier }}, <a href="{{ path('app_logout') }}">Logout</a>
-        </div>
-    {% endif %}
-                    <div class="col-12">
-                      <label for="yourUsername" class="form-label">email</label>
-                      <div class="input-group has-validation">
-                        <span class="input-group-text" id="inputGroupPrepend">@</span>
-                            <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" autocomplete="email" required autofocus>
-
-                        
-                        <div class="invalid-feedback">Please enter your email.</div>
-                      </div>
-                    </div>
-
-                    <div class="col-12">
-                      <label for="yourPassword" class="form-label">Password</label>
-                      <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password" required>
-                      <div class="invalid-feedback">Please enter your password!</div>
-                    </div>
-
-                    <div class="col-12">
-                      <div class="form-check">
-                        <input type="hidden" name="_csrf_token"
-           value="{{ csrf_token('authenticate') }}"
-    >
-                        
-                      </div>
-                    </div>
-                    <div class="col-12">
-                      <button class="btn btn-primary w-100" type="submit">Login</button>
-                    </div>
-                    <div class="col-12">
-                      <p class="small mb-0">Don't have account? <a href="{{ path('app_register') }}">Create an account</a></p>
-                    </div>
-                  </form>
-
-                </div>
-              </div>
-
-              
-
+        <form method="post">
+          <div class="mb-3">
+            <label for="inputEmail" class="form-label">
+              <i class="bi bi-envelope me-2"></i>Email
+            </label>
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="bi bi-at"></i>
+              </span>
+              <input 
+                type="email" 
+                value="{{ last_username }}" 
+                name="email" 
+                id="inputEmail" 
+                class="form-control" 
+                placeholder="votre@email.com"
+                autocomplete="email" 
+                required 
+                autofocus>
             </div>
           </div>
-        </div>
 
-      </section>
+          <div class="mb-3">
+            <label for="inputPassword" class="form-label">
+              <i class="bi bi-lock me-2"></i>Mot de passe
+            </label>
+            <input 
+              type="password" 
+              name="password" 
+              id="inputPassword" 
+              class="form-control password-input" 
+              placeholder="••••••••"
+              autocomplete="current-password" 
+              required>
+          </div>
 
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+          <div class="d-grid mb-3">
+            <button class="btn btn-login w-100" type="submit">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Se Connecter
+            </button>
+          </div>
+
+          <div class="register-link">
+            <p class="small mb-0">
+              Pas encore de compte ? 
+              <a href="{{ path('app_register') }}">Créer un compte</a>
+            </p>
+          </div>
+        </form>
+      </div>
     </div>
-  </main><!-- End #main -->
-
-  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-
+  </div>
 
   <!-- Vendor JS Files -->
-  <script src="{{asset('assetsback/vendor/apexcharts/apexcharts.min.js')}}"></script>
   <script src="{{asset('assetsback/vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
-  <script src="{{asset('assetsback/vendor/chart.js/chart.umd.js')}}"></script>
-  <script src="{{asset('assetsback/vendor/echarts/echarts.min.js')}}"></script>
-  <script src="{{asset('assetsback/vendor/quill/quill.min.js')}}"></script>
-  <script src="{{asset('assetsback/vendor/simple-datatables/simple-datatables.js')}}"></script>
-  <script src="{{asset('assetsback/vendor/tinymce/tinymce.min.js')}}"></script>
-  <script src="{{asset('assetsback/vendor/php-email-form/validate.js')}}"></script>
-
-  <!-- Template Main JS File -->
-  <script src="{{asset('assetsback/js/main.js')}}"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-
 
 </body>
 

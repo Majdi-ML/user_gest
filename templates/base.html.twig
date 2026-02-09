@@ -5,9 +5,9 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Dashboard-Gestion et Classification des EBDs</title>
-  <meta content="" name="description">
-  <meta content="" name="keywords">
+  <title>GestSyndic - Gestion de Syndic Moderne</title>
+  <meta content="Application de gestion de syndic professionnelle" name="description">
+  <meta content="syndic, gestion, immobilier, copropriété" name="keywords">
 
   <!-- Favicons -->
   {% block css%}
@@ -29,9 +29,12 @@
 
   <!-- Template Main CSS File -->
   <link href="{{asset('assetsback/css/style.css')}}" rel="stylesheet">
+  
+  <!-- Custom Modern CSS -->
+  <link href="{{asset('assetsback/css/custom-modern.css')}}" rel="stylesheet">
 {% endblock %}
   <!-- =======================================================
-  * Template Name: Ooredoo
+  * Template Name: GestSyndic
   * Updated: May 30 2023 with Bootstrap v5.3.0
   * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
   * Author: BootstrapMade.com
@@ -46,7 +49,7 @@
 
     <div class="d-flex align-items-center justify-content-between">
       <a href="{{ path('app_dashboard') }}" class="logo d-flex align-items-center">
-        <img src="{{ asset('assetsback/img/GestSyndic.png') }}" alt="Logo" style="height: 40px; width: auto;">
+        <img src="{{ asset('assetsback/img/GestSyndic_1_-removebg-preview.png') }}" alt="Logo" style="height: 40px; width: auto;">
     <!--
       <span class="d-none d-lg-block">Ooredoo</span>
       -->
@@ -160,65 +163,6 @@
     </li>
     <li><hr class="dropdown-divider"></li>
 
-    <!-- Boutons existants -->
-    <li>
-      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_type_rassmblement_index') }}">
-        <i class="bi bi-people-fill"></i>
-        <span>Type Rassemblement</span>
-      </a>
-    </li>
-
-    <li>
-      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_type_papier_index') }}">
-        <i class="bi bi-file-earmark-text"></i>
-        <span>Type Papier</span>
-      </a>
-    </li>
-
-    <li>
-      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_status_bureau_index') }}">
-        <i class="bi bi-building-gear"></i>
-        <span>Status Bureau</span>
-      </a>
-    </li>
-
-    <li>
-      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_fonction_bureau_index') }}">
-        <i class="bi bi-person-badge"></i>
-        <span>Fonction Bureau</span>
-      </a>
-    </li>
-
-    
-
-    <!-- Nouveau bouton : Frais Syndic -->
-    <li>
-      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_frais_syndic_index') }}">
-        <i class="bi bi-cash-coin"></i>
-        <span>Frais </span>
-      </a>
-    </li>
-
-    <!-- Nouveau bouton : Fonction Employé -->
-    <li>
-      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_fonction_employe_index') }}">
-        <i class="bi bi-person-workspace"></i>
-        <span>Fonction Employé</span>
-      </a>
-    </li>
-
-    
-
-    <!-- Nature Paiement -->
-    <li>
-      <a class="dropdown-item d-flex align-items-center" href="{{ path('app_nature_paiement_index') }}">
-        <i class="bi bi-currency-dollar"></i>
-        <span>Nature Paiement</span>
-      </a>
-    </li>
-
-    <li><hr class="dropdown-divider"></li>
-
     <!-- Logout -->
     <li>
       <a class="dropdown-item d-flex align-items-center" href="{{ path('app_logout') }}">
@@ -259,12 +203,17 @@
                 </li>
                 <li>
                     <a href="{{ path('app_frais_syndic_reglement_index') }}">
-                        <i class="bi bi-circle"></i><span>Frais Syndic</span>
+                        <i class="bi bi-circle"></i><span>Cotisation Syndic</span>
                     </a>
                 </li>
                 <li>
                     <a href="{{ path('app_depense_index') }}">
                         <i class="bi bi-circle"></i><span>Dépense</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ path('app_recette_index') }}">
+                        <i class="bi bi-circle"></i><span>Recette</span>
                     </a>
                 </li>
                 <li>
@@ -332,6 +281,14 @@
                 </li>
             </ul>
         </li><!-- End Documents Nav -->
+
+        <!-- Configuration -->
+        <li class="nav-item">
+            <a class="nav-link" href="{{ path('app_configuration_index') }}">
+                <i class="bi bi-gear"></i>
+                <span>Configuration</span>
+            </a>
+        </li><!-- End Configuration Nav -->
 
     </ul>
 </aside><!-- End Sidebar-->

@@ -5,63 +5,29 @@
 {% block css %}
     {{ parent() }}
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
-    <style>
-        .filter-row th {
-            padding: 8px 3px !important;
-            vertical-align: top;
-            cursor: pointer;
-        }
-        .filter-container {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .filter-select {
-            width: 100%;
-            min-width: 120px;
-        }
-        .filter-input {
-            width: 100%;
-            min-width: 150px;
-        }
-        .btn-add-condition {
-            margin-top: 5px;
-        }
-        .date-filter {
-            display: none;
-        }
-        .logic-operator {
-            font-weight: bold;
-            margin: 0 10px;
-        }
-        .export-buttons {
-            margin-bottom: 20px;
-        }
-        .sort-arrow {
-            display: inline-block;
-            margin-left: 5px;
-        }
-        .sort-asc::after {
-            content: " ↑";
-        }
-        .sort-desc::after {
-            content: " ↓";
-        }
-    </style>
+    {% include '_modern_index_styles.html.twig' %}
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">🏠 Liste des Appartements</h1>
-
-    <div class="mb-3 text-end">
-        <a href="{{ path('app_appartement_new') }}" class="btn btn-success">➕ Ajouter un Appartement</a>
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">🏠</span>
+            Gestion des Appartements
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Gérez vos appartements et leurs occupants</p>
     </div>
 
-    <div class="card mb-4">
+    <div class="mb-3 text-end">
+        <a href="{{ path('app_appartement_new') }}" class="btn-add">
+            <i class="bi bi-house-add-fill"></i>
+            Ajouter un Appartement
+        </a>
+    </div>
+
+    <div class="card filters-card mb-4">
         <div class="card-header">
-            <h5 class="mb-0">Filtres Avancés</h5>
+            <h5><i class="bi bi-funnel-fill"></i> Filtres Avancés</h5>
         </div>
         <div class="card-body">
             <div class="mb-3">
@@ -90,12 +56,12 @@
         </div>
     </div>
 
-    <div class="export-buttons text-end">
-        <button id="exportPdfBtn" class="btn btn-danger btn-sm me-2">
-            <i class="bi bi-file-pdf"></i> Exporter en PDF
+    <div class="export-buttons">
+        <button id="exportPdfBtn" class="btn btn-danger">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Exporter PDF
         </button>
-        <button id="exportExcelBtn" class="btn btn-success btn-sm">
-            <i class="bi bi-file-excel"></i> Exporter en Excel
+        <button id="exportExcelBtn" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel-fill"></i> Exporter Excel
         </button>
     </div>
 
@@ -132,9 +98,13 @@
                     <td>{{ appartement.estHabite ? '✅ Oui' : '❌ Non' }}</td>
                     <td>{{ appartement.locataire ? appartement.locataire.nom ~ ' ' ~ appartement.locataire.prenom : 'X' }}</td>
                     <td>{{ appartement.proprietaire ? appartement.proprietaire.nom ~ ' ' ~ appartement.proprietaire.prenom : 'X' }}</td>
-                    <td>
-                        <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}" class="btn btn-sm btn-primary">Voir</a>
-                        <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                    <td class="table-actions">
+                        <a href="{{ path('app_appartement_show', {'id': appartement.id}) }}" class="btn btn-info">
+                            <i class="bi bi-eye-fill"></i> Voir
+                        </a>
+                        <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}" class="btn btn-warning">
+                            <i class="bi bi-pencil-fill"></i> Modifier
+                        </a>
                     </td>
                 </tr>
             {% else %}

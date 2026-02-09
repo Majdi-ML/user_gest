@@ -36,9 +36,19 @@ class DepenseType extends AbstractType
                     'PRODUITS D\'ENTRETIEN' => 'PRODUITS_ENTRETIEN',
                     'GROS ŒUVRES & ENTRETIEN' => 'GROS_ŒUVRES_ENTRETIEN',
                     'FRAIS JURIDIQUE' => 'FRAIS_JURIDIQUE',
+                    'FRAIS BANQUE' => 'FRAIS_BANQUE',
                     'DIVERS' => 'DIVERS',
                 ],
                 'placeholder' => 'Sélectionner un type',
+                'attr' => ['class' => 'form-select'],
+            ])
+            ->add('nature_depense', ChoiceType::class, [
+                'label' => 'Nature de dépense',
+                'choices'  => [
+                    'Espèce' => 'Espece',
+                    'Bancaire' => 'Bancaire',
+                ],
+                'placeholder' => 'Sélectionner une nature',
                 'attr' => ['class' => 'form-select'],
             ])
             ->add('date_depense', DateType::class, [

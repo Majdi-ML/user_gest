@@ -5,58 +5,24 @@
 {% block css %}
     {{ parent() }}
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
-    <style>
-        .filter-row th {
-            padding: 8px 3px !important;
-            vertical-align: top;
-            cursor: pointer;
-        }
-        .filter-container {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .filter-select {
-            width: 100%;
-            min-width: 120px;
-        }
-        .filter-input {
-            width: 100%;
-            min-width: 150px;
-        }
-        .btn-add-condition {
-            margin-top: 5px;
-        }
-        .date-filter {
-            display: none;
-        }
-        .logic-operator {
-            font-weight: bold;
-            margin: 0 10px;
-        }
-        .export-buttons {
-            margin-bottom: 20px;
-        }
-        .sort-arrow {
-            display: inline-block;
-            margin-left: 5px;
-        }
-        .sort-asc::after {
-            content: " ↑";
-        }
-        .sort-desc::after {
-            content: " ↓";
-        }
-    </style>
+    {% include '_modern_index_styles.html.twig' %}
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">👥 Liste des Membres du Bureau</h1>
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">👥</span>
+            Membres du Bureau
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Gérez les membres du conseil de syndic</p>
+    </div>
 
     <div class="mb-3 text-end">
-        <a href="{{ path('app_bureau_new') }}" class="btn btn-success">➕ Ajouter un Membre</a>
+        <a href="{{ path('app_bureau_new') }}" class="btn-add">
+            <i class="bi bi-person-plus-fill"></i>
+            Ajouter un Membre
+        </a>
     </div>
 
     <div class="card mb-4">
@@ -131,9 +97,13 @@
                 <td>{{ bureau.fonction ? bureau.fonction.libelle : '—' }}</td>
                 <td>{{ bureau.anneeDebut }}</td>
                 <td>{{ bureau.anneeFin }}</td>
-                <td>
-                    <a href="{{ path('app_bureau_show', {'id': bureau.id}) }}" class="btn btn-sm btn-primary">Voir</a>
-                    <a href="{{ path('app_bureau_edit', {'id': bureau.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                <td class="table-actions">
+                    <a href="{{ path('app_bureau_show', {'id': bureau.id}) }}" class="btn btn-info">
+                        <i class="bi bi-eye-fill"></i> Voir
+                    </a>
+                    <a href="{{ path('app_bureau_edit', {'id': bureau.id}) }}" class="btn btn-warning">
+                        <i class="bi-pencil-fill"></i> Modifier
+                    </a>
                 </td>
             </tr>
         {% else %}

@@ -1,13 +1,32 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit FraisSyndicReglement{% endblock %}
+{% block title %}Modifier Règlement Cotisation Syndic{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_form_styles.html.twig' %}
+{% endblock %}
 
 {% block body %}
-    <h1>Edit FraisSyndicReglement</h1>
+<div class="container-fluid p-4">
+    <div class="page-header">
+        <div class="page-header-content">
+            <div>
+                <h1><i class="bi bi-pencil-square"></i> Modifier Règlement</h1>
+                <p class="page-subtitle">Mise à jour du règlement #{{ frais_syndic_reglement.id }}</p>
+            </div>
+        </div>
+    </div>
 
-    {{ include('frais_syndic_reglement/_form.html.twig', {'button_label': 'Update'}) }}
+    <div class="form-card">
+        {{ include('frais_syndic_reglement/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+    </div>
 
-    <a href="{{ path('app_frais_syndic_reglement_index') }}">back to list</a>
-
-    {{ include('frais_syndic_reglement/_delete_form.html.twig') }}
+    <div class="action-buttons mt-3">
+        <a href="{{ path('app_frais_syndic_reglement_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+        {{ include('frais_syndic_reglement/_delete_form.html.twig') }}
+    </div>
+</div>
 {% endblock %}

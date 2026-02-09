@@ -2,66 +2,88 @@
 
 {% block title %}Détails de l'Employé{% endblock %}
 
-{% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">👤 Détails de l'Employé</h1>
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_show_styles.html.twig' %}
+{% endblock %}
 
-    <div class="card">
+{% block body %}
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">👷</span>
+            {{ employe.nom }} {{ employe.Prenom }}
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Informations détaillées de l'employé</p>
+    </div>
+
+    <div class="detail-card">
+        <div class="card-header">
+            <i class="bi bi-person-badge-fill"></i> Informations de l'employé
+        </div>
         <div class="card-body">
-            <table class="table table-bordered">
+            <table class="table table-detail">
                 <tbody>
                     <tr>
-                        <th class="w-25">ID</th>
+                        <th><i class="bi bi-hash"></i> ID</th>
                         <td>{{ employe.id }}</td>
                     </tr>
                     <tr>
-                        <th>Nom</th>
+                        <th><i class="bi bi-person-fill"></i> Nom</th>
                         <td>{{ employe.nom }}</td>
                     </tr>
                     <tr>
-                        <th>Prénom</th>
+                        <th><i class="bi bi-person-badge-fill"></i> Prénom</th>
                         <td>{{ employe.Prenom }}</td>
                     </tr>
                     <tr>
-                        <th>CIN</th>
+                        <th><i class="bi bi-card-text"></i> CIN</th>
                         <td>{{ employe.cin }}</td>
                     </tr>
                     <tr>
-                        <th>Salaire</th>
-                        <td>{{ employe.salaire|number_format(2, '.', ',') }} DT</td>
+                        <th><i class="bi bi-cash-coin"></i> Salaire</th>
+                        <td><strong>{{ employe.salaire|number_format(2, '.', ',') }} DT</strong></td>
                     </tr>
                     <tr>
-                        <th>NUM CNSS</th>
-                        <td>{{ employe.cnss|number_format(2, '.', ',') }} </td>
+                        <th><i class="bi bi-shield-fill-check"></i> NUM CNSS</th>
+                        <td>{{ employe.cnss|number_format(2, '.', ',') }}</td>
                     </tr>
                     <tr>
-                        <th>Couverture sociale</th>
-                        <td>{{ employe.CouvertureSociale ? '✅ Oui' : '❌ Non' }}</td>
+                        <th><i class="bi bi-heart-pulse-fill"></i> Couverture sociale</th>
+                        <td>
+                            <span class="badge badge-modern {% if employe.CouvertureSociale %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ employe.CouvertureSociale ? 'Oui' : 'Non' }}
+                            </span>
+                        </td>
                     </tr>
                     <tr>
-                        <th>Téléphone</th>
+                        <th><i class="bi bi-telephone-fill"></i> Téléphone</th>
                         <td>{{ employe.telephone }}</td>
                     </tr>
                     <tr>
-                        <th>Fonction</th>
+                        <th><i class="bi bi-briefcase-fill"></i> Fonction</th>
                         <td>{{ employe.fonctionEmploye ? employe.fonctionEmploye.libelle : '—' }}</td>
                     </tr>
                     <tr>
-                        <th>Date de début</th>
-                        <td>{{ employe.dateDebut ? employe.dateDebut|date('Y-m-d') : '—' }}</td>
+                        <th><i class="bi bi-calendar-check-fill"></i> Date de début</th>
+                        <td>{{ employe.dateDebut ? employe.dateDebut|date('d/m/Y') : '—' }}</td>
                     </tr>
                     <tr>
-                        <th>Date de fin</th>
-                        <td>{{ employe.dateFin ? employe.dateFin|date('Y-m-d') : '—' }}</td>
+                        <th><i class="bi bi-calendar-x-fill"></i> Date de fin</th>
+                        <td>{{ employe.dateFin ? employe.dateFin|date('d/m/Y') : '—' }}</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <div class="mt-3">
-        <a href="{{ path('app_employe_index') }}" class="btn btn-secondary">Retour à la liste</a>
-        <a href="{{ path('app_employe_edit', {'id': employe.id}) }}" class="btn btn-warning">Modifier</a>
+    <div class="action-buttons">
+        <a href="{{ path('app_employe_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Retour à la liste
+        </a>
+        <a href="{{ path('app_employe_edit', {'id': employe.id}) }}" class="btn btn-warning">
+            <i class="bi bi-pencil-fill"></i> Modifier
+        </a>
         {{ include('employe/_delete_form.html.twig') }}
     </div>
 </div>

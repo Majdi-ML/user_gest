@@ -2,40 +2,56 @@
 
 {% block title %}Détails de {{ personne.nom }}{% endblock %}
 
-{% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">👤 Détails de la personne</h1>
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_show_styles.html.twig' %}
+{% endblock %}
 
-    <div class="card shadow-sm mb-5">
+{% block body %}
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">👤</span>
+            Détails de {{ personne.nom }} {{ personne.prenom }}
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Informations détaillées de la personne</p>
+    </div>
+
+    <div class="detail-card">
+        <div class="card-header">
+            <i class="bi bi-person-circle"></i> Informations Personnelles
+        </div>
         <div class="card-body">
-            <table class="table table-striped mb-0">
-                <tbody>
-                    <tr>
-                        <th>👤 Nom</th>
-                        <td>{{ personne.nom }}</td>
-                    </tr>
-                    <tr>
-                        <th>🧑‍🎓 Prénom</th>
-                        <td>{{ personne.prenom }}</td>
-                    </tr>
-                    <tr>
-                        <th>📧 Email</th>
-                        <td>{{ personne.email }}</td>
-                    </tr>
-                    <tr>
-                        <th>📱 Téléphone</th>
-                        <td>{{ personne.telephone }}</td>
-                    </tr>
-                    <tr>
-                        <th>🏠 Adresse</th>
-                        <td>{{ personne.adresse }}</td>
-                    </tr>
-                    <tr>
-                        <th>📌 Statut</th>
-                        <td><span class="badge bg-info text-dark">{{ personne.status }}</span></td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label><i class="bi bi-person-fill"></i> Nom</label>
+                    <div class="info-value">{{ personne.nom }}</div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-person-badge-fill"></i> Prénom</label>
+                    <div class="info-value">{{ personne.prenom }}</div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-envelope-fill"></i> Email</label>
+                    <div class="info-value">{{ personne.email }}</div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-telephone-fill"></i> Téléphone</label>
+                    <div class="info-value">{{ personne.telephone }}</div>
+                </div>
+                <div class="info-item full-width">
+                    <label><i class="bi bi-house-fill"></i> Adresse</label>
+                    <div class="info-value">{{ personne.adresse }}</div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-tag-fill"></i> Statut</label>
+                    <div class="info-value">
+                        <span class="badge badge-modern {% if personne.status == 'proprietaire' %}bg-primary{% else %}bg-info{% endif %}">
+                            {{ personne.status|upper }}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -53,16 +69,20 @@
 
             {% if fraisByYear is not empty %}
                 {% for year, fraisList in fraisByYear|sort %}
-                    <h3 class="mt-4">Année {{ year }}</h3>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Montant</th>
-                                    <th>Mois</th>
-                                    <th>Appartement</th>
-                                </tr>
-                            </thead>
+                    <div class="detail-card">
+                        <div class="card-header">
+                            <i class="bi bi-calendar-check-fill"></i> Année {{ year }}
+                        </div>
+                        <div class="card-body">
+                            <div class="table-wrapper">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Montant</th>
+                                            <th>Mois</th>
+                                            <th>Appartement</th>
+                                        </tr>
+                                    </thead>
                             <tbody>
                                 {% for frais in fraisList %}
                                     <tr>
@@ -88,24 +108,26 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                            </div>
+                        </div>
                     </div>
                 {% endfor %}
             {% else %}
-                <div class="alert alert-warning">❌ Aucun frais syndic règlement avec une année valide enregistré pour cette personne.</div>
+                <div class="alert alert-warning"><i class="bi bi-exclamation-triangle-fill"></i> Aucun frais syndic règlement avec une année valide enregistré pour cette personne.</div>
             {% endif %}
         {% else %}
-            <div class="alert alert-warning">❌ Aucun frais syndic règlement enregistré pour cette personne.</div>
+            <div class="alert alert-warning"><i class="bi bi-exclamation-triangle-fill"></i> Aucun frais syndic règlement enregistré pour cette personne.</div>
         {% endif %}
     {% else %}
-        <div class="alert alert-info">ℹ️ Cette personne n'est pas propriétaire, aucun frais syndic règlement à afficher.</div>
+        <div class="alert alert-info"><i class="bi bi-info-circle-fill"></i> Cette personne n'est pas propriétaire, aucun frais syndic règlement à afficher.</div>
     {% endif %}
 
-    <div class="mt-4 d-flex gap-2">
+    <div class="action-buttons">
         <a href="{{ path('app_personne_index') }}" class="btn btn-secondary">
-            ⬅️ Retour à la liste
+            <i class="bi bi-arrow-left-circle-fill"></i> Retour à la liste
         </a>
-        <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-primary">
-            ✏️ Modifier
+        <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-warning">
+            <i class="bi bi-pencil-fill"></i> Modifier
         </a>
         {{ include('personne/_delete_form.html.twig') }}
     </div>

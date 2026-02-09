@@ -97,54 +97,71 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% set annualTotal = 0 %}
-                        {% set categoryTotals = {
-                            'SALAIRE': 0,
-                            'CNSS': 0,
-                            'STEG': 0,
-                            'SONEDE': 0,
-                            'IMPOTS': 0,
-                            'JARDINAGE': 0,
-                            'PRODUITS_ENTRETIEN': 0,
-                            'GROS_ŒUVRES_ENTRETIEN': 0,
-                            'FRAIS_JURIDIQUE': 0,
-                            'DIVERS': 0
-                        } %}
-                        {% for month, expenses in yearDepenses|sort %}
-                            {% set monthlyTotal = (expenses['SALAIRE']|default(0) + expenses['CNSS']|default(0) + expenses['STEG']|default(0) + expenses['SONEDE']|default(0) + expenses['IMPOTS']|default(0) + expenses['JARDINAGE']|default(0) + expenses['PRODUITS_ENTRETIEN']|default(0) + expenses['GROS_ŒUVRES_ENTRETIEN']|default(0) + expenses['FRAIS_JURIDIQUE']|default(0) + expenses['DIVERS']|default(0)) %}
-                            <tr>
-                                <td>{{ month }}</td>
-                                <td>{{ expenses['SALAIRE']|default(0)|number_format(2, '.', ',') }}</td>
-                                <td>{{ expenses['CNSS']|default(0)|number_format(2, '.', ',') }}</td>
-                                <td>{{ expenses['STEG']|default(0)|number_format(2, '.', ',') }}</td>
-                                <td>{{ expenses['SONEDE']|default(0)|number_format(2, '.', ',') }}</td>
-                                <td>{{ expenses['IMPOTS']|default(0)|number_format(2, '.', ',') }}</td>
-                                <td>{{ expenses['JARDINAGE']|default(0)|number_format(2, '.', ',') }}</td>
-                                <td>{{ expenses['PRODUITS_ENTRETIEN']|default(0)|number_format(2, '.', ',') }}</td>
-                                <td>{{ expenses['GROS_ŒUVRES_ENTRETIEN']|default(0)|number_format(2, '.', ',') }}</td>
-                                <td>{{ expenses['FRAIS_JURIDIQUE']|default(0)|number_format(2, '.', ',') }}</td>
-                                <td>{{ expenses['DIVERS']|default(0)|number_format(2, '.', ',') }}</td>
-                                <td>{{ monthlyTotal|number_format(2, '.', ',') }}</td>
-                            </tr>
-                            {% set annualTotal = annualTotal + monthlyTotal %}
-                            {% set categoryTotals = {
-                                'SALAIRE': categoryTotals['SALAIRE'] + expenses['SALAIRE']|default(0),
-                                'CNSS': categoryTotals['CNSS'] + expenses['CNSS']|default(0),
-                                'STEG': categoryTotals['STEG'] + expenses['STEG']|default(0),
-                                'SONEDE': categoryTotals['SONEDE'] + expenses['SONEDE']|default(0),
-                                'IMPOTS': categoryTotals['IMPOTS'] + expenses['IMPOTS']|default(0),
-                                'JARDINAGE': categoryTotals['JARDINAGE'] + expenses['JARDINAGE']|default(0),
-                                'PRODUITS_ENTRETIEN': categoryTotals['PRODUITS_ENTRETIEN'] + expenses['PRODUITS_ENTRETIEN']|default(0),
-                                'GROS_ŒUVRES_ENTRETIEN': categoryTotals['GROS_ŒUVRES_ENTRETIEN'] + expenses['GROS_ŒUVRES_ENTRETIEN']|default(0),
-                                'FRAIS_JURIDIQUE': categoryTotals['FRAIS_JURIDIQUE'] + expenses['FRAIS_JURIDIQUE']|default(0),
-                                'DIVERS': categoryTotals['DIVERS'] + expenses['DIVERS']|default(0)
-                            } %}
-                        {% else %}
-                            <tr>
-                                <td colspan="12" class="text-center text-muted">Aucune dépense trouvée pour {{ year }}.</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
+    {% set moisOrdre = ['January','February','March','April','May','June','July','August','September','October','November','December'] %}
+    {% set moisTraduit = {
+        'January': 'Janvier',
+        'February': 'Février',
+        'March': 'Mars',
+        'April': 'Avril',
+        'May': 'Mai',
+        'June': 'Juin',
+        'July': 'Juillet',
+        'August': 'Août',
+        'September': 'Septembre',
+        'October': 'Octobre',
+        'November': 'Novembre',
+        'December': 'Décembre'
+    } %}
+    {% set annualTotal = 0 %}
+    {% set categoryTotals = {
+        'SALAIRE': 0, 'CNSS': 0, 'STEG': 0, 'SONEDE': 0, 'IMPOTS': 0,
+        'JARDINAGE': 0, 'PRODUITS_ENTRETIEN': 0, 'GROS_ŒUVRES_ENTRETIEN': 0, 'FRAIS_JURIDIQUE': 0, 'DIVERS': 0
+    } %}
+
+    {% set hasData = false %}
+    {% for moisEn in moisOrdre %}
+        {% if yearDepenses[moisEn] is defined %}
+            {% set hasData = true %}
+            {% set expenses = yearDepenses[moisEn] %}
+            {% set monthlyTotal = (
+                expenses['SALAIRE']|default(0) + expenses['CNSS']|default(0) + expenses['STEG']|default(0) + expenses['SONEDE']|default(0) + expenses['IMPOTS']|default(0) + expenses['JARDINAGE']|default(0) + expenses['PRODUITS_ENTRETIEN']|default(0) + expenses['GROS_ŒUVRES_ENTRETIEN']|default(0) + expenses['FRAIS_JURIDIQUE']|default(0) + expenses['DIVERS']|default(0)
+            ) %}
+            <tr>
+                <td>{{ moisTraduit[moisEn] }}</td>
+                <td>{{ expenses['SALAIRE']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ expenses['CNSS']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ expenses['STEG']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ expenses['SONEDE']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ expenses['IMPOTS']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ expenses['JARDINAGE']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ expenses['PRODUITS_ENTRETIEN']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ expenses['GROS_ŒUVRES_ENTRETIEN']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ expenses['FRAIS_JURIDIQUE']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ expenses['DIVERS']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ monthlyTotal|number_format(2, '.', ',') }}</td>
+            </tr>
+            {% set annualTotal = annualTotal + monthlyTotal %}
+            {% set categoryTotals = {
+                'SALAIRE': categoryTotals['SALAIRE'] + expenses['SALAIRE']|default(0),
+                'CNSS': categoryTotals['CNSS'] + expenses['CNSS']|default(0),
+                'STEG': categoryTotals['STEG'] + expenses['STEG']|default(0),
+                'SONEDE': categoryTotals['SONEDE'] + expenses['SONEDE']|default(0),
+                'IMPOTS': categoryTotals['IMPOTS'] + expenses['IMPOTS']|default(0),
+                'JARDINAGE': categoryTotals['JARDINAGE'] + expenses['JARDINAGE']|default(0),
+                'PRODUITS_ENTRETIEN': categoryTotals['PRODUITS_ENTRETIEN'] + expenses['PRODUITS_ENTRETIEN']|default(0),
+                'GROS_ŒUVRES_ENTRETIEN': categoryTotals['GROS_ŒUVRES_ENTRETIEN'] + expenses['GROS_ŒUVRES_ENTRETIEN']|default(0),
+                'FRAIS_JURIDIQUE': categoryTotals['FRAIS_JURIDIQUE'] + expenses['FRAIS_JURIDIQUE']|default(0),
+                'DIVERS': categoryTotals['DIVERS'] + expenses['DIVERS']|default(0)
+            } %}
+        {% endif %}
+    {% endfor %}
+
+    {% if not hasData %}
+        <tr>
+            <td colspan="12" class="text-center text-muted">Aucune dépense trouvée pour {{ year }}.</td>
+        </tr>
+    {% endif %}
+</tbody>
                     {% if yearDepenses|length > 0 %}
                         <tfoot>
                             <tr class="table-info fw-bold">

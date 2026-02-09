@@ -28,6 +28,9 @@ class Depense
     #[ORM\Column(length: 255)]
     private ?string $type = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $nature_depense = null;
+
     #[ORM\ManyToOne(inversedBy: 'depenses')]
     private ?User $user = null;
 
@@ -87,6 +90,18 @@ class Depense
     public function setType(string $type): static
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getNatureDepense(): ?string
+    {
+        return $this->nature_depense;
+    }
+
+    public function setNatureDepense(string $nature_depense): static
+    {
+        $this->nature_depense = $nature_depense;
 
         return $this;
     }

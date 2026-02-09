@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de la Recette{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_show_styles.html.twig' %}
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">💰</span>
+            Détails de la Recette
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Informations complètes de la recette</p>
+    </div>
+
+    <div class="detail-card">
+        <div class="card-header">
+            <i class="bi bi-cash-stack"></i> Informations de la Recette
+        </div>
+        <div class="card-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <label><i class="bi bi-hash"></i> ID</label>
+                    <div class="info-value">{{ recette.id }}</div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-cash"></i> Montant</label>
+                    <div class="info-value"><span class="badge-modern bg-success">{{ recette.montant|number_format(2, '.', ' ') }} DT</span></div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-calendar-event"></i> Date de recette</label>
+                    <div class="info-value">{{ recette.dateRecette|date('d/m/Y') }}</div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-tag"></i> Type de recette</label>
+                    <div class="info-value">{{ recette.typeRecette }}</div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-wallet2"></i> Nature de recette</label>
+                    <div class="info-value">
+                        <span class="badge-modern {% if recette.natureRecette == 'Bancaire' %}bg-primary{% else %}bg-warning{% endif %}">
+                            {{ recette.natureRecette }}
+                        </span>
+                    </div>
+                </div>
+                <div class="info-item full-width">
+                    <label><i class="bi bi-file-text"></i> Description</label>
+                    <div class="info-value">{{ recette.description }}</div>
+                </div>
+                {% if recette.attachedFile %}
+                    <div class="info-item full-width">
+                        <label><i class="bi bi-paperclip"></i> Fichier joint</label>
+                        <div class="info-value">
+                            {% set filePath = 'uploads/recettes/' ~ recette.attachedFile %}
+                            {% set extension = recette.attachedFile|split('.')|last|lower %}
+                            
+                            {% if extension == 'pdf' %}
+                                <embed src="{{ asset(filePath) }}" type="application/pdf" width="100%" height="600px">
+                            {% elseif extension in ['jpg', 'jpeg', 'png', 'gif'] %}
+                                <img src="{{ asset(filePath) }}" alt="Document" class="img-fluid" style="max-width: 100%; height: auto;">
+                            {% else %}
+                                <a href="{{ asset(filePath) }}" class="btn btn-primary" download>
+                                    <i class="bi bi-download"></i> Télécharger le fichier
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ path('app_recette_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Retour à la liste
+        </a>
+        <a href="{{ path('app_recette_edit', {'id': recette.id}) }}" class="btn btn-warning">
+            <i class="bi bi-pencil-fill"></i> Modifier
+        </a>
+        {{ include('recette/_delete_form.html.twig') }}
+    </div>
+</div>
+{% endblock %}

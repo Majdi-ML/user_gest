@@ -1,20 +1,332 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello DefaultController!{% endblock %}
+{% block title %}Tableau de Bord{% endblock %}
 
-{% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+{% block css %}
+    {{ parent() }}
+    
+    <style>
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 30px;
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border-radius: 12px 12px 0 0;
+            padding: 15px;
+            font-weight: bold;
+        }
+        .table-responsive {
+            margin-bottom: 30px;
+        }
+        .export-btns {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .export-all-btn {
+            margin-top: 20px;
+            text-align: center;
+        }
+        th, td {
+            text-align: right;
+            padding: 12px;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #e9ecef;
+            font-weight: 600;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #f1f3f5;
+        }
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table-bordered th, .table-bordered td {
+            border: 1px solid #dee2e6;
+        }
+        h1 {
+            font-size: 2rem;
+            color: #343a40;
+        }
+        .btn-primary, .btn-success, .btn-info {
+            border-radius: 8px;
+            padding: 8px 16px;
+        }
+        @media (max-width: 768px) {
+            th, td {
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+            .export-btns {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+{% endblock %}
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+{% block body%}
+<div class="container-fluid py-5">
+    <h1 class="mb-5 text-center">État Financier</h1>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ 'C:/Users/majdi/Desktop/SyndicDesktop/src/Controller/DefaultController.php'|file_link(0) }}">src/Controller/DefaultController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'C:/Users/majdi/Desktop/SyndicDesktop/templates/default/index.html.twig'|file_link(0) }}">templates/default/index.html.twig</a></code></li>
-    </ul>
+    <!-- Initial Balance with Form -->
+    <div class="card mb-5">
+        <div class="card-header">
+            Solde Ancien Syndic ({{ systemDate|date('d F Y', null, 'fr_FR') }})
+        </div>
+        <div class="card-body">
+            {{ form_start(caisseForm) }}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form_row(caisseForm.solde, {'attr': {'class': 'form-control'}}) }}
+                </div>
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-primary">Mettre à jour le solde</button>
+                </div>
+            </div>
+            {{ form_end(caisseForm) }}
+            <table class="table table-bordered mt-3">
+                <thead>
+                    <tr>
+                        <th>CAISSE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ initialCaisse|number_format(3, '.', ',') }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Yearly Tables -->
+    {% if financialData is not empty %}
+        {% for year, data in financialData %}
+            <div class="card mb-5">
+                <div class="card-header">
+                    {{ year }}
+                </div>
+                <div class="card-body">
+                    <div class="export-btns">
+                        <button class="btn btn-primary" onclick="exportToPDF({{ year }})" aria-label="Exporter l'état financier {{ year }} en PDF">Exporter en PDF</button>
+                        <button class="btn btn-success" onclick="exportToExcel({{ year }})" aria-label="Exporter l'état financier {{ year }} en Excel">Exporter en Excel</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="table-{{ year }}" class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left;">MOIS</th>
+                                    <th>RECETTES TOTAL</th>
+                                    {% for nature in naturePaiements %}
+                                        <th>RECETTES {{ nature|upper }}</th>
+                                    {% endfor %}
+                                    <th>DÉPENSES</th>
+                                    <th>SOLDE CAISSE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for month, values in data.months %}
+                                    <tr>
+                                        <td style="text-align: left;">{{ month }}</td>
+                                        <td>{{ values.recettes|number_format(3, '.', ',') }}</td>
+                                        {% for nature in naturePaiements %}
+                                            <td>{{ values.recettesByNature[nature]|number_format(3, '.', ',') }}</td>
+                                        {% endfor %}
+                                        <td>{{ values.depenses|number_format(3, '.', ',') }}</td>
+                                        <td>{{ values.caisse|number_format(3, '.', ',') }}</td>
+                                    </tr>
+                                {% endfor %}
+                                <tr class="total-row">
+                                    <td>TOTAL {{ year }}</td>
+                                    <td>{{ data.recettes|number_format(3, '.', ',') }}</td>
+                                    {% for nature in naturePaiements %}
+                                        <td></td>
+                                    {% endfor %}
+                                    <td>{{ data.depenses|number_format(3, '.', ',') }}</td>
+                                    <td></td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td>RECETTES - DÉPENSES {{ year }}</td>
+                                    <td colspan="{{ 3 + naturePaiements|length }}">{{ data.net|number_format(3, '.', ',') }}</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td>SOLDE CAISSE AU {% if year == 2025 %}20 MAI{% else %}31 DÉCEMBRE{% endif %} {{ year }}</td>
+                                    <td colspan="{{ 3 + naturePaiements|length }}">{{ (data.months|last.caisse)|number_format(3, '.', ',') }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- Total Over All Years -->
+        <div class="card mb-5">
+            <div class="card-header">
+                Total Recettes et Dépenses sur {{ financialData|length }} Ans
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ANNÉE</th>
+                            <th>RECETTES</th>
+                            <th>DÉPENSES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for year, data in financialData %}
+                            <tr>
+                                <td>{{ year }}{% if year == 2025 %} (5 mois){% endif %}</td>
+                                <td>{{ data.recettes|number_format(3, '.', ',') }}</td>
+                                <td>{{ data.depenses|number_format(3, '.', ',') }}</td>
+                            </tr>
+                        {% endfor %}
+                        <tr class="total-row">
+                            <td>TOTAL</td>
+                            <td>{{ totalRecettes|number_format(3, '.', ',') }}</td>
+                            <td>{{ totalDepenses|number_format(3, '.', ',') }}</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>MOYENNE ANNUELLE</td>
+                            <td>{{ averageRecettes|number_format(3, '.', ',') }}</td>
+                            <td>{{ averageDepenses|number_format(3, '.', ',') }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Export All to PDF Button -->
+        <div class="export-all-btn">
+            <button class="btn btn-info btn-lg" onclick="exportAllToPDF()" aria-label="Exporter tous les états financiers en PDF">Exporter Tout en PDF</button>
+        </div>
+    {% else %}
+        <div class="alert alert-warning">Aucune donnée financière disponible dans la base de données.</div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.25/dist/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Format number with commas and 3 decimal places
+            function formatNumber(num) {
+                try {
+                    return parseFloat(num).toFixed(3).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                } catch (e) {
+                    console.error('Error formatting number:', e);
+                    return num;
+                }
+            }
+
+            // Export individual table to PDF
+            window.exportToPDF = async function(year) {
+                try {
+                    const jsPDF = window.jspdf?.jsPDF;
+                    if (!jsPDF) throw new Error('jsPDF non chargé');
+
+                    const doc = new jsPDF();
+                    const table = document.getElementById(`table-${year}`);
+                    if (!table) throw new Error(`Table table-${year} non trouvée`);
+
+                    const title = `État Financier ${year}`;
+                    doc.setFontSize(16);
+                    doc.text(title, 14, 20);
+                    doc.autoTable({
+                        html: table,
+                        startY: 30,
+                        styles: { cellPadding: 3, fontSize: 10, halign: 'right' },
+                        headStyles: { fillColor: [100, 100, 100], textColor: [255, 255, 255] },
+                        bodyStyles: { textColor: [0, 0, 0] },
+                        margin: { top: 30 }
+                    });
+                    doc.save(`etat_financier_${year}.pdf`);
+                } catch (e) {
+                    console.error('Erreur PDF :', e);
+                    alert('Erreur PDF : ' + e.message);
+                }
+            };
+
+            // Export individual table to Excel
+            window.exportToExcel = function(year) {
+                try {
+                    if (!XLSX) throw new Error('XLSX not loaded');
+                    const table = document.getElementById(`table-${year}`);
+                    if (!table) throw new Error(`Table table-${year} not found`);
+                    const wb = XLSX.utils.table_to_book(table, { sheet: `État ${year}` });
+                    XLSX.writeFile(wb, `etat_financier_${year}.xlsx`);
+                } catch (e) {
+                    console.error('Excel Export Error:', e);
+                    alert('Erreur lors de l\'exportation en Excel: ' + e.message);
+                }
+            };
+
+            // Export entire page to PDF
+            window.exportAllToPDF = async function() {
+                try {
+                    const jsPDF = window.jspdf?.jsPDF;
+                    if (!jsPDF) throw new Error('jsPDF non chargé');
+                    if (!html2canvas) throw new Error('html2canvas non chargé');
+
+                    const doc = new jsPDF('p', 'pt', 'a4');
+                    const content = document.querySelector('.container-fluid');
+                    if (!content) throw new Error('Conteneur non trouvé');
+
+                    // Masquer les boutons avant capture
+                    const exportButtons = document.querySelectorAll('.export-btns, .export-all-btn');
+                    exportButtons.forEach(btn => btn.style.display = 'none');
+
+                    // Attendre une frame pour que les boutons soient bien masqués
+                    await new Promise(resolve => setTimeout(resolve, 100));
+
+                    const canvas = await html2canvas(content, { scale: 2 });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = 595.28;
+                    const pageHeight = 841.89;
+                    const imgHeight = canvas.height * imgWidth / canvas.width;
+                    let heightLeft = imgHeight;
+                    let position = 0;
+
+                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+
+                    while (heightLeft >= 0) {
+                        position = heightLeft - imgHeight;
+                        doc.addPage();
+                        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                        heightLeft -= pageHeight;
+                    }
+
+                    // Réafficher les boutons après l’export
+                    exportButtons.forEach(btn => btn.style.display = '');
+
+                    doc.save('etat_financier_complet.pdf');
+                } catch (e) {
+                    console.error('Erreur PDF global :', e);
+                    alert('Erreur : ' + e.message);
+                }
+            };
+        });
+        
+    </script>
 {% endblock %}

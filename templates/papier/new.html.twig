@@ -1,11 +1,31 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}New Papier{% endblock %}
+{% block title %}Nouveau Document{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_form_styles.html.twig' %}
+{% endblock %}
 
 {% block body %}
-    <h1>Create new Papier</h1>
+<div class="container-fluid p-4">
+    <div class="page-header">
+        <div class="page-header-content">
+            <div>
+                <h1><i class="bi bi-plus-circle"></i> Nouveau Document</h1>
+                <p class="page-subtitle">Ajouter un nouveau document</p>
+            </div>
+        </div>
+    </div>
 
-    {{ include('papier/_form.html.twig') }}
+    <div class="form-card">
+        {{ include('papier/_form.html.twig') }}
+    </div>
 
-    <a href="{{ path('app_papier_index') }}">back to list</a>
+    <div class="action-buttons mt-3">
+        <a href="{{ path('app_papier_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
 {% endblock %}

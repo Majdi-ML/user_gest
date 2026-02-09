@@ -45,6 +45,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Depense::class)]
     private Collection $depenses;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Recette::class)]
+    private Collection $recettes;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: FraisSyndicReglement::class)]
     private Collection $fraisSyndicReglements;
 
@@ -54,6 +57,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         
         $this->cautionnements = new ArrayCollection();
         $this->depenses = new ArrayCollection();
+        $this->recettes = new ArrayCollection();
         $this->fraisSyndicReglements = new ArrayCollection();
     }
 
@@ -234,6 +238,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($depense->getUser() === $this) {
                 $depense->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Recette>
+     */
+    public function getRecettes(): Collection
+    {
+        return $this->recettes;
+    }
+
+    public function addRecette(Recette $recette): static
+    {
+        if (!$this->recettes->contains($recette)) {
+            $this->recettes->add($recette);
+            $recette->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRecette(Recette $recette): static
+    {
+        if ($this->recettes->removeElement($recette)) {
+            // set the owning side to null (unless already changed)
+            if ($recette->getUser() === $this) {
+                $recette->setUser(null);
             }
         }
 

@@ -1,9 +1,10 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste des Frais Syndics{% endblock %}
+{% block title %}Liste des Cotisations Syndic{% endblock %}
 
 {% block css %}
     {{ parent() }}
+    {% include '_modern_index_styles.html.twig' %}
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
         .filter-row th { padding: 8px 3px !important; vertical-align: top; }
@@ -15,25 +16,40 @@
         .logic-operator { font-weight: bold; margin: 0 10px; }
         .export-buttons { margin-bottom: 20px; }
         .nav-tabs { margin-bottom: 10px; }
-        .paid-month { color: green; }
-        .unpaid-month { color: red; }
+        .paid-month { color: #10b981; font-weight: 600; }
+        .unpaid-month { color: #ef4444; font-weight: 600; }
         .table-responsive { overflow-x: auto; }
         .table { font-size: 0.85rem; }
         .month-btn { font-size: 0.8rem; padding: 2px 6px; }
-        .table-footer { font-weight: bold; background-color: #f8f9fa; }
+        .table-footer { font-weight: bold; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); }
         .sortable { cursor: pointer; }
         .sortable::after { content: ''; display: inline-block; width: 0; height: 0; margin-left: 5px; border-left: 5px solid transparent; border-right: 5px solid transparent; }
-        .sortable.asc::after { border-bottom: 5px solid #000; }
-        .sortable.desc::after { border-top: 5px solid #000; }
+        .sortable.asc::after { border-bottom: 5px solid #7c3aed; }
+        .sortable.desc::after { border-top: 5px solid #7c3aed; }
+        .nav-tabs .nav-link.active { 
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); 
+            color: white;
+            border-color: #7c3aed;
+        }
+        .nav-tabs .nav-link { color: #7c3aed; border-color: #e5e7eb; }
+        .nav-tabs .nav-link:hover { border-color: #7c3aed; background-color: #f3e8ff; }
     </style>
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">💰 Frais Syndic</h1>
-
-    <div class="mb-3 text-end">
-        <a href="{{ path('app_frais_syndic_reglement_new') }}" class="btn btn-success">➕ Nouveau</a>
+<div class="container-fluid p-4">
+    <div class="page-header">
+        <div class="page-header-content">
+            <div>
+                <h1><i class="bi bi-cash-coin"></i> Cotisation Syndic</h1>
+                <p class="page-subtitle">Gestion des règlements mensuels</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ path('app_frais_syndic_reglement_new') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nouveau Règlement
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="card mb-4">
@@ -120,19 +136,26 @@
                                     <td>{{ data.nom }}</td>
                                     <td>{{ year }}</td>
                                     {% for month in 1..12 %}
-                                        <td class="text-center {% if data.months[month] == 'Oui' %}paid-month{% else %}unpaid-month{% endif %}">
-                                            {{ data.months[month] == 'Oui' ? '✅' : '❌' }}
+                                        {% set isPaid = data.months[month] is defined and data.months[month] == 'Oui' %}
+                                        <td class="text-center {% if isPaid %}paid-month{% else %}unpaid-month{% endif %}">
+                                            {{ isPaid ? '✅' : '❌' }}
                                         </td>
                                     {% endfor %}
                                     <td class="text-center">
-                                        {{ data.details[0].montant|default(0) }} TND
-                                    </td>
-                                    <td>
+    {{ data.details[0].montant|default(0) }} TND
+</td>
+                                    <td class="table-actions">
                                         {% if data.details[0] is defined and data.details[0].id is defined %}
-                                            <a href="{{ path('app_frais_syndic_reglement_show', {'id': data.details[0].id}) }}" class="btn btn-sm btn-outline-primary">Afficher</a>
-                                            <a href="{{ path('app_frais_syndic_reglement_edit', {'id': data.details[0].id}) }}" class="btn btn-sm btn-outline-secondary">Modifier</a>
+                                            <a href="{{ path('app_frais_syndic_reglement_show', {'id': data.details[0].id}) }}" class="btn btn-info">
+                                                <i class="bi bi-eye-fill"></i> Voir
+                                            </a>
+                                            <a href="{{ path('app_frais_syndic_reglement_edit', {'id': data.details[0].id}) }}" class="btn btn-warning">
+                                                <i class="bi bi-pencil-fill"></i> Modifier
+                                            </a>
                                         {% else %}
-                                            <a href="{{ path('app_frais_syndic_reglement_new', {'appartementId': data.appartementId, 'annee': year}) }}" class="btn btn-sm btn-outline-primary">Créer</a>
+                                            <a href="{{ path('app_frais_syndic_reglement_new', {'appartementId': data.appartementId, 'annee': year}) }}" class="btn btn-success">
+                                                <i class="bi bi-plus-circle"></i> Créer
+                                            </a>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -145,16 +168,14 @@
                         <tfoot class="table-footer">
                             <tr>
                                 <td colspan="15" class="text-end">Total pour {{ year }} :</td>
-                                <td class="text-center">
-                                    {% set yearTotal = 0 %}
-                                    {% for appartement, data in yearData %}
-                                        {% if data.details[0] is defined %}
-                                            {% set yearTotal = yearTotal + data.details[0].montant|default(0) %}
-                                        {% endif %}
-                                    {% endfor %}
-                                    {{ yearTotal }} TND
-                                </td>
-                                <td></td>
+<td class="text-center">
+    {% set yearTotal = 0 %}
+    {% for appartement, data in yearData %}
+        {% set yearTotal = yearTotal + (data.details[0].montant|default(0)) %}
+    {% endfor %}
+    {{ yearTotal }} TND
+</td>
+<td></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -524,7 +545,7 @@
                 const { year, headers, data } = collectVisibleData();
                 
                 doc.setFontSize(12);
-                doc.text(`Frais Syndic - Année ${year}`, 14, 10);
+                doc.text(`Cotisation Syndic - Année ${year}`, 14, 10);
                 
                 const exportDate = new Date().toLocaleDateString('fr-FR');
                 doc.setFontSize(8);
@@ -596,7 +617,7 @@
                 
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
                 
-                XLSX.utils.book_append_sheet(wb, ws, `Frais Syndic ${year}`);
+                XLSX.utils.book_append_sheet(wb, ws, `Cotisation Syndic ${year}`);
                 
                 XLSX.writeFile(wb, `frais-syndic-${year}.xlsx`);
             });

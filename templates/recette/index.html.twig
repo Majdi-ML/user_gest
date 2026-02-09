@@ -1,0 +1,158 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Recettes{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_index_styles.html.twig' %}
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">💰</span>
+            Liste des Recettes
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Gestion des recettes et revenus</p>
+    </div>
+
+    <div class="action-bar">
+        <a href="{{ path('app_recette_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle-fill"></i> Nouvelle Recette
+        </a>
+    </div>
+
+    <ul class="nav nav-tabs person-type-tabs" id="yearTabs" role="tablist">
+        {% for year, yearRecettes in recettesByYear %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if loop.first %}active{% endif %}" 
+                        id="year-{{ year }}-tab" 
+                        data-bs-toggle="tab" 
+                        data-bs-target="#year-{{ year }}" 
+                        type="button" 
+                        role="tab" 
+                        aria-controls="year-{{ year }}" 
+                        aria-selected="{{ loop.first ? 'true' : 'false' }}">
+                    <i class="bi bi-calendar-fill"></i> {{ year }}
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="tab-content" id="yearTabContent">
+        {% for year, yearRecettes in recettesByYear %}
+            <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                 id="year-{{ year }}" 
+                 role="tabpanel" 
+                 aria-labelledby="year-{{ year }}-tab">
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table class="table table-modern" id="recettesTable-{{ year }}">
+                            <thead>
+                                <tr>
+                                    <th><i class="bi bi-calendar3"></i> Mois</th>
+                                    <th colspan="2"><i class="bi bi-building"></i> Cotisation Syndic</th>
+                                    <th colspan="2"><i class="bi bi-cash-stack"></i> Autre revenu</th>
+                                    <th><i class="bi bi-calculator"></i> Total</th>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th>Espèce</th>
+                                    <th>Bancaire</th>
+                                    <th>Espèce</th>
+                                    <th>Bancaire</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set moisOrdre = ['January','February','March','April','May','June','July','August','September','October','November','December'] %}
+                                {% set moisNoms = {
+                                    'January': 'Janvier',
+                                    'February': 'Février',
+                                    'March': 'Mars',
+                                    'April': 'Avril',
+                                    'May': 'Mai',
+                                    'June': 'Juin',
+                                    'July': 'Juillet',
+                                    'August': 'Août',
+                                    'September': 'Septembre',
+                                    'October': 'Octobre',
+                                    'November': 'Novembre',
+                                    'December': 'Décembre'
+                                } %}
+                                
+                                {% for month in moisOrdre %}
+                                    {% if yearRecettes[month] is defined %}
+                                        <tr>
+                                            <td><strong>{{ moisNoms[month] }}</strong></td>
+                                            <td>{{ yearRecettes[month]['Cotisation Syndic']['Espece']|number_format(2, '.', ' ') }} DT</td>
+                                            <td>{{ yearRecettes[month]['Cotisation Syndic']['Bancaire']|number_format(2, '.', ' ') }} DT</td>
+                                            <td>{{ yearRecettes[month]['Autre revenu']['Espece']|number_format(2, '.', ' ') }} DT</td>
+                                            <td>{{ yearRecettes[month]['Autre revenu']['Bancaire']|number_format(2, '.', ' ') }} DT</td>
+                                            <td><strong>
+                                                {% set total = yearRecettes[month]['Cotisation Syndic']['Espece'] + 
+                                                               yearRecettes[month]['Cotisation Syndic']['Bancaire'] + 
+                                                               yearRecettes[month]['Autre revenu']['Espece'] + 
+                                                               yearRecettes[month]['Autre revenu']['Bancaire'] %}
+                                                {{ total|number_format(2, '.', ' ') }} DT
+                                            </strong></td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <h3 class="mt-4 mb-3"><i class="bi bi-list-ul"></i> Détails des recettes {{ year }}</h3>
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table class="table table-modern">
+                            <thead>
+                                <tr>
+                                    <th><i class="bi bi-hash"></i> ID</th>
+                                    <th><i class="bi bi-cash"></i> Montant</th>
+                                    <th><i class="bi bi-calendar-event"></i> Date</th>
+                                    <th><i class="bi bi-tag"></i> Type</th>
+                                    <th><i class="bi bi-wallet2"></i> Nature</th>
+                                    <th><i class="bi bi-file-text"></i> Description</th>
+                                    <th><i class="bi bi-gear-fill"></i> Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for recette in recettes %}
+                                    {% if recette.dateRecette|date('Y') == year %}
+                                        <tr>
+                                            <td><span class="badge-modern bg-light">{{ recette.id }}</span></td>
+                                            <td><span class="badge-modern bg-success">{{ recette.montant|number_format(2, '.', ' ') }} DT</span></td>
+                                            <td>{{ recette.dateRecette|date('d/m/Y') }}</td>
+                                            <td>{{ recette.typeRecette }}</td>
+                                            <td>
+                                                <span class="badge-modern {% if recette.natureRecette == 'Bancaire' %}bg-primary{% else %}bg-warning{% endif %}">
+                                                    {{ recette.natureRecette }}
+                                                </span>
+                                            </td>
+                                            <td>{{ recette.description|slice(0, 50) }}{% if recette.description|length > 50 %}...{% endif %}</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <a href="{{ path('app_recette_show', {'id': recette.id}) }}" class="btn btn-sm btn-info" title="Voir">
+                                                        <i class="bi bi-eye-fill"></i>
+                                                    </a>
+                                                    <a href="{{ path('app_recette_edit', {'id': recette.id}) }}" class="btn btn-sm btn-warning" title="Modifier">
+                                                        <i class="bi bi-pencil-fill"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

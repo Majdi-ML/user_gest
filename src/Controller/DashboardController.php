@@ -2,120 +2,160 @@
 
 namespace App\Controller;
 
-use App\Repository\FraisSyndicReglementRepository;
+use App\Entity\Caisse;
+use App\Repository\RecetteRepository;
 use App\Repository\DepenseRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 
 class DashboardController extends AbstractController
 {
     #[Route('/dashboard', name: 'app_dashboard')]
     public function index(
-        FraisSyndicReglementRepository $fraisRepo,
+        Request $request,
+        RecetteRepository $recetteRepo,
         DepenseRepository $depenseRepo,
         EntityManagerInterface $entityManager
     ): Response {
-        // Fetch distinct years from FraisSyndicReglement
-        $fraisYears = $fraisRepo->createQueryBuilder('f')
-            ->select('DISTINCT f.annee')
-            ->getQuery()
-            ->getSingleColumnResult();
+        // Vérifier si l'utilisateur est admin
+        $isAdmin = $this->getUser() && $this->getUser()->getUserIdentifier() === 'admin@admin.com';
+
+        // Create a new Caisse entity for the form
+        $newCaisse = new Caisse();
+        $newCaisse->setAnnee((int)date('Y') - 1); // Default to previous year
+        $newCaisse->setSolde(0.0);
+
+        // Create form for adding a new Caisse
+        $form = $this->createFormBuilder($newCaisse)
+            ->add('solde', null, [
+                'label' => 'Solde de la caisse',
+                'attr' => ['step' => '0.01'],
+            ])
+            ->add('annee', IntegerType::class, [
+                'label' => 'Année du solde (année précédente)',
+                'attr' => ['class' => 'form-control'],
+                'required' => true,
+            ])
+            ->getForm();
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Vérifier si une caisse existe déjà pour cette année
+            $existingCaisse = $entityManager->getRepository(Caisse::class)->findOneBy(['annee' => $newCaisse->getAnnee()]);
+            if ($existingCaisse) {
+                $this->addFlash('error', sprintf('Une caisse existe déjà pour l\'année %s.', $newCaisse->getAnnee()));
+            } else {
+                $entityManager->persist($newCaisse);
+                $entityManager->flush();
+                $this->addFlash('success', sprintf('La caisse pour l\'année %s a été ajoutée avec succès.', $newCaisse->getAnnee()));
+            }
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        // Fetch all Caisse entities
+        $caisses = $entityManager->getRepository(Caisse::class)->findBy([], ['annee' => 'ASC']);
+
+        // Fetch distinct years from Recette using native SQL
+        $connection = $entityManager->getConnection();
+        $sql = "SELECT DISTINCT strftime('%Y', date_recette) as year FROM recette";
+        $stmt = $connection->executeQuery($sql);
+        $recetteYears = array_column($stmt->fetchAllAssociative(), 'year');
 
         // Fetch distinct years from Depense using native SQL
-        $connection = $entityManager->getConnection();
         $sql = "SELECT DISTINCT strftime('%Y', date_depense) as year FROM depense";
         $stmt = $connection->executeQuery($sql);
         $depenseYears = array_column($stmt->fetchAllAssociative(), 'year');
 
         // Combine and sort unique years
-        $years = array_unique(array_merge($fraisYears, $depenseYears));
+        $years = array_unique(array_merge($recetteYears, $depenseYears));
+        $years = array_filter($years); // Remove empty values
         sort($years);
 
-        // Current system date for Solde Ancien Syndic
+        // Current system date for display
         $systemDate = new \DateTime();
-
-        // Mois pour affichage et champs sans accents pour la requête
-        $months = [
-            'Janvier' => 'Janvier',
-            'Février' => 'fevrier',
-            'Mars' => 'mars',
-            'Avril' => 'avril',
-            'Mai' => 'mai',
-            'Juin' => 'juin',
-            'Juillet' => 'juillet',
-            'Août' => 'aout',
-            'Septembre' => 'septembre',
-            'Octobre' => 'octobre',
-            'Novembre' => 'novembre',
-            'Décembre' => 'decembre'
-        ];
-
-        // Fetch all NaturePaiement types
-        $naturePaiements = $fraisRepo->createQueryBuilder('f')
-            ->select('DISTINCT np.nature')
-            ->join('f.nature_paiement', 'np')
-            ->getQuery()
-            ->getSingleColumnResult();
-
-        // Initial balance (hardcoded from PDF; adjust if dynamic)
-        $initialCaisse = 1725000;
-        $caisse = $initialCaisse;
 
         $financialData = [];
 
         foreach ($years as $year) {
+            // Find the initial balance for the year (solde of the previous year's caisse)
+            $previousYear = (int)$year - 1;
+            $caisseForYear = $entityManager->getRepository(Caisse::class)->findOneBy(['annee' => $previousYear]);
+            $initialCaisse = $caisseForYear ? $caisseForYear->getSolde() : 0.0;
+            $caisseValue = $initialCaisse;
+
             $yearlyData = [
                 'recettes' => 0,
                 'depenses' => 0,
-                'months' => []
+                'months' => [],
+                'initialCaisse' => $initialCaisse,
+                'initialCaisseYear' => $previousYear,
             ];
 
-            $monthLabels = array_keys($months);
-            $monthFields = array_values($months);
+            for ($i = 1; $i <= 12; $i++) {
+                $monthNum = str_pad($i, 2, '0', STR_PAD_LEFT);
+                $monthName = date('F', mktime(0, 0, 0, $i, 1));
+                $monthNameFr = [
+                    'January' => 'Janvier', 'February' => 'Février', 'March' => 'Mars',
+                    'April' => 'Avril', 'May' => 'Mai', 'June' => 'Juin',
+                    'July' => 'Juillet', 'August' => 'Août', 'September' => 'Septembre',
+                    'October' => 'Octobre', 'November' => 'Novembre', 'December' => 'Décembre'
+                ][$monthName];
 
-            $monthLimit = ($year == 2025) ? min(5, count($months)) : 12;
-
-            for ($i = 0; $i < $monthLimit; $i++) {
-                $monthName = $monthLabels[$i];
-                $monthField = $monthFields[$i];
-                $monthNum = str_pad($i + 1, 2, '0', STR_PAD_LEFT);
-
-                // Fetch receipts by NaturePaiement
-                $recettesByNature = [];
-                foreach ($naturePaiements as $nature) {
-                    $recettesByNature[$nature] = $fraisRepo->createQueryBuilder('f')
-                        ->select('SUM(f.totale)')
-                        ->join('f.nature_paiement', 'np')
-                        ->where('f.annee = :year')
-                        ->andWhere("f.$monthField = true")
-                        ->andWhere('np.nature = :nature')
-                        ->setParameters(['year' => $year, 'nature' => $nature])
-                        ->getQuery()
-                        ->getSingleScalarResult() ?? 0;
-                }
-
-                // Total receipts for the month
-                $recettes = array_sum($recettesByNature);
-
-                // Fetch expenses using native SQL
-                $sql = "SELECT COALESCE(SUM(montant), 0) as total FROM depense WHERE strftime('%Y', date_depense) = :year AND strftime('%m', date_depense) = :month";
+                // Fetch Recettes Espèce
+                $sql = "SELECT COALESCE(SUM(montant), 0) as total FROM recette 
+                        WHERE strftime('%Y', date_recette) = :year 
+                        AND strftime('%m', date_recette) = :month 
+                        AND nature_recette = 'Espece'";
                 $stmt = $connection->executeQuery($sql, ['year' => $year, 'month' => $monthNum]);
-                $depenses = (float) $stmt->fetchOne();
+                $recetteEspece = (float) $stmt->fetchOne();
+
+                // Fetch Recettes Bancaire
+                $sql = "SELECT COALESCE(SUM(montant), 0) as total FROM recette 
+                        WHERE strftime('%Y', date_recette) = :year 
+                        AND strftime('%m', date_recette) = :month 
+                        AND nature_recette = 'Bancaire'";
+                $stmt = $connection->executeQuery($sql, ['year' => $year, 'month' => $monthNum]);
+                $recetteBanque = (float) $stmt->fetchOne();
+
+                // Fetch Dépenses Espèce
+                $sql = "SELECT COALESCE(SUM(montant), 0) as total FROM depense 
+                        WHERE strftime('%Y', date_depense) = :year 
+                        AND strftime('%m', date_depense) = :month 
+                        AND nature_depense = 'Espece'";
+                $stmt = $connection->executeQuery($sql, ['year' => $year, 'month' => $monthNum]);
+                $depenseEspece = (float) $stmt->fetchOne();
+
+                // Fetch Dépenses Bancaire
+                $sql = "SELECT COALESCE(SUM(montant), 0) as total FROM depense 
+                        WHERE strftime('%Y', date_depense) = :year 
+                        AND strftime('%m', date_depense) = :month 
+                        AND nature_depense = 'Bancaire'";
+                $stmt = $connection->executeQuery($sql, ['year' => $year, 'month' => $monthNum]);
+                $depenseBanque = (float) $stmt->fetchOne();
+
+                // Calculate totals
+                $totalRecette = $recetteEspece + $recetteBanque;
+                $totalDepense = $depenseEspece + $depenseBanque;
 
                 // Update CAISSE
-                $caisse += $recettes - $depenses;
+                $caisseValue += $totalRecette - $totalDepense;
 
-                $yearlyData['months'][$monthName] = [
-                    'recettes' => $recettes,
-                    'recettesByNature' => $recettesByNature,
-                    'depenses' => $depenses,
-                    'caisse' => $caisse
+                $yearlyData['months'][$monthNameFr] = [
+                    'recette_espece' => $recetteEspece,
+                    'recette_banque' => $recetteBanque,
+                    'depense_espece' => $depenseEspece,
+                    'depense_banque' => $depenseBanque,
+                    'total_recette' => $totalRecette,
+                    'total_depense' => $totalDepense,
+                    'caisse' => $caisseValue
                 ];
 
-                $yearlyData['recettes'] += $recettes;
-                $yearlyData['depenses'] += $depenses;
+                $yearlyData['recettes'] += $totalRecette;
+                $yearlyData['depenses'] += $totalDepense;
             }
 
             $yearlyData['net'] = $yearlyData['recettes'] - $yearlyData['depenses'];
@@ -134,9 +174,79 @@ class DashboardController extends AbstractController
             'totalDepenses' => $totalDepenses,
             'averageRecettes' => $averageRecettes,
             'averageDepenses' => $averageDepenses,
-            'initialCaisse' => $initialCaisse,
+            'caisses' => $caisses,
+            'isAdmin' => $isAdmin,
             'systemDate' => $systemDate,
-            'naturePaiements' => $naturePaiements,
+            'caisseForm' => $form->createView(),
         ]);
+    }
+
+    #[Route('/dashboard/caisse/edit/{id}', name: 'edit_caisse')]
+    public function editCaisse(
+        Request $request,
+        Caisse $caisse,
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Vérifier si l'utilisateur est admin
+        if (!$this->getUser() || $this->getUser()->getUserIdentifier() !== 'admin@admin.com') {
+            throw $this->createAccessDeniedException('Seul l\'administrateur peut modifier une caisse.');
+        }
+
+        // Create form for editing Caisse
+        $form = $this->createFormBuilder($caisse)
+            ->add('solde', null, [
+                'label' => 'Solde de la caisse',
+                'attr' => ['step' => '0.01'],
+            ])
+            ->add('annee', IntegerType::class, [
+                'label' => 'Année du solde (année précédente)',
+                'attr' => ['class' => 'form-control'],
+                'required' => true,
+            ])
+            ->getForm();
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Vérifier si une autre caisse existe pour cette année
+            $existingCaisse = $entityManager->getRepository(Caisse::class)->findOneBy([
+                'annee' => $caisse->getAnnee(),
+                'id' => ['!=', $caisse->getId()]
+            ]);
+            if ($existingCaisse) {
+                $this->addFlash('error', sprintf('Une caisse existe déjà pour l\'année %s.', $caisse->getAnnee()));
+            } else {
+                $entityManager->flush();
+                $this->addFlash('success', sprintf('La caisse pour l\'année %s a été modifiée avec succès.', $caisse->getAnnee()));
+            }
+            return $this->redirectToRoute('app_dashboard');
+        }
+
+        return $this->render('dashboard/edit_caisse.html.twig', [
+            'caisseForm' => $form->createView(),
+            'caisse' => $caisse,
+        ]);
+    }
+
+    #[Route('/dashboard/caisse/delete/{id}', name: 'delete_caisse', methods: ['POST'])]
+    public function deleteCaisse(
+        Request $request,
+        Caisse $caisse,
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Vérifier si l'utilisateur est admin
+        if (!$this->getUser() || $this->getUser()->getUserIdentifier() !== 'admin@admin.com') {
+            throw $this->createAccessDeniedException('Seul l\'administrateur peut supprimer une caisse.');
+        }
+
+        // Vérifier le token CSRF
+        if ($this->isCsrfTokenValid('delete'.$caisse->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($caisse);
+            $entityManager->flush();
+            $this->addFlash('success', sprintf('La caisse pour l\'année %s a été supprimée avec succès.', $caisse->getAnnee()));
+        } else {
+            $this->addFlash('error', 'Token CSRF invalide.');
+        }
+
+        return $this->redirectToRoute('app_dashboard');
     }
 }

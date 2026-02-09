@@ -2,95 +2,118 @@
 
 {% block title %}Détails du Bloc{% endblock %}
 
-{% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">🏢 Détails du Bloc</h1>
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_show_styles.html.twig' %}
+{% endblock %}
 
-    <div class="card mb-4 shadow-sm">
+{% block body %}
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">🏢</span>
+            Détails du Bloc
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Informations complètes du bloc et ses appartements</p>
+    </div>
+
+    <div class="detail-card">
+        <div class="card-header">
+            <i class="bi bi-building-fill"></i> Informations du Bloc
+        </div>
         <div class="card-body">
-            <table class="table table-striped">
-                <tbody>
-                    <tr>
-                        <th>ID</th>
-                        <td>{{ bloc.id }}</td>
-                    </tr>
-                    <tr>
-                        <th>Nom</th>
-                        <td>{{ bloc.nom }}</td>
-                    </tr>
-                    <tr>
-                        <th>Nombre d'étages</th>
-                        <td>{{ bloc.nombreEtages }}</td>
-                    </tr>
-                    <tr>
-                        <th>Appartements/étage</th>
-                        <td>{{ bloc.nombreAppartementEtage }}</td>
-                    </tr>
-                    <tr>
-                        <th>Total appartements</th>
-                        <td>{{ bloc.nombreTotaleAppartement }}</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label><i class="bi bi-hash"></i> ID</label>
+                    <div class="info-value">{{ bloc.id }}</div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-building"></i> Nom</label>
+                    <div class="info-value"><strong>{{ bloc.nom }}</strong></div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-layers-fill"></i> Nombre d'étages</label>
+                    <div class="info-value">{{ bloc.nombreEtages }}</div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-door-closed-fill"></i> Appartements par étage</label>
+                    <div class="info-value">{{ bloc.nombreAppartementEtage }}</div>
+                </div>
+                <div class="info-item">
+                    <label><i class="bi bi-grid-3x3-gap-fill"></i> Total appartements</label>
+                    <div class="info-value"><span class="badge-modern bg-primary">{{ bloc.nombreTotaleAppartement }}</span></div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <h2 class="mb-3">🏠 Appartements (Triés par étage)</h2>
-
-    {% set appartementsTries = bloc.appartements|sort((a, b) => a.etage <=> b.etage) %}
-
-    {% if appartementsTries is not empty %}
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Étage</th>
-                        <th>Numéro</th>
-                        <th>Type</th>
-                        <th>Occupé</th>
-                        <th>Locataire</th>
-                        <th>Propriétaire</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for appartement in appartementsTries %}
-                    <tr>
-                        <td>{{ appartement.etage }}</td>
-                        <td>{{ appartement.numero }}</td>
-                        <td>{{ appartement.type }}</td>
-                        <td>
-                            {% if appartement.estHabite %}
-                                ✅ Oui
-                            {% else %}
-                                ❌ Non
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if appartement.locataire %}
-                                {{ appartement.locataire.nom }} {{ appartement.locataire.prenom }}
-                            {% else %}
-                                <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if appartement.proprietaire %}
-                                {{ appartement.proprietaire.nom }} {{ appartement.proprietaire.prenom }}
-                            {% else %}
-                                <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+    <div class="detail-card">
+        <div class="card-header">
+            <i class="bi bi-house-door-fill"></i> Appartements (Triés par étage)
         </div>
-    {% else %}
-        <div class="alert alert-warning">Aucun appartement associé à ce bloc.</div>
-    {% endif %}
+        <div class="card-body">
+            {% set appartementsTries = bloc.appartements|sort((a, b) => a.etage <=> b.etage) %}
 
-    <div class="mt-4 d-flex gap-2">
-        <a href="{{ path('app_bloc_index') }}" class="btn btn-secondary">⬅️ Retour à la liste</a>
-        <a href="{{ path('app_bloc_edit', {'id': bloc.id}) }}" class="btn btn-primary">✏️ Modifier</a>
+            {% if appartementsTries is not empty %}
+                <div class="table-wrapper">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th><i class="bi bi-layers"></i> Étage</th>
+                                <th><i class="bi bi-123"></i> Numéro</th>
+                                <th><i class="bi bi-house-fill"></i> Type</th>
+                                <th><i class="bi bi-check-circle"></i> Occupé</th>
+                                <th><i class="bi bi-person"></i> Locataire</th>
+                                <th><i class="bi bi-person-badge"></i> Propriétaire</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for appartement in appartementsTries %}
+                            <tr>
+                                <td><span class="badge-modern bg-secondary">{{ appartement.etage }}</span></td>
+                                <td><strong>{{ appartement.numero }}</strong></td>
+                                <td>{{ appartement.type }}</td>
+                                <td>
+                                    {% if appartement.estHabite %}
+                                        <span class="badge-modern bg-success"><i class="bi bi-check-circle-fill"></i> Oui</span>
+                                    {% else %}
+                                        <span class="badge-modern bg-danger"><i class="bi bi-x-circle-fill"></i> Non</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if appartement.locataire %}
+                                        {{ appartement.locataire.nom }} {{ appartement.locataire.prenom }}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if appartement.proprietaire %}
+                                        {{ appartement.proprietaire.nom }} {{ appartement.proprietaire.prenom }}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Aucun appartement associé à ce bloc.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ path('app_bloc_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Retour à la liste
+        </a>
+        <a href="{{ path('app_bloc_edit', {'id': bloc.id}) }}" class="btn btn-warning">
+            <i class="bi bi-pencil-fill"></i> Modifier
+        </a>
         {{ include('bloc/_delete_form.html.twig') }}
     </div>
 </div>

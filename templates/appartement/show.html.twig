@@ -1,38 +1,66 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Appartement{% endblock %}
+{% block title %}Détails Appartement{% endblock %}
+
+{% block css %}
+    {{ parent() }}
+    {% include '_modern_show_styles.html.twig' %}
+{% endblock %}
 
 {% block body %}
-    <h1>Appartement</h1>
+<div class="container-fluid mt-4 px-4 fade-in">
+    <div class="page-header">
+        <h1>
+            <span class="page-header-icon">🏠</span>
+            Appartement N° {{ appartement.numero }}
+        </h1>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Informations détaillées de l'appartement</p>
+    </div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ appartement.id }}</td>
-            </tr>
-            <tr>
-                <th>Numero</th>
-                <td>{{ appartement.numero }}</td>
-            </tr>
-            <tr>
-                <th>Type</th>
-                <td>{{ appartement.type }}</td>
-            </tr>
-            <tr>
-                <th>Etage</th>
-                <td>{{ appartement.etage }}</td>
-            </tr>
-            <tr>
-                <th>Est_habite</th>
-                <td>{{ appartement.estHabite ? 'Yes' : 'No' }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="detail-card">
+        <div class="card-header">
+            <i class="bi bi-house-door-fill"></i> Informations de l'appartement
+        </div>
+        <div class="card-body">
+            <table class="table table-detail">
+                <tbody>
+                    <tr>
+                        <th><i class="bi bi-hash"></i> ID</th>
+                        <td>{{ appartement.id }}</td>
+                    </tr>
+                    <tr>
+                        <th><i class="bi bi-door-closed-fill"></i> Numéro</th>
+                        <td><span class="badge badge-modern bg-primary">{{ appartement.numero }}</span></td>
+                    </tr>
+                    <tr>
+                        <th><i class="bi bi-building"></i> Type</th>
+                        <td>{{ appartement.type }}</td>
+                    </tr>
+                    <tr>
+                        <th><i class="bi bi-layers-fill"></i> Étage</th>
+                        <td>{{ appartement.etage }}</td>
+                    </tr>
+                    <tr>
+                        <th><i class="bi bi-people-fill"></i> Est habité</th>
+                        <td>
+                            <span class="badge badge-modern {% if appartement.estHabite %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ appartement.estHabite ? 'Oui' : 'Non' }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-    <a href="{{ path('app_appartement_index') }}">back to list</a>
-
-    <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}">edit</a>
-
-    {{ include('appartement/_delete_form.html.twig') }}
+    <div class="action-buttons">
+        <a href="{{ path('app_appartement_index') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left-circle-fill"></i> Retour à la liste
+        </a>
+        <a href="{{ path('app_appartement_edit', {'id': appartement.id}) }}" class="btn btn-warning">
+            <i class="bi bi-pencil-fill"></i> Modifier
+        </a>
+        {{ include('appartement/_delete_form.html.twig') }}
+    </div>
+</div>
 {% endblock %}

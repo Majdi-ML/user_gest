@@ -16,6 +16,9 @@ class Caisse
     #[ORM\Column]
     private ?float $solde = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $annee = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -29,6 +32,18 @@ class Caisse
     public function setSolde(float $solde): static
     {
         $this->solde = $solde;
+
+        return $this;
+    }
+
+    public function getAnnee(): ?int
+    {
+        return $this->annee;
+    }
+
+    public function setAnnee(?int $annee): static
+    {
+        $this->annee = $annee;
 
         return $this;
     }

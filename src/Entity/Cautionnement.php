@@ -33,8 +33,8 @@ class Cautionnement
     #[ORM\ManyToOne(inversedBy: 'cautionnements')]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(inversedBy: 'cautionnements')]
-    private ?NaturePaiement $Nature_Paiement = null;
+    #[ORM\Column(length: 255)]
+    private ?string $Nature_Paiement = null;
 
     #[ORM\Column(length: 4)]
     private ?string $annee = null;
@@ -113,12 +113,12 @@ class Cautionnement
         return $this;
     }
 
-    public function getNaturePaiement(): ?NaturePaiement
+    public function getNaturePaiement(): ?string
     {
         return $this->Nature_Paiement;
     }
 
-    public function setNaturePaiement(?NaturePaiement $Nature_Paiement): static
+    public function setNaturePaiement(?string $Nature_Paiement): static
     {
         $this->Nature_Paiement = $Nature_Paiement;
 

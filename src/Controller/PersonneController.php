@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Personne;
 use App\Form\PersonneType;
 use App\Repository\PersonneRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,13 +16,39 @@ use Symfony\Component\Routing\Annotation\Route;
 class PersonneController extends AbstractController
 {
     #[Route('/', name: 'app_personne_index', methods: ['GET'])]
-    public function index(PersonneRepository $personneRepository): Response
+    public function index(Request $request, PersonneRepository $personneRepository, PaginatorInterface $paginator): Response
     {
-        $proprietaires = $personneRepository->findBy(['status' => 'proprietaire']);
-        $locataires = $personneRepository->findBy(['status' => 'locataire']);
+        $perPage = 10;
+
+        $proprietairesQuery = $personneRepository->createQueryBuilder('pp')
+            ->andWhere('pp.status = :statusProprietaire')
+            ->setParameter('statusProprietaire', 'proprietaire')
+            ->orderBy('pp.nom', 'ASC')
+            ->getQuery();
+
+        $locatairesQuery = $personneRepository->createQueryBuilder('pl')
+            ->andWhere('pl.status = :statusLocataire')
+            ->setParameter('statusLocataire', 'locataire')
+            ->orderBy('pl.nom', 'ASC')
+            ->getQuery();
+
+        $proprietaires = $paginator->paginate(
+            $proprietairesQuery,
+            $request->query->getInt('page_proprietaires', 1),
+            $perPage,
+            ['pageParameterName' => 'page_proprietaires']
+        );
+
+        $locataires = $paginator->paginate(
+            $locatairesQuery,
+            $request->query->getInt('page_locataires', 1),
+            $perPage,
+            ['pageParameterName' => 'page_locataires']
+        );
+
         return $this->render('personne/index.html.twig', [
-        'proprietaires' => $proprietaires,
-        'locataires' => $locataires,
+            'proprietaires' => $proprietaires,
+            'locataires' => $locataires,
         ]);
     }
 

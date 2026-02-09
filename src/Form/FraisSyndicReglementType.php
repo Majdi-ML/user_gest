@@ -5,7 +5,6 @@ namespace App\Form;
 use App\Entity\FraisSyndicReglement;
 use App\Entity\Appartement;
 use App\Entity\FraisSyndic;
-use App\Entity\NaturePaiement;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -50,10 +49,12 @@ class FraisSyndicReglementType extends AbstractType
                 'expanded' => false,
                 'attr' => ['class' => 'form-select multiselect appartement-select']
             ])
-            ->add('nature_paiement', EntityType::class, [
-                'class' => NaturePaiement::class,
-                'choice_label' => 'nature',
+            ->add('nature_paiement', ChoiceType::class, [
                 'label' => 'Nature du paiement',
+                'choices' => [
+                    'Espèce' => 'espece',
+                    'Bancaire' => 'bancaire',
+                ],
                 'attr' => ['class' => 'form-select'],
                 'placeholder' => 'Sélectionnez une nature de paiement',
                 'required' => false,

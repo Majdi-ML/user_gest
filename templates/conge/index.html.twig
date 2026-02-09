@@ -4,6 +4,7 @@
 
 {% block css %}
     {{ parent() }}
+    {% include '_modern_index_styles.html.twig' %}
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
         .filter-row th { padding: 8px 3px !important; vertical-align: top; }
@@ -17,22 +18,35 @@
         .nav-tabs { margin-bottom: 10px; }
         .table-responsive { overflow-x: auto; }
         .table { font-size: 0.85rem; }
-        .table-footer { font-weight: bold; background-color: #f8f9fa; }
+        .table-footer { font-weight: bold; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); }
         .sortable { cursor: pointer; }
         .sortable::after { content: ''; display: inline-block; width: 0; height: 0; margin-left: 5px; border-left: 5px solid transparent; border-right: 5px solid transparent; }
-        .sortable.asc::after { border-bottom: 5px solid #000; }
-        .sortable.desc::after { border-top: 5px solid #000; }
+        .sortable.asc::after { border-bottom: 5px solid #7c3aed; }
+        .sortable.desc::after { border-top: 5px solid #7c3aed; }
+        .nav-tabs .nav-link.active { 
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); 
+            color: white;
+            border-color: #7c3aed;
+        }
+        .nav-tabs .nav-link { color: #7c3aed; border-color: #e5e7eb; }
+        .nav-tabs .nav-link:hover { border-color: #7c3aed; background-color: #f3e8ff; }
     </style>
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">📅 Liste des Congés</h1>
-
-    <div class="mb-3 text-end">
-        <a href="{{ path('app_conge_new') }}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Nouveau congé
-        </a>
+<div class="container-fluid p-4">
+    <div class="page-header">
+        <div class="page-header-content">
+            <div>
+                <h1><i class="bi bi-calendar-check"></i> Congés</h1>
+                <p class="page-subtitle">Gestion des congés des employés</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ path('app_conge_new') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nouveau Congé
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="card mb-4">
@@ -117,15 +131,13 @@
                                             <span class="badge bg-secondary">Aucun document</span>
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ path('app_conge_show', {'id': data.id}) }}" class="btn btn-sm btn-primary">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                            <a href="{{ path('app_conge_edit', {'id': data.id}) }}" class="btn btn-sm btn-warning">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                        </div>
+                                    <td class="table-actions">
+                                        <a href="{{ path('app_conge_show', {'id': data.id}) }}" class="btn btn-info">
+                                            <i class="bi bi-eye-fill"></i> Voir
+                                        </a>
+                                        <a href="{{ path('app_conge_edit', {'id': data.id}) }}" class="btn btn-warning">
+                                            <i class="bi bi-pencil-fill"></i> Modifier
+                                        </a>
                                     </td>
                                 </tr>
                             {% else %}
