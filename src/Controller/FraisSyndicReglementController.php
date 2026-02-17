@@ -87,6 +87,9 @@ class FraisSyndicReglementController extends AbstractController
             array_map(fn($f) => $f->getAnnee(), $fraisSyndicReglements),
             [date('Y')] // Include current year
         ));
+        
+        // Sort years in descending order (current year first)
+        rsort($years);
 
         foreach ($years as $year) {
             foreach ($appartements as $appartement) {
@@ -124,40 +127,36 @@ class FraisSyndicReglementController extends AbstractController
             }
 
             $appartementKey = $appartementObj->getId();
-            $appartementNom = $appartementObj->getNumero() ?? 'Appartement ' . $appartementKey;
-            $personne = $f->getPersonne();
-            $nom = $personne ? $personne->getNom() . ' ' . $personne->getPrenom() : '—';
-            $proprietaire = $personne ? $personne->getNom() : '—';
-
+            
+            // Skip if year/appartement not initialized
             if (!isset($dataByYear[$year][$appartementKey])) {
-                $dataByYear[$year][$appartementKey] = [
-                    'nom' => $nom,
-                    'appartement' => $appartementNom,
-                    'appartementId' => $appartementKey,
-                    'proprietaire' => $proprietaire,
-                    'months' => array_fill(1, 12, 'Non'),
-                    'details' => [],
-                ];
+                continue;
             }
 
+            // Add details for this reglement
+            $dataByYear[$year][$appartementKey]['details'] = [
+                'id' => $f->getId(),
+                'montant' => $f->getTotale(),
+                'annee' => $year,
+                'naturePaiement' => $f->getNaturePaiement(),
+                'personne' => $dataByYear[$year][$appartementKey]['nom'],
+                'appartementId' => $appartementKey,
+                'appartementNom' => $dataByYear[$year][$appartementKey]['appartement'],
+                'utilisateur' => $f->getUser() ? $f->getUser()->getEmail() : null,
+                'fraisId' => $f->getFrais() ? $f->getFrais()->getId() : null,
+            ];
+
+            // Mark paid months
             foreach ($monthFields as $index => $month) {
                 $getter = 'is' . $month;
                 if ($f->$getter()) {
                     $dataByYear[$year][$appartementKey]['months'][$index + 1] = 'Oui';
-                    $dataByYear[$year][$appartementKey]['details'][] = [
-                        'id' => $f->getId(),
-                        'montant' => $f->getTotale(),
-                        'mois' => $month,
-                        'annee' => $year,
-                        'naturePaiement' => $f->getNaturePaiement() ? $f->getNaturePaiement()->getNature() : null,
-                        'personne' => $nom,
-                        'appartementId' => $appartementKey,
-                        'appartementNom' => $appartementNom,
-                        'utilisateur' => $f->getUser() ? $f->getUser()->getEmail() : null,
-                    ];
                 }
             }
         }
+        
+        // Sort dataByYear by year in descending order (newest first)
+        krsort($dataByYear);
 
         return $this->render('frais_syndic_reglement/index.html.twig', [
             'frais_syndic_reglements' => $fraisSyndicReglements,
@@ -355,5 +354,247 @@ public function new(
         }
 
         return $this->redirectToRoute('app_frais_syndic_reglement_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    #[Route('/ajax/get-montant-mensuel', name: 'app_frais_syndic_reglement_get_montant', methods: ['GET'])]
+    public function getMontantMensuel(EntityManagerInterface $entityManager): JsonResponse
+    {
+        try {
+            $frais = $entityManager->getRepository(\App\Entity\FraisSyndic::class)->findOneBy([]);
+            if (!$frais) {
+                return new JsonResponse(['success' => false, 'message' => 'Aucun frais syndic défini'], 404);
+            }
+            
+            return new JsonResponse([
+                'success' => true,
+                'montant' => $frais->getMontant()
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[Route('/ajax/get-all-frais', name: 'app_frais_syndic_reglement_get_all_frais', methods: ['GET'])]
+    public function getAllFrais(EntityManagerInterface $entityManager): JsonResponse
+    {
+        try {
+            $fraisList = $entityManager->getRepository(\App\Entity\FraisSyndic::class)->findAll();
+            $data = [];
+            
+            foreach ($fraisList as $frais) {
+                $data[] = [
+                    'id' => $frais->getId(),
+                    'montant' => $frais->getMontant()
+                ];
+            }
+            
+            return new JsonResponse([
+                'success' => true,
+                'frais' => $data
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[Route('/ajax/get/{id}', name: 'app_frais_syndic_reglement_get_ajax', methods: ['GET'])]
+    public function getAjax(int $id, FraisSyndicReglementRepository $fraisSyndicReglementRepository): JsonResponse
+    {
+        try {
+            $reglement = $fraisSyndicReglementRepository->find($id);
+            
+            if (!$reglement) {
+                return new JsonResponse(['success' => false, 'message' => 'Règlement non trouvé'], 404);
+            }
+            
+            $monthFields = [
+                'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
+                'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
+            ];
+            
+            $paidMonths = [];
+            foreach ($monthFields as $index => $month) {
+                $getter = 'is' . $month;
+                if ($reglement->$getter()) {
+                    $paidMonths[] = $index + 1; // Month number (1-12)
+                }
+            }
+            
+            $data = [
+                'success' => true,
+                'id' => $reglement->getId(),
+                'appartementId' => $reglement->getAppartement() ? $reglement->getAppartement()->getId() : null,
+                'annee' => $reglement->getAnnee(),
+                'montant' => $reglement->getTotale(),
+                'naturePaiement' => $reglement->getNaturePaiement(),
+                'fraisId' => $reglement->getFrais() ? $reglement->getFrais()->getId() : null,
+                'paidMonths' => $paidMonths,
+            ];
+            
+            return new JsonResponse($data);
+            
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    #[Route('/ajax/save', name: 'app_frais_syndic_reglement_save_ajax', methods: ['POST'])]
+    public function saveAjax(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        Security $security,
+        FraisSyndicReglementRepository $fraisSyndicReglementRepository,
+        AppartementRepository $appartementRepository
+    ): JsonResponse {
+        try {
+            $data = json_decode($request->getContent(), true);
+            
+            if (!$data) {
+                return new JsonResponse(['success' => false, 'message' => 'Données invalides'], 400);
+            }
+            
+            $appartementId = $data['appartementId'] ?? null;
+            $annee = $data['annee'] ?? null;
+            $months = $data['months'] ?? [];
+            $naturePaiement = $data['naturePaiement'] ?? 'espece';
+            $montantTotal = $data['montant'] ?? null;
+            $fraisId = $data['fraisId'] ?? null;
+            $mode = $data['mode'] ?? 'create';
+            $reglementId = $data['id'] ?? null;
+            
+            error_log("SAVE AJAX - Mode: $mode, ReglementID: " . ($reglementId ?? 'NULL'));
+            error_log("SAVE AJAX - Data: " . json_encode($data));
+            
+            if (!$appartementId || !$annee || empty($months)) {
+                return new JsonResponse(['success' => false, 'message' => 'Données manquantes'], 400);
+            }
+            
+            if (!$montantTotal || $montantTotal <= 0) {
+                return new JsonResponse(['success' => false, 'message' => 'Montant invalide'], 400);
+            }
+            
+            if (!$fraisId) {
+                return new JsonResponse(['success' => false, 'message' => 'Veuillez sélectionner un montant mensuel'], 400);
+            }
+            
+            // Get appartement
+            $appartement = $appartementRepository->find($appartementId);
+            if (!$appartement) {
+                return new JsonResponse(['success' => false, 'message' => 'Appartement non trouvé'], 404);
+            }
+            
+            $proprietaire = $appartement->getProprietaire();
+            if (!$proprietaire) {
+                return new JsonResponse(['success' => false, 'message' => 'L\'appartement n\'a pas de propriétaire'], 400);
+            }
+            
+            // Get or create reglement
+            $reglement = null;
+            if ($mode === 'edit' && $reglementId) {
+                $reglement = $fraisSyndicReglementRepository->find($reglementId);
+                if (!$reglement) {
+                    return new JsonResponse(['success' => false, 'message' => 'Règlement non trouvé'], 404);
+                }
+                // Reset all months first
+                $monthFields = [
+                    'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
+                    'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
+                ];
+                foreach ($monthFields as $month) {
+                    $setter = 'set' . $month;
+                    $reglement->$setter(false);
+                }
+            } else {
+                // Check if reglement already exists
+                $reglement = $fraisSyndicReglementRepository->findOneBy([
+                    'Personne' => $proprietaire,
+                    'annee' => $annee,
+                    'appartement' => $appartement,
+                ]);
+                
+                if (!$reglement) {
+                    $reglement = new FraisSyndicReglement();
+                    $reglement->setPersonne($proprietaire);
+                    $reglement->setAppartement($appartement);
+                    $reglement->setAnnee($annee);
+                    
+                    // Initialize all months to false
+                    $monthFields = [
+                        'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
+                        'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
+                    ];
+                    foreach ($monthFields as $month) {
+                        $setter = 'set' . $month;
+                        $reglement->$setter(false);
+                    }
+                } else {
+                    // Reset existing months
+                    $monthFields = [
+                        'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
+                        'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
+                    ];
+                    foreach ($monthFields as $month) {
+                        $setter = 'set' . $month;
+                        $reglement->$setter(false);
+                    }
+                }
+            }
+            
+            // Set nature paiement
+            $reglement->setNaturePaiement($naturePaiement);
+            
+            // Set user
+            $user = $security->getUser();
+            $reglement->setUser($user);
+            
+            // Get frais by ID
+            $frais = $entityManager->getRepository(\App\Entity\FraisSyndic::class)->find($fraisId);
+            if (!$frais) {
+                return new JsonResponse(['success' => false, 'message' => 'Montant mensuel non trouvé'], 404);
+            }
+            $reglement->setFrais($frais);
+            
+            $monthNames = [
+                1 => 'Janvier', 2 => 'Fevrier', 3 => 'Mars', 4 => 'Avril', 
+                5 => 'Mai', 6 => 'Juin', 7 => 'Juillet', 8 => 'Aout', 
+                9 => 'Septembre', 10 => 'Octobre', 11 => 'Novembre', 12 => 'Decembre'
+            ];
+            
+            // Set selected months
+            foreach ($months as $monthNum) {
+                if (isset($monthNames[$monthNum])) {
+                    $monthName = $monthNames[$monthNum];
+                    $setter = 'set' . $monthName;
+                    $reglement->$setter(true);
+                }
+            }
+            
+            // Use provided montant instead of calculating
+            $reglement->setTotale($montantTotal);
+            
+            $entityManager->persist($reglement);
+            $entityManager->flush();
+            
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Règlement enregistré avec succès',
+                'id' => $reglement->getId()
+            ]);
+            
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Erreur: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

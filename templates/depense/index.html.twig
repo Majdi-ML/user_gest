@@ -6,6 +6,31 @@
     {{ parent() }}
     <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+        }
+        .page-header h1 {
+            color: white;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 2rem;
+        }
+        .page-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+        }
+        .page-header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-header-actions .btn {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
         .filter-row th { padding: 8px 3px !important; vertical-align: top; }
         .filter-container { display: flex; gap: 5px; align-items: center; margin-bottom: 10px; }
         .filter-select { width: 100%; min-width: 120px; }
@@ -14,18 +39,81 @@
         .date-filter { display: none; }
         .logic-operator { font-weight: bold; margin: 0 10px; }
         .export-buttons { margin-bottom: 20px; }
-        .nav-tabs { margin-bottom: 10px; }
-        .clickable-header { cursor: pointer; color: #007bff; }
-        .clickable-header:hover { text-decoration: underline; }
+        .nav-tabs { margin-bottom: 0; border-bottom: none; }
+        .nav-tabs .nav-link {
+            border: none;
+            color: #64748b;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .nav-tabs .nav-link:hover {
+            color: #667eea;
+            background-color: #f1f5f9;
+            border-radius: 8px 8px 0 0;
+        }
+        .nav-tabs .nav-link.active {
+            color: #667eea;
+            background-color: white;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .clickable-header { 
+            cursor: pointer; 
+            color: #667eea;
+            transition: all 0.2s ease;
+        }
+        .clickable-header:hover { 
+            color: #764ba2;
+            text-decoration: underline;
+        }
+        .table-bordered {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .table thead th {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: #334155;
+            font-weight: 600;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .table tbody tr:hover {
+            background-color: #f8fafc;
+            transition: background-color 0.2s ease;
+        }
+        .table-info {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .card-header {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 1px solid #e2e8f0;
+            border-radius: 12px 12px 0 0 !important;
+            font-weight: 600;
+            color: #334155;
+        }
     </style>
 {% endblock %}
 
 {% block body %}
-<div class="container mt-4">
-    <h1 class="mb-4">💸 Liste des Dépenses</h1>
-
-    <div class="mb-3 text-end">
-        <a href="{{ path('app_depense_new') }}" class="btn btn-success">➕ Ajouter une Dépense</a>
+<div class="container-fluid p-4">
+    <div class="page-header">
+        <div class="page-header-content">
+            <div>
+                <h1><i class="bi bi-receipt"></i> Gestion des Dépenses</h1>
+                <p class="page-subtitle">Suivi complet des dépenses mensuelles par catégorie</p>
+            </div>
+            <div class="page-header-actions">
+                <a href="{{ path('app_depense_new') }}" class="btn btn-light btn-lg">
+                    <i class="bi bi-plus-circle"></i> Nouvelle Dépense
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="mb-3 text-end export-buttons">
@@ -92,6 +180,7 @@
                             <th class="clickable-header" data-type="PRODUITS_ENTRETIEN">Produits d'Entretien</th>
                             <th class="clickable-header" data-type="GROS_ŒUVRES_ENTRETIEN">Gros Œuvres & Entretien</th>
                             <th class="clickable-header" data-type="FRAIS_JURIDIQUE">Frais Juridique</th>
+                            <th class="clickable-header" data-type="FRAIS_BANQUE">Frais Banque</th>
                             <th class="clickable-header" data-type="DIVERS">Divers</th>
                             <th>Total</th>
                         </tr>
@@ -115,7 +204,7 @@
     {% set annualTotal = 0 %}
     {% set categoryTotals = {
         'SALAIRE': 0, 'CNSS': 0, 'STEG': 0, 'SONEDE': 0, 'IMPOTS': 0,
-        'JARDINAGE': 0, 'PRODUITS_ENTRETIEN': 0, 'GROS_ŒUVRES_ENTRETIEN': 0, 'FRAIS_JURIDIQUE': 0, 'DIVERS': 0
+        'JARDINAGE': 0, 'PRODUITS_ENTRETIEN': 0, 'GROS_ŒUVRES_ENTRETIEN': 0, 'FRAIS_JURIDIQUE': 0, 'FRAIS_BANQUE': 0, 'DIVERS': 0
     } %}
 
     {% set hasData = false %}
@@ -124,7 +213,7 @@
             {% set hasData = true %}
             {% set expenses = yearDepenses[moisEn] %}
             {% set monthlyTotal = (
-                expenses['SALAIRE']|default(0) + expenses['CNSS']|default(0) + expenses['STEG']|default(0) + expenses['SONEDE']|default(0) + expenses['IMPOTS']|default(0) + expenses['JARDINAGE']|default(0) + expenses['PRODUITS_ENTRETIEN']|default(0) + expenses['GROS_ŒUVRES_ENTRETIEN']|default(0) + expenses['FRAIS_JURIDIQUE']|default(0) + expenses['DIVERS']|default(0)
+                expenses['SALAIRE']|default(0) + expenses['CNSS']|default(0) + expenses['STEG']|default(0) + expenses['SONEDE']|default(0) + expenses['IMPOTS']|default(0) + expenses['JARDINAGE']|default(0) + expenses['PRODUITS_ENTRETIEN']|default(0) + expenses['GROS_ŒUVRES_ENTRETIEN']|default(0) + expenses['FRAIS_JURIDIQUE']|default(0) + expenses['FRAIS_BANQUE']|default(0) + expenses['DIVERS']|default(0)
             ) %}
             <tr>
                 <td>{{ moisTraduit[moisEn] }}</td>
@@ -137,6 +226,7 @@
                 <td>{{ expenses['PRODUITS_ENTRETIEN']|default(0)|number_format(2, '.', ',') }}</td>
                 <td>{{ expenses['GROS_ŒUVRES_ENTRETIEN']|default(0)|number_format(2, '.', ',') }}</td>
                 <td>{{ expenses['FRAIS_JURIDIQUE']|default(0)|number_format(2, '.', ',') }}</td>
+                <td>{{ expenses['FRAIS_BANQUE']|default(0)|number_format(2, '.', ',') }}</td>
                 <td>{{ expenses['DIVERS']|default(0)|number_format(2, '.', ',') }}</td>
                 <td>{{ monthlyTotal|number_format(2, '.', ',') }}</td>
             </tr>
@@ -151,6 +241,7 @@
                 'PRODUITS_ENTRETIEN': categoryTotals['PRODUITS_ENTRETIEN'] + expenses['PRODUITS_ENTRETIEN']|default(0),
                 'GROS_ŒUVRES_ENTRETIEN': categoryTotals['GROS_ŒUVRES_ENTRETIEN'] + expenses['GROS_ŒUVRES_ENTRETIEN']|default(0),
                 'FRAIS_JURIDIQUE': categoryTotals['FRAIS_JURIDIQUE'] + expenses['FRAIS_JURIDIQUE']|default(0),
+                'FRAIS_BANQUE': categoryTotals['FRAIS_BANQUE'] + expenses['FRAIS_BANQUE']|default(0),
                 'DIVERS': categoryTotals['DIVERS'] + expenses['DIVERS']|default(0)
             } %}
         {% endif %}
@@ -158,7 +249,7 @@
 
     {% if not hasData %}
         <tr>
-            <td colspan="12" class="text-center text-muted">Aucune dépense trouvée pour {{ year }}.</td>
+            <td colspan="13" class="text-center text-muted">Aucune dépense trouvée pour {{ year }}.</td>
         </tr>
     {% endif %}
 </tbody>
@@ -175,11 +266,12 @@
                                 <td>{{ categoryTotals['PRODUITS_ENTRETIEN']|number_format(2, '.', ',') }}</td>
                                 <td>{{ categoryTotals['GROS_ŒUVRES_ENTRETIEN']|number_format(2, '.', ',') }}</td>
                                 <td>{{ categoryTotals['FRAIS_JURIDIQUE']|number_format(2, '.', ',') }}</td>
+                                <td>{{ categoryTotals['FRAIS_BANQUE']|number_format(2, '.', ',') }}</td>
                                 <td>{{ categoryTotals['DIVERS']|number_format(2, '.', ',') }}</td>
                                 <td></td>
                             </tr>
                             <tr class="table-info fw-bold">
-                                <td colspan="11">Total {{ year }}</td>
+                                <td colspan="12">Total {{ year }}</td>
                                 <td>{{ annualTotal|number_format(2, '.', ',') }}</td>
                             </tr>
                         </tfoot>

@@ -1,10 +1,9 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Personnes (Propriétaires & Locataires){% endblock %}
+{% block title %}Liste des Habitants{% endblock %}
 
 {% block css %}
     {{ parent() }}
-    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
         /* Page Header */
         .page-header {
@@ -137,37 +136,6 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(25, 135, 84, 0.3);
             color: white;
-        }
-        
-        /* Tabs */
-        .person-type-tabs {
-            margin-bottom: 25px;
-            border-bottom: 3px solid #e9ecef;
-        }
-        
-        .person-type-tabs .nav-link {
-            font-weight: 600;
-            font-size: 1.1rem;
-            padding: 14px 28px;
-            color: #6c757d;
-            border: none;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .person-type-tabs .nav-link:hover {
-            color: #7c3aed;
-            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(124, 58, 237, 0.01) 100%);
-        }
-        
-        .person-type-tabs .nav-link.active {
-            color: #7c3aed;
-            border-bottom-color: #7c3aed;
-            background: white;
-            box-shadow: 0 -2px 8px rgba(124, 58, 237, 0.1);
         }
         
         /* Table */
@@ -309,7 +277,7 @@
             <span class="page-header-icon">👥</span>
             Gestion des Personnes
         </h1>
-        <p class="mb-0 mt-2" style="opacity: 0.9;">Gérez vos propriétaires et locataires de manière efficace</p>
+        <p class="mb-0 mt-2" style="opacity: 0.9;">Gérez tous les habitants de manière efficace</p>
     </div>
 
     <div class="mb-3 text-end">
@@ -375,134 +343,64 @@
         </button>
     </div>
 
-    <ul class="nav nav-tabs person-type-tabs" id="personneTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="proprietaires-tab" data-bs-toggle="tab" data-bs-target="#proprietaires" type="button" role="tab" aria-controls="proprietaires" aria-selected="true">
-                <i class="bi bi-house-fill"></i> Propriétaires
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="locataires-tab" data-bs-toggle="tab" data-bs-target="#locataires" type="button" role="tab" aria-controls="locataires" aria-selected="false">
-                <i class="bi bi-key-fill"></i> Locataires
-            </button>
-        </li>
-    </ul>
-
-    <div class="tab-content" id="personneTabContent">
-        <div class="tab-pane fade show active" id="proprietaires" role="tabpanel" aria-labelledby="proprietaires-tab">
-            <div class="table-wrapper">
-                <table class="table table-hover table-striped">
-                    <thead>
-                        <tr>
-                            <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
-                            <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
-                            <th data-sort="email">Email<span class="sort-arrow"></span></th>
-                            <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
-                            <th data-sort="adresse">Adresse<span class="sort-arrow"></span></th>
-                            <th data-sort="date-achat">Date d'achat<span class="sort-arrow"></span></th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                <tbody>
-                {% for personne in proprietaires %}
-                    <tr data-id="{{ personne.id }}" 
-                        data-type="proprietaire"
-                        data-nom="{{ personne.nom }}"
-                        data-prenom="{{ personne.prenom }}"
-                        data-email="{{ personne.email }}"
-                        data-telephone="{{ personne.telephone }}"
-                        data-adresse="{{ personne.adresse }}"
-                        data-date-achat="{{ personne.dateAchat ? personne.dateAchat|date('Y-m-d') : '' }}"
-                        data-date-location="">
-                        <td>{{ personne.nom }}</td>
-                        <td>{{ personne.prenom }}</td>
-                        <td>{{ personne.email }}</td>
-                        <td>{{ personne.telephone }}</td>
-                        <td>{{ personne.adresse }}</td>
-                        <td>{{ personne.dateAchat ? personne.dateAchat|date('d/m/Y') : 'N/A' }}</td>
-                        <td class="table-actions">
-                            <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-info">
-                                <i class="bi bi-eye-fill"></i> Voir
-                            </a>
-                            <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-warning">
-                                <i class="bi bi-pencil-fill"></i> Modifier
-                            </a>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="7" class="text-center">Aucun propriétaire trouvé</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            </div>
-            <div class="pagination-wrapper d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                <small class="pagination-info">
-                    <i class="bi bi-info-circle"></i> 
-                    Page {{ proprietaires.currentPageNumber }} / {{ proprietaires.pageCount }} · 
-                    <strong>{{ proprietaires.getTotalItemCount }}</strong> résultats
-                </small>
-                <div>
-                    {{ knp_pagination_render(proprietaires) }}
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="locataires" role="tabpanel" aria-labelledby="locataires-tab">
-            <div class="table-wrapper">
-                <table class="table table-hover table-striped">
-                    <thead>
-                        <tr>
-                            <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
-                            <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
-                            <th data-sort="email">Email<span class="sort-arrow"></span></th>
-                            <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
-                            <th data-sort="adresse">Adresse<span class="sort-arrow"></span></th>
-                            <th data-sort="date-location">Date de location<span class="sort-arrow"></span></th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                <tbody>
-                {% for personne in locataires %}
-                    <tr data-id="{{ personne.id }}" 
-                        data-type="locataire"
-                        data-nom="{{ personne.nom }}"
-                        data-prenom="{{ personne.prenom }}"
-                        data-email="{{ personne.email }}"
-                        data-telephone="{{ personne.telephone }}"
-                        data-adresse="{{ personne.adresse }}"
-                        data-date-achat=""
-                        data-date-location="{{ personne.DateLocation ? personne.DateLocation|date('Y-m-d') : '' }}">
-                        <td>{{ personne.nom }}</td>
-                        <td>{{ personne.prenom }}</td>
-                        <td>{{ personne.email }}</td>
-                        <td>{{ personne.telephone }}</td>
-                        <td>{{ personne.adresse }}</td>
-                        <td>{{ personne.DateLocation ? personne.DateLocation|date('d/m/Y') : 'N/A' }}</td>
-                        <td class="table-actions">
-                            <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-info">
-                                <i class="bi bi-eye-fill"></i> Voir
-                            </a>
-                            <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-warning">
-                                <i class="bi bi-pencil-fill"></i> Modifier
-                            </a>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr><td colspan="7" class="text-center">Aucun locataire trouvé</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            </div>
-            <div class="pagination-wrapper d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                <small class="pagination-info">
-                    <i class="bi bi-info-circle"></i> 
-                    Page {{ locataires.currentPageNumber }} / {{ locataires.pageCount }} · 
-                    <strong>{{ locataires.getTotalItemCount }}</strong> résultats
-                </small>
-                <div>
-                    {{ knp_pagination_render(locataires) }}
-                </div>
-            </div>
+    <div class="table-wrapper">
+        <table class="table table-hover table-striped" id="personnesTable">
+            <thead>
+                <tr>
+                    <th data-sort="nom">Nom<span class="sort-arrow"></span></th>
+                    <th data-sort="prenom">Prénom<span class="sort-arrow"></span></th>
+                    <th data-sort="email">Email<span class="sort-arrow"></span></th>
+                    <th data-sort="telephone">Téléphone<span class="sort-arrow"></span></th>
+                    <th data-sort="adresse">Adresse<span class="sort-arrow"></span></th>
+                    <th data-sort="status">Status<span class="sort-arrow"></span></th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for personne in personnes %}
+                <tr data-id="{{ personne.id }}" 
+                    data-type="{{ personne.status }}"
+                    data-nom="{{ personne.nom }}"
+                    data-prenom="{{ personne.prenom }}"
+                    data-email="{{ personne.email }}"
+                    data-telephone="{{ personne.telephone }}"
+                    data-adresse="{{ personne.adresse }}"
+                    data-status="{{ personne.status }}">
+                    <td>{{ personne.nom }}</td>
+                    <td>{{ personne.prenom }}</td>
+                    <td>{{ personne.email }}</td>
+                    <td>{{ personne.telephone }}</td>
+                    <td>{{ personne.adresse }}</td>
+                    <td>
+                        {% if personne.status == 'proprietaire' %}
+                            <span class="badge bg-primary">Propriétaire</span>
+                        {% else %}
+                            <span class="badge bg-success">Locataire</span>
+                        {% endif %}
+                    </td>
+                    <td class="table-actions">
+                        <a href="{{ path('app_personne_show', {'id': personne.id}) }}" class="btn btn-info">
+                            <i class="bi bi-eye-fill"></i> Voir
+                        </a>
+                        <a href="{{ path('app_personne_edit', {'id': personne.id}) }}" class="btn btn-warning">
+                            <i class="bi bi-pencil-fill"></i> Modifier
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr><td colspan="7" class="text-center">Aucun habitant trouvé</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="pagination-wrapper d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <small class="pagination-info">
+            <i class="bi bi-info-circle"></i> 
+            Page {{ personnes.currentPageNumber }} / {{ personnes.pageCount }} · 
+            <strong>{{ personnes.getTotalItemCount }}</strong> résultats
+        </small>
+        <div>
+            {{ knp_pagination_render(personnes) }}
         </div>
     </div>
 </div>
@@ -511,8 +409,6 @@
 {% block js %}
     {{ parent() }}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -523,14 +419,12 @@
 
             // Données pour les colonnes
             const columnData = {
-                type: { type: 'text' },
                 nom: { type: 'text' },
                 prenom: { type: 'text' },
                 email: { type: 'text' },
                 telephone: { type: 'text' },
                 adresse: { type: 'text' },
-                'date-achat': { type: 'date' },
-                'date-location': { type: 'date' }
+                status: { type: 'text' }
             };
             
             // Opérateurs par type de colonne
@@ -545,18 +439,6 @@
                 { id: 'not_empty', text: "N'est pas vide" }
             ];
             
-            const dateOperators = [
-                { id: 'equals', text: 'Égal à' },
-                { id: 'not_equals', text: 'Différent de' },
-                { id: 'greater', text: 'Après le' },
-                { id: 'greater_equal', text: 'Après ou égal' },
-                { id: 'less', text: 'Avant le' },
-                { id: 'less_equal', text: 'Avant ou égal' },
-                { id: 'between', text: 'Entre' },
-                { id: 'empty', text: 'Est vide' },
-                { id: 'not_empty', text: "N'est pas vide" }
-            ];
-            
             // Ajouter un nouveau filtre
             function addFilter() {
                 const filterId = Date.now();
@@ -564,19 +446,13 @@
                 <div class="filter-container" data-filter-id="${filterId}">
                     <select class="form-select form-select-sm filter-column" style="width: 150px;">
                         ${Object.keys(columnData).map(col => 
-                            `<option value="${col}">${col.replace('-', ' ').charAt(0).toUpperCase() + col.replace('-', ' ').slice(1)}</option>`
+                            `<option value="${col}">${col.charAt(0).toUpperCase() + col.slice(1)}</option>`
                         ).join('')}
                     </select>
                     <select class="form-select form-select-sm filter-operator" style="width: 180px;">
                         ${textOperators.map(op => `<option value="${op.id}">${op.text}</option>`).join('')}
                     </select>
-                    <input type="text" class="form-control form-control-sm filter-value" placeholder="Valeur" style="display: none;">
-                    <input type="text" class="form-control form-control-sm filter-value-date date-filter" placeholder="Date" style="display: none;">
-                    <div class="date-range-filter" style="display: none; gap: 5px;">
-                        <input type="text" class="form-control form-control-sm filter-value-date-start" placeholder="Date début">
-                        <span>et</span>
-                        <input type="text" class="form-control form-control-sm filter-value-date-end" placeholder="Date fin">
-                    </div>
+                    <input type="text" class="form-control form-control-sm filter-value" placeholder="Valeur">
                     <button class="btn btn-danger btn-sm remove-filter" type="button">
                         <i class="bi bi-trash"></i>
                     </button>
@@ -584,66 +460,15 @@
                 `;
                 $('#filterBuilder').append(filterHtml);
                 
-                // Initialiser le datepicker
-                $(`[data-filter-id="${filterId}"] .date-filter`).flatpickr({
-                    dateFormat: "d/m/Y",
-                    locale: "fr"
-                });
-                
-                $(`[data-filter-id="${filterId}"] .filter-value-date-start, [data-filter-id="${filterId}"] .filter-value-date-end`).flatpickr({
-                    dateFormat: "d/m/Y",
-                    locale: "fr"
-                });
-                
-                // Mettre à jour les opérateurs et les champs de valeur quand la colonne change
-                $(`[data-filter-id="${filterId}"] .filter-column`).change(function() {
-                    updateFilterInputs(filterId);
-                }).trigger('change');
-                
-                // Mettre à jour le champ de valeur quand l'opérateur change
                 $(`[data-filter-id="${filterId}"] .filter-operator`).change(function() {
-                    updateFilterInputs(filterId);
-                });
-            }
-            
-            // Mettre à jour les inputs en fonction de la colonne et de l'opérateur sélectionnés
-            function updateFilterInputs(filterId) {
-                const container = $(`[data-filter-id="${filterId}"]`);
-                const column = container.find('.filter-column').val();
-                const operator = container.find('.filter-operator').val();
-                const columnType = columnData[column].type;
-                
-                // Mettre à jour les opérateurs disponibles
-                let operators;
-                if (columnType === 'date') operators = dateOperators;
-                else operators = textOperators;
-                
-                const operatorSelect = container.find('.filter-operator');
-                const currentOperator = operatorSelect.val();
-                operatorSelect.empty();
-                operators.forEach(op => {
-                    operatorSelect.append(`<option value="${op.id}">${op.text}</option>`);
-                });
-                
-                // Conserver l'opérateur sélectionné si possible
-                if (operators.some(op => op.id === currentOperator)) {
-                    operatorSelect.val(currentOperator);
-                }
-                
-                // Mettre à jour le champ de valeur
-                container.find('.filter-value, .filter-value-date, .date-range-filter').hide();
-                
-                if (operator === 'empty' || operator === 'not_empty') {
-                    // Pas de champ de valeur nécessaire
-                } else if (operator === 'between' && columnType === 'date') {
-                    container.find('.date-range-filter').show();
-                } else {
-                    if (columnType === 'date') {
-                        container.find('.filter-value-date').show();
+                    const operator = $(this).val();
+                    const container = $(this).closest('.filter-container');
+                    if (operator === 'empty' || operator === 'not_empty') {
+                        container.find('.filter-value').hide();
                     } else {
                         container.find('.filter-value').show();
                     }
-                }
+                });
             }
             
             // Ajouter le premier filtre
@@ -656,6 +481,20 @@
             $('#filterBuilder').on('click', '.remove-filter', function() {
                 $(this).closest('.filter-container').remove();
             });
+
+            // Filtrage immédiat au clic sur les radios Type de personne
+            $('input[name="personneType"]').change(function() {
+                const personneType = $(this).val();
+                $('#personnesTable tbody tr').each(function() {
+                    const row = $(this);
+                    if (personneType === 'all') {
+                        row.show();
+                    } else {
+                        row.toggle(row.data('type') === personneType);
+                    }
+                });
+                sortTable(sortColumn, sortDirection);
+            });
             
             // Appliquer les filtres
             $('#applyFiltersBtn').click(function() {
@@ -666,31 +505,19 @@
                 $('.filter-container').each(function() {
                     const column = $(this).find('.filter-column').val();
                     const operator = $(this).find('.filter-operator').val();
-                    let value1, value2;
+                    let value1 = $(this).find('.filter-value').val();
                     
                     if (operator === 'empty' || operator === 'not_empty') {
-                        filters.push({ column, operator, logic });
+                        filters.push({ column, operator });
                         return;
                     }
                     
-                    if (operator === 'between' && columnData[column].type === 'date') {
-                        value1 = $(this).find('.filter-value-date-start').val();
-                        value2 = $(this).find('.filter-value-date-end').val();
-                        if (!value1 || !value2) return;
-                    } else {
-                        if (columnData[column].type === 'date') {
-                            value1 = $(this).find('.filter-value-date').val();
-                        } else {
-                            value1 = $(this).find('.filter-value').val();
-                        }
-                        if (!value1) return;
-                    }
-                    
-                    filters.push({ column, operator, value1, value2, logic });
+                    if (!value1) return;
+                    filters.push({ column, operator, value1 });
                 });
                 
                 applyFilters(filters, logic, personneType);
-                sortTable(sortColumn, sortDirection); // Réappliquer le tri après filtrage
+                sortTable(sortColumn, sortDirection);
             });
             
             // Réinitialiser les filtres
@@ -698,29 +525,27 @@
                 $('#filterBuilder').empty();
                 addFilter();
                 $('input[name="personneType"][value="all"]').prop('checked', true);
-                $('table tbody tr').show();
+                $('#personnesTable tbody tr').show();
                 sortColumn = 'nom';
                 sortDirection = 'asc';
-                sortTable(sortColumn, sortDirection); // Réinitialiser le tri
+                sortTable(sortColumn, sortDirection);
             });
             
             // Fonction pour appliquer les filtres
             function applyFilters(filters, logic, personneType) {
-                $('table tbody tr').each(function() {
+                $('#personnesTable tbody tr').each(function() {
                     const row = $(this);
                     let matchResults = [];
                     
-                    // Filtrer d'abord par type de personne
+                    // Filtrer par type de personne
                     if (personneType !== 'all') {
                         const rowType = row.data('type');
-                        if ((personneType === 'proprietaire' && rowType !== 'proprietaire') || 
-                            (personneType === 'locataire' && rowType !== 'locataire')) {
+                        if (rowType !== personneType) {
                             row.hide();
                             return;
                         }
                     }
                     
-                    // Si aucun filtre, on affiche la ligne
                     if (filters.length === 0) {
                         row.show();
                         return;
@@ -732,104 +557,50 @@
                         let value = row.data(column);
                         let matches = false;
                         
-                        // Gérer les cas vides
                         if (value === '' || value === null || value === undefined) {
                             if (operator === 'empty') matches = true;
                             else if (operator === 'not_empty') matches = false;
                             else matches = false;
-                            
                             matchResults.push(matches);
                             return;
                         }
                         
-                        // Convertir les valeurs selon le type
-                        if (columnData[column].type === 'date') {
-                            const rowDate = new Date(value);
-                            let filterDate1, filterDate2;
-                            
-                            if (operator === 'between') {
-                                filterDate1 = new Date(parseDate(filter.value1));
-                                filterDate2 = new Date(parseDate(filter.value2));
-                                matches = rowDate >= filterDate1 && rowDate <= filterDate2;
-                            } else {
-                                filterDate1 = new Date(parseDate(filter.value1));
-                                
-                                switch(operator) {
-                                    case 'equals': 
-                                        matches = rowDate.getTime() === filterDate1.getTime(); 
-                                        break;
-                                    case 'not_equals': 
-                                        matches = rowDate.getTime() !== filterDate1.getTime(); 
-                                        break;
-                                    case 'greater': 
-                                        matches = rowDate > filterDate1; 
-                                        break;
-                                    case 'greater_equal': 
-                                        matches = rowDate >= filterDate1; 
-                                        break;
-                                    case 'less': 
-                                        matches = rowDate < filterDate1; 
-                                        break;
-                                    case 'less_equal': 
-                                        matches = rowDate <= filterDate1; 
-                                        break;
-                                }
-                            }
-                        } else {
-                            // Texte
-                            value = String(value).toLowerCase();
-                            const filterValue = String(filter.value1).toLowerCase();
-                            
-                            switch(operator) {
-                                case 'equals': matches = value === filterValue; break;
-                                case 'not_equals': matches = value !== filterValue; break;
-                                case 'contains': matches = value.includes(filterValue); break;
-                                case 'not_contains': matches = !value.includes(filterValue); break;
-                                case 'starts_with': matches = value.startsWith(filterValue); break;
-                                case 'ends_with': matches = value.endsWith(filterValue); break;
-                            }
+                        value = String(value).toLowerCase();
+                        const filterValue = String(filter.value1).toLowerCase();
+                        
+                        switch(operator) {
+                            case 'equals': matches = value === filterValue; break;
+                            case 'not_equals': matches = value !== filterValue; break;
+                            case 'contains': matches = value.includes(filterValue); break;
+                            case 'not_contains': matches = !value.includes(filterValue); break;
+                            case 'starts_with': matches = value.startsWith(filterValue); break;
+                            case 'ends_with': matches = value.endsWith(filterValue); break;
+                            case 'not_empty': matches = true; break;
                         }
                         
                         matchResults.push(matches);
                     });
                     
-                    // Appliquer la logique AND ou OR
                     let shouldShow;
                     if (logic === 'AND') {
                         shouldShow = matchResults.length > 0 && matchResults.every(m => m);
-                    } else { // OR
+                    } else {
                         shouldShow = matchResults.some(m => m);
                     }
                     
                     row.toggle(shouldShow);
                 });
             }
-            
-            // Helper pour parser les dates au format d/m/Y
-            function parseDate(dateStr) {
-                const parts = dateStr.split('/');
-                return new Date(parts[2], parts[1] - 1, parts[0]);
-            }
 
             // Fonction pour trier le tableau
             function sortTable(column, direction) {
-                const activeTab = $('.tab-pane.active');
-                const $tbody = activeTab.find('table tbody');
+                const $tbody = $('#personnesTable tbody');
                 const $rows = $tbody.find('tr:visible').get();
 
                 $rows.sort(function(a, b) {
                     const aValue = $(a).data(column);
                     const bValue = $(b).data(column);
-                    let comparison = 0;
-
-                    if (columnData[column].type === 'date') {
-                        const dateA = aValue ? new Date(aValue) : new Date(0);
-                        const dateB = bValue ? new Date(bValue) : new Date(0);
-                        comparison = dateA - dateB;
-                    } else {
-                        comparison = String(aValue).localeCompare(String(bValue));
-                    }
-
+                    let comparison = String(aValue).localeCompare(String(bValue));
                     return direction === 'asc' ? comparison : -comparison;
                 });
 
@@ -837,48 +608,39 @@
                     $tbody.append(row);
                 });
 
-                // Mettre à jour les indicateurs de tri
-                $('.table th').removeClass('sort-active sort-asc sort-desc');
-                activeTab.find(`th[data-sort="${column}"]`).addClass('sort-active sort-' + direction);
+                $('#personnesTable th').removeClass('sort-active sort-asc sort-desc');
+                $(`#personnesTable th[data-sort="${column}"]`).addClass('sort-active sort-' + direction);
             }
 
             // Gestionnaire de clic pour le tri
-            $('.table th[data-sort]').click(function() {
-                const $this = $(this);
-                const column = $this.data('sort');
-
+            $('#personnesTable th[data-sort]').click(function() {
+                const column = $(this).data('sort');
                 if (sortColumn === column) {
                     sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
                 } else {
                     sortColumn = column;
                     sortDirection = 'asc';
                 }
-
                 sortTable(sortColumn, sortDirection);
             });
 
             // Tri initial
             sortTable(sortColumn, sortDirection);
 
-            // Réappliquer le tri lors du changement d'onglet
-            $('#personneTab a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-                sortTable(sortColumn, sortDirection);
-            });
-
             // Fonction pour collecter les données visibles
             function collectVisibleData() {
                 const data = [];
-                const headers = ['Nom', 'Prénom', 'Email', 'Téléphone', 'Adresse', 'Date d\'achat/Location'];
+                const headers = ['Nom', 'Prénom', 'Email', 'Téléphone', 'Adresse', 'Status'];
 
-                $('.tab-pane.active table tbody tr:visible').each(function() {
+                $('#personnesTable tbody tr:visible').each(function() {
                     const row = $(this);
                     const rowData = {
-                        Nom: row.find('td').eq(0).text(),
-                        Prénom: row.find('td').eq(1).text(),
-                        Email: row.find('td').eq(2).text(),
-                        Téléphone: row.find('td').eq(3).text(),
-                        Adresse: row.find('td').eq(4).text(),
-                        "Date d'achat/Location": row.find('td').eq(5).text()
+                        Nom: row.find('td').eq(0).text().trim(),
+                        'Prénom': row.find('td').eq(1).text().trim(),
+                        Email: row.find('td').eq(2).text().trim(),
+                        'Téléphone': row.find('td').eq(3).text().trim(),
+                        Adresse: row.find('td').eq(4).text().trim(),
+                        Status: row.find('td').eq(5).text().trim()
                     };
                     data.push(rowData);
                 });
@@ -889,40 +651,32 @@
             // Exporter en PDF
             $('#exportPdfBtn').click(function() {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+                const doc = new jsPDF({ orientation: 'landscape' });
                 const { headers, data } = collectVisibleData();
 
-                // Ajouter un titre
                 doc.setFontSize(18);
-                doc.text('Liste des Personnes (Propriétaires & Locataires)', 14, 22);
+                doc.text('Liste des Habitants', 14, 22);
 
-                // Générer le tableau
                 doc.autoTable({
                     head: [headers],
                     body: data.map(row => headers.map(header => row[header])),
                     startY: 30,
                     theme: 'striped',
-                    headStyles: { fillColor: [100, 100, 100] },
+                    headStyles: { fillColor: [124, 58, 237] },
                     styles: { fontSize: 10 }
                 });
 
-                // Télécharger le PDF
-                doc.save('personnes.pdf');
+                doc.save('liste_habitants.pdf');
             });
 
             // Exporter en Excel
             $('#exportExcelBtn').click(function() {
                 const { headers, data } = collectVisibleData();
 
-                // Créer une feuille de calcul
                 const ws = XLSX.utils.json_to_sheet(data, { header: headers });
-
-                // Créer un classeur
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'Personnes');
-
-                // Télécharger le fichier Excel
-                XLSX.writeFile(wb, 'personnes.xlsx');
+                XLSX.utils.book_append_sheet(wb, ws, 'Habitants');
+                XLSX.writeFile(wb, 'liste_habitants.xlsx');
             });
         });
     </script>

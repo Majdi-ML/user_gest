@@ -18,37 +18,20 @@ class PersonneController extends AbstractController
     #[Route('/', name: 'app_personne_index', methods: ['GET'])]
     public function index(Request $request, PersonneRepository $personneRepository, PaginatorInterface $paginator): Response
     {
-        $perPage = 10;
+        $perPage = 20;
 
-        $proprietairesQuery = $personneRepository->createQueryBuilder('pp')
-            ->andWhere('pp.status = :statusProprietaire')
-            ->setParameter('statusProprietaire', 'proprietaire')
-            ->orderBy('pp.nom', 'ASC')
+        $allPersonnesQuery = $personneRepository->createQueryBuilder('p')
+            ->orderBy('p.nom', 'ASC')
             ->getQuery();
 
-        $locatairesQuery = $personneRepository->createQueryBuilder('pl')
-            ->andWhere('pl.status = :statusLocataire')
-            ->setParameter('statusLocataire', 'locataire')
-            ->orderBy('pl.nom', 'ASC')
-            ->getQuery();
-
-        $proprietaires = $paginator->paginate(
-            $proprietairesQuery,
-            $request->query->getInt('page_proprietaires', 1),
-            $perPage,
-            ['pageParameterName' => 'page_proprietaires']
-        );
-
-        $locataires = $paginator->paginate(
-            $locatairesQuery,
-            $request->query->getInt('page_locataires', 1),
-            $perPage,
-            ['pageParameterName' => 'page_locataires']
+        $personnes = $paginator->paginate(
+            $allPersonnesQuery,
+            $request->query->getInt('page', 1),
+            $perPage
         );
 
         return $this->render('personne/index.html.twig', [
-            'proprietaires' => $proprietaires,
-            'locataires' => $locataires,
+            'personnes' => $personnes,
         ]);
     }
 

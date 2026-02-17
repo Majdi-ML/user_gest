@@ -51,6 +51,15 @@
         </div>
     </div>
 
+    <div class="mb-3 text-end">
+        <button id="exportPdfBtn" class="btn btn-danger btn-sm me-2">
+            <i class="bi bi-file-pdf"></i> Exporter en PDF
+        </button>
+        <button id="exportExcelBtn" class="btn btn-success btn-sm">
+            <i class="bi bi-file-excel"></i> Exporter en Excel
+        </button>
+    </div>
+
     <div class="card mb-4">
         <div class="card-header">
             <h5 class="mb-0">Filtres Avancés</h5>
@@ -414,6 +423,55 @@
                     row.toggle(shouldShow);
                 });
             }
+            
+            // Export Functions
+            function collectVisibleData() {
+                const headers = ['ID', 'Type', 'Date', 'PV'];
+                const data = [];
+                
+                $('#rassemeblementTable tbody tr:visible').each(function() {
+                    const id = $(this).find('td:eq(0)').text().trim();
+                    const type = $(this).find('td:eq(1)').text().trim();
+                    const date = $(this).find('td:eq(2)').text().trim();
+                    const pv = $(this).find('td:eq(3) .badge').text().trim();
+                    
+                    data.push({
+                        'ID': id,
+                        'Type': type,
+                        'Date': date,
+                        'PV': pv
+                    });
+                });
+                
+                return { headers, data };
+            }
+            
+            $('#exportPdfBtn').click(function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const { headers, data } = collectVisibleData();
+                
+                doc.setFontSize(12);
+                doc.text('Liste des Rassemblements', 14, 15);
+                doc.autoTable({
+                    head: [headers],
+                    body: data.map(row => headers.map(h => row[h] || '')),
+                    startY: 20,
+                    styles: { fontSize: 10, cellPadding: 2 }
+                });
+                doc.save('rassemblements.pdf');
+            });
+            
+            $('#exportExcelBtn').click(function() {
+                const { headers, data } = collectVisibleData();
+                const ws = XLSX.utils.json_to_sheet(data, { header: headers });
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Rassemblements');
+                XLSX.writeFile(wb, 'rassemblements.xlsx');
+            });
         });
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 {% endblock %}

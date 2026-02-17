@@ -19,9 +19,15 @@
         .paid-month { color: #10b981; font-weight: 600; }
         .unpaid-month { color: #ef4444; font-weight: 600; }
         .table-responsive { overflow-x: auto; }
-        .table { font-size: 0.85rem; }
+        .table { font-size: 0.78rem; }
+        .table thead th { padding: 6px 4px !important; font-size: 0.72rem; text-align: center; white-space: nowrap; }
+        .table tbody td { padding: 5px 4px !important; text-align: center; vertical-align: middle; }
+        .table tbody td:first-child, .table tbody td:nth-child(2) { text-align: left; white-space: nowrap; }
         .month-btn { font-size: 0.8rem; padding: 2px 6px; }
         .table-footer { font-weight: bold; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); }
+        .table-footer td { padding: 6px 4px !important; }
+        .table .table-actions .btn { padding: 2px 8px; font-size: 0.75rem; }
+        .table .badge { font-size: 0.7rem; }
         .sortable { cursor: pointer; }
         .sortable::after { content: ''; display: inline-block; width: 0; height: 0; margin-left: 5px; border-left: 5px solid transparent; border-right: 5px solid transparent; }
         .sortable.asc::after { border-bottom: 5px solid #7c3aed; }
@@ -33,6 +39,92 @@
         }
         .nav-tabs .nav-link { color: #7c3aed; border-color: #e5e7eb; }
         .nav-tabs .nav-link:hover { border-color: #7c3aed; background-color: #f3e8ff; }
+        
+        /* Modal styles */
+        .modal-fullscreen-custom {
+            max-width: 95%;
+            width: 95%;
+            height: 90vh;
+        }
+        .modal-table-container {
+            overflow-x: auto;
+        }
+        .modal-table {
+            width: 100%;
+            font-size: 0.9rem;
+        }
+        .modal-table th {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .modal-table td {
+            padding: 12px 8px;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid #e5e7eb;
+        }
+        .month-checkbox {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.8rem;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        .month-checkbox.checked {
+            background-color: #d1fae5;
+            border-color: #10b981;
+        }
+        .month-checkbox.unchecked {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+        }
+        .month-checkbox:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+        }
+        .modal-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
+        .modal-controls .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .montant-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #7c3aed;
+        }
+        .montant-input {
+            width: 150px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #7c3aed;
+            border: 2px solid #7c3aed;
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+        .montant-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+        }
     </style>
 {% endblock %}
 
@@ -105,21 +197,21 @@
                     <table id="fraisSyndicReglementsTable-{{ year }}" class="table table-bordered table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th class="sortable" data-sort="appartement">Appartement</th>
+                                <th class="sortable" data-sort="appartement">Appt</th>
                                 <th class="sortable" data-sort="nom">Propriétaire</th>
-                                <th>Année</th>
-                                <th>Jan</th>
-                                <th>Fév</th>
-                                <th>Mar</th>
-                                <th>Avr</th>
-                                <th>Mai</th>
-                                <th>Juin</th>
-                                <th>Juil</th>
-                                <th>Août</th>
-                                <th>Sep</th>
-                                <th>Oct</th>
-                                <th>Nov</th>
-                                <th>Déc</th>
+                                <th>An.</th>
+                                <th>J</th>
+                                <th>F</th>
+                                <th>M</th>
+                                <th>A</th>
+                                <th>M</th>
+                                <th>Jn</th>
+                                <th>Jl</th>
+                                <th>Ao</th>
+                                <th>S</th>
+                                <th>O</th>
+                                <th>N</th>
+                                <th>D</th>
                                 <th>Total</th>
                                 <th>Actions</th>
                             </tr>
@@ -142,20 +234,24 @@
                                         </td>
                                     {% endfor %}
                                     <td class="text-center">
-    {{ data.details[0].montant|default(0) }} TND
+    {{ data.details.montant|default(0) }} TND
 </td>
                                     <td class="table-actions">
-                                        {% if data.details[0] is defined and data.details[0].id is defined %}
-                                            <a href="{{ path('app_frais_syndic_reglement_show', {'id': data.details[0].id}) }}" class="btn btn-info">
-                                                <i class="bi bi-eye-fill"></i> Voir
-                                            </a>
-                                            <a href="{{ path('app_frais_syndic_reglement_edit', {'id': data.details[0].id}) }}" class="btn btn-warning">
+                                        {% if data.details.id is defined %}
+                                            <button class="btn btn-warning btn-open-modal" 
+                                                data-id="{{ data.details.id }}"
+                                                data-appartement-id="{{ data.appartementId }}"
+                                                data-annee="{{ year }}"
+                                                data-mode="edit">
                                                 <i class="bi bi-pencil-fill"></i> Modifier
-                                            </a>
+                                            </button>
                                         {% else %}
-                                            <a href="{{ path('app_frais_syndic_reglement_new', {'appartementId': data.appartementId, 'annee': year}) }}" class="btn btn-success">
+                                            <button class="btn btn-success btn-open-modal" 
+                                                data-appartement-id="{{ data.appartementId }}"
+                                                data-annee="{{ year }}"
+                                                data-mode="create">
                                                 <i class="bi bi-plus-circle"></i> Créer
-                                            </a>
+                                            </button>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -171,7 +267,7 @@
 <td class="text-center">
     {% set yearTotal = 0 %}
     {% for appartement, data in yearData %}
-        {% set yearTotal = yearTotal + (data.details[0].montant|default(0)) %}
+        {% set yearTotal = yearTotal + (data.details.montant|default(0)) %}
     {% endfor %}
     {{ yearTotal }} TND
 </td>
@@ -182,6 +278,113 @@
                 </div>
             </div>
         {% endfor %}
+    </div>
+    
+    <!-- Modal de modification/création -->
+    <div class="modal fade" id="reglementModal" tabindex="-1" aria-labelledby="reglementModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen-custom modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: white;">
+                    <h5 class="modal-title" id="reglementModalLabel">
+                        <i class="bi bi-pencil-square"></i> <span id="modalTitle">Modifier Règlement</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-controls">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-success" id="selectAllMonthsBtn">
+                                <i class="bi bi-check-all"></i> Tout sélectionner
+                            </button>
+                            <button type="button" class="btn btn-danger" id="deselectAllMonthsBtn">
+                                <i class="bi bi-x-lg"></i> Tout désélectionner
+                            </button>
+                        </div>
+                        
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <div>
+                                <label for="modal-frais-syndic" class="mb-1" style="font-weight: 600; color: #374151;">Montant Mensuel:</label>
+                                <select id="modal-frais-syndic" class="form-select" style="width: 200px; border: 2px solid #7c3aed;">
+                                    <option value="">Sélectionner...</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="modal-nature-paiement-top" class="mb-1" style="font-weight: 600; color: #374151;">Nature de Paiement:</label>
+                                <select id="modal-nature-paiement-top" class="form-select" style="width: 180px; border: 2px solid #7c3aed;">
+                                    <option value="espece">Espèce</option>
+                                    <option value="bancaire">Bancaire</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="montant-display ms-auto">
+                            <label for="modal-montant-total" class="mb-0" style="font-size: 1.2rem;"><strong>Montant Total:</strong></label>
+                            <input type="number" id="modal-montant-total" class="montant-input" step="0.01" min="0" value="0" readonly style="background-color: #f3e8ff; font-weight: bold; font-size: 1.2rem;">
+                            <span style="font-size: 1.2rem; font-weight: bold;">TND</span>
+                        </div>
+                    </div>
+                    <div class="modal-table-container">
+                        <table class="modal-table table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Appartement</th>
+                                    <th>Propriétaire</th>
+                                    <th>Année</th>
+                                    <th>Jan</th>
+                                    <th>Fév</th>
+                                    <th>Mar</th>
+                                    <th>Avr</th>
+                                    <th>Mai</th>
+                                    <th>Juin</th>
+                                    <th>Juil</th>
+                                    <th>Août</th>
+                                    <th>Sep</th>
+                                    <th>Oct</th>
+                                    <th>Nov</th>
+                                    <th>Déc</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td id="modal-appartement">-</td>
+                                    <td id="modal-proprietaire">-</td>
+                                    <td id="modal-annee">-</td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="1">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="2">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="3">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="4">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="5">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="6">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="7">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="8">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="9">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="10">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="11">❌</div></td>
+                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="12">❌</div></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle"></i> <strong>Instructions:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Sélectionnez le <strong>Montant Mensuel</strong> et la <strong>Nature de Paiement</strong> en haut</li>
+                            <li>Cliquez sur les icônes pour cocher/décocher les mois payés</li>
+                            <li>Le montant total est calculé automatiquement: <strong>Nombre de mois cochés × Montant mensuel</strong></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveReglementBtn">
+                        <i class="bi bi-check-circle"></i> Appliquer
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -478,6 +681,264 @@
                 });
             }
 
+            // Modal Management
+            let currentReglementId = null;
+            let currentAppartementId = null;
+            let currentAnnee = null;
+            let currentMode = 'create';
+            let defaultMontantMensuel = 0; // Montant par défaut par mois
+            let fraisSyndicList = []; // Liste de tous les frais syndic
+            
+            // Load all FraisSyndic on page load
+            $.ajax({
+                url: '{{ path("app_frais_syndic_reglement_get_all_frais") }}',
+                method: 'GET',
+                success: function(response) {
+                    if (response.success && response.frais) {
+                        fraisSyndicList = response.frais;
+                        // Populate select
+                        const select = $('#modal-frais-syndic');
+                        select.empty();
+                        select.append('<option value="">Sélectionner un montant...</option>');
+                        response.frais.forEach(function(frais) {
+                            select.append(`<option value="${frais.id}">${frais.montant} TND</option>`);
+                        });
+                        
+                        // Set first as default if exists
+                        if (response.frais.length > 0) {
+                            defaultMontantMensuel = parseFloat(response.frais[0].montant);
+                        }
+                    }
+                },
+                error: function() {
+                    console.error('Erreur lors du chargement des frais syndic');
+                }
+            });
+            
+            // When FraisSyndic selection changes
+            $('#modal-frais-syndic').change(function() {
+                const selectedId = $(this).val();
+                if (selectedId) {
+                    const selectedFrais = fraisSyndicList.find(f => f.id == selectedId);
+                    if (selectedFrais) {
+                        defaultMontantMensuel = parseFloat(selectedFrais.montant);
+                        updateTotalMontant();
+                    }
+                }
+            });
+            
+            // Calculate and update total amount: number of checked months × monthly amount
+            function updateTotalMontant() {
+                const checkedCount = $('.month-checkbox.checked').length;
+                const total = checkedCount * defaultMontantMensuel;
+                $('#modal-montant-total').val(total.toFixed(2));
+            }
+            
+            // Toggle month checkbox
+            $(document).on('click', '.month-checkbox', function() {
+                const isChecked = $(this).hasClass('checked');
+                
+                if (isChecked) {
+                    $(this).removeClass('checked').addClass('unchecked');
+                    $(this).html('❌');
+                } else {
+                    $(this).removeClass('unchecked').addClass('checked');
+                    $(this).html('✅');
+                }
+                
+                updateTotalMontant();
+            });
+            
+            // Select all months
+            $('#selectAllMonthsBtn').click(function() {
+                $('.month-checkbox').each(function() {
+                    $(this).removeClass('unchecked').addClass('checked');
+                    $(this).html('✅');
+                });
+                updateTotalMontant();
+            });
+            
+            // Deselect all months
+            $('#deselectAllMonthsBtn').click(function() {
+                $('.month-checkbox').each(function() {
+                    $(this).removeClass('checked').addClass('unchecked');
+                    $(this).html('❌');
+                });
+                updateTotalMontant();
+            });
+            
+            // Open modal
+            $(document).on('click', '.btn-open-modal', function() {
+                const mode = $(this).data('mode');
+                const appartementId = $(this).data('appartement-id');
+                const annee = $(this).data('annee');
+                const reglementId = $(this).data('id');
+                
+                console.log('Opening modal:', { mode, appartementId, annee, reglementId });
+                
+                currentMode = mode;
+                currentAppartementId = appartementId;
+                currentAnnee = annee;
+                currentReglementId = reglementId;
+                
+                // Update modal title
+                if (mode === 'create') {
+                    $('#modalTitle').html('<i class="bi bi-plus-circle"></i> Créer un Règlement');
+                } else {
+                    $('#modalTitle').html('<i class="bi bi-pencil-square"></i> Modifier le Règlement');
+                }
+                
+                // Find row data
+                const row = $(this).closest('tr');
+                const appartement = row.find('td:eq(0)').text();
+                const proprietaire = row.find('td:eq(1)').text();
+                
+                // Fill modal fields
+                $('#modal-appartement').text(appartement);
+                $('#modal-proprietaire').text(proprietaire);
+                $('#modal-annee').text(annee);
+                
+                // Reset all month checkboxes
+                $('.month-checkbox').each(function() {
+                    $(this).removeClass('checked').addClass('unchecked');
+                    $(this).html('❌');
+                });
+                
+                // Reset selects and montant total
+                $('#modal-frais-syndic').val('');
+                $('#modal-nature-paiement-top').val('espece');
+                $('#modal-montant-total').val('0');
+                
+                // If editing, load existing data via AJAX
+                if (mode === 'edit' && reglementId) {
+                    $.ajax({
+                        url: '{{ path("app_frais_syndic_reglement_get_ajax", {id: "__ID__"}) }}'.replace('__ID__', reglementId),
+                        method: 'GET',
+                        success: function(response) {
+                            if (response.success) {
+                                console.log('Reglement data loaded:', response);
+                                
+                                // Set nature paiement
+                                if (response.naturePaiement) {
+                                    $('#modal-nature-paiement-top').val(response.naturePaiement);
+                                }
+                                
+                                // Set FraisSyndic
+                                if (response.fraisId) {
+                                    $('#modal-frais-syndic').val(response.fraisId);
+                                    const selectedFrais = fraisSyndicList.find(f => f.id == response.fraisId);
+                                    if (selectedFrais) {
+                                        defaultMontantMensuel = parseFloat(selectedFrais.montant);
+                                    }
+                                }
+                                
+                                // Load paid months
+                                if (response.paidMonths && response.paidMonths.length > 0) {
+                                    response.paidMonths.forEach(function(monthNum) {
+                                        const checkbox = $(`.month-checkbox[data-month="${monthNum}"]`);
+                                        checkbox.removeClass('unchecked').addClass('checked');
+                                        checkbox.html('✅');
+                                    });
+                                }
+                                
+                                // Update total montant
+                                updateTotalMontant();
+                            } else {
+                                alert('Erreur lors du chargement des données: ' + response.message);
+                            }
+                        },
+                        error: function() {
+                            alert('Erreur lors du chargement des données du règlement');
+                        }
+                    });
+                } else {
+                    // For create mode, select first FraisSyndic if available
+                    if (fraisSyndicList.length > 0) {
+                        $('#modal-frais-syndic').val(fraisSyndicList[0].id);
+                        defaultMontantMensuel = parseFloat(fraisSyndicList[0].montant);
+                    }
+                    
+                    // Update total montant
+                    updateTotalMontant();
+                }
+                
+                // Show modal
+                $('#reglementModal').modal('show');
+            });
+            
+            // Save reglement
+            $('#saveReglementBtn').click(function() {
+                const selectedMonths = [];
+                $('.month-checkbox.checked').each(function() {
+                    selectedMonths.push(parseInt($(this).data('month')));
+                });
+                
+                if (selectedMonths.length === 0) {
+                    alert('Veuillez sélectionner au moins un mois.');
+                    return;
+                }
+                
+                const fraisId = $('#modal-frais-syndic').val();
+                if (!fraisId) {
+                    alert('Veuillez sélectionner un montant mensuel.');
+                    return;
+                }
+                
+                const naturePaiement = $('#modal-nature-paiement-top').val();
+                const montantTotal = parseFloat($('#modal-montant-total').val());
+                
+                if (!montantTotal || montantTotal <= 0) {
+                    alert('Veuillez spécifier un montant valide. Le montant total doit être supérieur à 0.');
+                    return;
+                }
+                
+                const data = {
+                    appartementId: currentAppartementId,
+                    annee: currentAnnee,
+                    months: selectedMonths,
+                    naturePaiement: naturePaiement,
+                    montant: montantTotal,
+                    fraisId: fraisId,
+                    mode: currentMode
+                };
+                
+                if (currentMode === 'edit' && currentReglementId) {
+                    data.id = currentReglementId;
+                }
+                
+                console.log('Saving data:', data);
+                
+                // Show loading
+                $(this).prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Enregistrement...');
+                
+                // AJAX save
+                $.ajax({
+                    url: '{{ path("app_frais_syndic_reglement_save_ajax") }}',
+                    method: 'POST',
+                    data: JSON.stringify(data),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        if (response.success) {
+                            $('#reglementModal').modal('hide');
+                            location.reload(); // Reload to see changes
+                        } else {
+                            alert('Erreur: ' + (response.message || 'Erreur inconnue'));
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMsg = 'Erreur lors de l\'enregistrement';
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            errorMsg = response.message || errorMsg;
+                        } catch (e) {}
+                        alert(errorMsg);
+                    },
+                    complete: function() {
+                        $('#saveReglementBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Appliquer');
+                    }
+                });
+            });
+
             function collectVisibleData() {
                 const activeYear = $('#yearTabs .nav-link.active').text();
                 const table = $(`#fraisSyndicReglementsTable-${activeYear}`);
@@ -512,8 +973,8 @@
                             let details;
                             try {
                                 details = JSON.parse($(this).data('details'));
-                                if (details.length > 0) {
-                                    yearTotal += parseFloat(details[0].montant || 0);
+                                if (details && details.montant) {
+                                    yearTotal += parseFloat(details.montant || 0);
                                 }
                             } catch (e) {
                                 console.error('Invalid JSON in collectVisibleData:', $(this).data('details'));

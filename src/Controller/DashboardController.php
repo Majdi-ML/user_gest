@@ -207,11 +207,16 @@ class DashboardController extends AbstractController
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            // Vérifier si une autre caisse existe pour cette année
-            $existingCaisse = $entityManager->getRepository(Caisse::class)->findOneBy([
-                'annee' => $caisse->getAnnee(),
-                'id' => ['!=', $caisse->getId()]
-            ]);
+            // Vérifier si une autre caisse existe pour cette année (excluding current caisse)
+            $existingCaisses = $entityManager->getRepository(Caisse::class)->findBy(['annee' => $caisse->getAnnee()]);
+            $existingCaisse = null;
+            foreach ($existingCaisses as $c) {
+                if ($c->getId() !== $caisse->getId()) {
+                    $existingCaisse = $c;
+                    break;
+                }
+            }
+            
             if ($existingCaisse) {
                 $this->addFlash('error', sprintf('Une caisse existe déjà pour l\'année %s.', $caisse->getAnnee()));
             } else {

@@ -17,7 +17,15 @@
         <p class="mb-0 mt-2" style="opacity: 0.9;">Gestion des recettes et revenus</p>
     </div>
 
-    <div class="action-bar">
+    <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="d-flex gap-2">
+            <button id="exportPdfBtn" class="btn btn-danger btn-sm">
+                <i class="bi bi-file-earmark-pdf-fill"></i> Exporter PDF
+            </button>
+            <button id="exportExcelBtn" class="btn btn-success btn-sm">
+                <i class="bi bi-file-earmark-excel-fill"></i> Exporter Excel
+            </button>
+        </div>
         <a href="{{ path('app_recette_new') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle-fill"></i> Nouvelle Recette
         </a>
@@ -155,4 +163,122 @@
         {% endfor %}
     </div>
 </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function getActiveYear() {
+                return $('#yearTabs .nav-link.active').text().trim();
+            }
+
+            function collectSummaryData() {
+                const year = getActiveYear();
+                const table = $(`#year-${year} table.table-modern`).first();
+                const headers = ['Mois', 'Cotisation Espèce', 'Cotisation Bancaire', 'Autre Espèce', 'Autre Bancaire', 'Total'];
+                const data = [];
+
+                table.find('tbody tr').each(function() {
+                    const cells = $(this).find('td');
+                    if (cells.length >= 6) {
+                        data.push({
+                            'Mois': cells.eq(0).text().trim(),
+                            'Cotisation Espèce': cells.eq(1).text().trim(),
+                            'Cotisation Bancaire': cells.eq(2).text().trim(),
+                            'Autre Espèce': cells.eq(3).text().trim(),
+                            'Autre Bancaire': cells.eq(4).text().trim(),
+                            'Total': cells.eq(5).text().trim()
+                        });
+                    }
+                });
+
+                return { year, headers, data };
+            }
+
+            function collectDetailData() {
+                const year = getActiveYear();
+                const tables = $(`#year-${year} table.table-modern`);
+                const detailTable = tables.length > 1 ? tables.eq(1) : null;
+                const headers = ['ID', 'Montant', 'Date', 'Type', 'Nature', 'Description'];
+                const data = [];
+
+                if (detailTable) {
+                    detailTable.find('tbody tr').each(function() {
+                        const cells = $(this).find('td');
+                        if (cells.length >= 6) {
+                            data.push({
+                                'ID': cells.eq(0).text().trim(),
+                                'Montant': cells.eq(1).text().trim(),
+                                'Date': cells.eq(2).text().trim(),
+                                'Type': cells.eq(3).text().trim(),
+                                'Nature': cells.eq(4).text().trim(),
+                                'Description': cells.eq(5).text().trim()
+                            });
+                        }
+                    });
+                }
+
+                return { year, headers, data };
+            }
+
+            $('#exportPdfBtn').click(function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape' });
+                
+                const summary = collectSummaryData();
+                const detail = collectDetailData();
+
+                doc.setFontSize(16);
+                doc.text(`Recettes - Année ${summary.year}`, 14, 15);
+
+                doc.setFontSize(12);
+                doc.text('Récapitulatif mensuel', 14, 25);
+                doc.autoTable({
+                    head: [summary.headers],
+                    body: summary.data.map(row => summary.headers.map(h => row[h])),
+                    startY: 30,
+                    theme: 'striped',
+                    headStyles: { fillColor: [102, 126, 234] },
+                    styles: { fontSize: 9 }
+                });
+
+                if (detail.data.length > 0) {
+                    const finalY = doc.lastAutoTable.finalY + 10;
+                    doc.setFontSize(12);
+                    doc.text(`Détails des recettes ${detail.year}`, 14, finalY);
+                    doc.autoTable({
+                        head: [detail.headers],
+                        body: detail.data.map(row => detail.headers.map(h => row[h])),
+                        startY: finalY + 5,
+                        theme: 'striped',
+                        headStyles: { fillColor: [40, 167, 69] },
+                        styles: { fontSize: 9 }
+                    });
+                }
+
+                doc.save(`recettes_${summary.year}.pdf`);
+            });
+
+            $('#exportExcelBtn').click(function() {
+                const summary = collectSummaryData();
+                const detail = collectDetailData();
+
+                const wb = XLSX.utils.book_new();
+
+                const wsSummary = XLSX.utils.json_to_sheet(summary.data, { header: summary.headers });
+                XLSX.utils.book_append_sheet(wb, wsSummary, `Recap ${summary.year}`);
+
+                if (detail.data.length > 0) {
+                    const wsDetail = XLSX.utils.json_to_sheet(detail.data, { header: detail.headers });
+                    XLSX.utils.book_append_sheet(wb, wsDetail, `Details ${detail.year}`);
+                }
+
+                XLSX.writeFile(wb, `recettes_${summary.year}.xlsx`);
+            });
+        });
+    </script>
 {% endblock %}

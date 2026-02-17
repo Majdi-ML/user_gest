@@ -47,6 +47,15 @@
         </div>
     </div>
 
+    <div class="d-flex gap-2 mb-3">
+        <button id="exportPdfBtn" class="btn btn-danger btn-sm">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Exporter PDF
+        </button>
+        <button id="exportExcelBtn" class="btn btn-success btn-sm">
+            <i class="bi bi-file-earmark-excel-fill"></i> Exporter Excel
+        </button>
+    </div>
+
     <div class="detail-card">
         <div class="card-header">
             <i class="bi bi-house-door-fill"></i> Appartements (Triés par étage)
@@ -117,4 +126,67 @@
         {{ include('bloc/_delete_form.html.twig') }}
     </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const blocNom = '{{ bloc.nom }}';
+
+        function collectData() {
+            const headers = ['Étage', 'Numéro', 'Type', 'Occupé', 'Locataire', 'Propriétaire'];
+            const data = [];
+            const rows = document.querySelectorAll('.table-wrapper table tbody tr');
+
+            rows.forEach(function(row) {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 6) {
+                    data.push({
+                        'Étage': cells[0].textContent.trim(),
+                        'Numéro': cells[1].textContent.trim(),
+                        'Type': cells[2].textContent.trim(),
+                        'Occupé': cells[3].textContent.trim(),
+                        'Locataire': cells[4].textContent.trim(),
+                        'Propriétaire': cells[5].textContent.trim()
+                    });
+                }
+            });
+
+            return { headers, data };
+        }
+
+        document.getElementById('exportPdfBtn').addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape' });
+            const { headers, data } = collectData();
+
+            doc.setFontSize(16);
+            doc.text('Details du Bloc - ' + blocNom, 14, 15);
+
+            doc.setFontSize(10);
+            doc.text('Etages: {{ bloc.nombreEtages }} | Apparts/etage: {{ bloc.nombreAppartementEtage }} | Total: {{ bloc.nombreTotaleAppartement }}', 14, 23);
+
+            doc.autoTable({
+                head: [headers],
+                body: data.map(function(row) { return headers.map(function(h) { return row[h]; }); }),
+                startY: 28,
+                theme: 'striped',
+                headStyles: { fillColor: [102, 126, 234] },
+                styles: { fontSize: 9 }
+            });
+
+            doc.save('bloc_' + blocNom + '.pdf');
+        });
+
+        document.getElementById('exportExcelBtn').addEventListener('click', function() {
+            const { headers, data } = collectData();
+
+            const ws = XLSX.utils.json_to_sheet(data, { header: headers });
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Bloc ' + blocNom);
+            XLSX.writeFile(wb, 'bloc_' + blocNom + '.xlsx');
+        });
+    });
+</script>
 {% endblock %}
