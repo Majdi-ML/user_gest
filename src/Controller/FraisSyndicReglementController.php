@@ -246,25 +246,7 @@ public function new(
                 'appartement' => $appartement,
             ]);
 
-            // Si un règlement existe, vérifier les mois déjà payés
-            if ($existingReglement) {
-                foreach ($selectedMonths as $month) {
-                    $getter = 'is' . $month;
-                    if ($existingReglement->$getter()) {
-                        $this->addFlash('error', sprintf(
-                            'Le propriétaire %s a déjà payé les frais de syndic pour le mois %s %s pour cet appartement.',
-                            $proprietaire->getNom() . ' ' . $proprietaire->getPrenom(),
-                            $month,
-                            $fraisSyndicReglement->getAnnee()
-                        ));
-                        return $this->renderForm('frais_syndic_reglement/new.html.twig', [
-                            'frais_syndic_reglement' => $fraisSyndicReglement,
-                            'form' => $form,
-                        ]);
-                    }
-                }
-            }
-
+            // Si un règlement existe, on le met à jour (pas d'erreur de doublon)
             // Utiliser le règlement existant ou en créer un nouveau
             $reglement = $existingReglement ?: new FraisSyndicReglement();
             $reglement->setFrais($fraisSyndicReglement->getFrais());
@@ -274,17 +256,15 @@ public function new(
             $reglement->setNaturePaiement($fraisSyndicReglement->getNaturePaiement());
             $reglement->setUser($user);
 
-            // Si c'est un nouveau règlement, initialiser tous les mois à false
-            if (!$existingReglement) {
-                foreach ($monthFields as $month) {
-                    $setter = 'set' . $month;
-                    $reglement->$setter(false);
-                }
+            // Réinitialiser TOUS les mois à false (permet la suppression de mois)
+            foreach ($monthFields as $month) {
+                $setter = 'set' . $month;
+                $reglement->$setter(false);
             }
 
-            // Mettre à jour les mois sélectionnés et calculer le total
+            // Mettre à jour uniquement les mois sélectionnés et calculer le total
             $montantMensuel = $fraisSyndicReglement->getFrais()->getMontant();
-            $total = $existingReglement ? $reglement->getTotale() : 0;
+            $total = 0;
             foreach ($selectedMonths as $month) {
                 $setter = 'set' . $month;
                 $reglement->$setter(true);
@@ -473,6 +453,20 @@ public function new(
             
             error_log("SAVE AJAX - Mode: $mode, ReglementID: " . ($reglementId ?? 'NULL'));
             error_log("SAVE AJAX - Data: " . json_encode($data));
+            
+            // Si aucun mois sélectionné en mode edit, supprimer le règlement
+            if ($mode === 'edit' && $reglementId && empty($months)) {
+                $reglement = $fraisSyndicReglementRepository->find($reglementId);
+                if ($reglement) {
+                    $entityManager->remove($reglement);
+                    $entityManager->flush();
+                    return new JsonResponse([
+                        'success' => true,
+                        'message' => 'Règlement supprimé avec succès'
+                    ]);
+                }
+                return new JsonResponse(['success' => false, 'message' => 'Règlement non trouvé'], 404);
+            }
             
             if (!$appartementId || !$annee || empty($months)) {
                 return new JsonResponse(['success' => false, 'message' => 'Données manquantes'], 400);

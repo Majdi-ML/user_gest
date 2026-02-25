@@ -137,6 +137,14 @@ class DashboardController extends AbstractController
                 $stmt = $connection->executeQuery($sql, ['year' => $year, 'month' => $monthNum]);
                 $depenseBanque = (float) $stmt->fetchOne();
 
+                // Fetch Frais Bancaires (type = FRAIS_BANQUE)
+                $sql = "SELECT COALESCE(SUM(montant), 0) as total FROM depense 
+                        WHERE strftime('%Y', date_depense) = :year 
+                        AND strftime('%m', date_depense) = :month 
+                        AND type = 'FRAIS_BANQUE'";
+                $stmt = $connection->executeQuery($sql, ['year' => $year, 'month' => $monthNum]);
+                $fraisBancaires = (float) $stmt->fetchOne();
+
                 // Calculate totals
                 $totalRecette = $recetteEspece + $recetteBanque;
                 $totalDepense = $depenseEspece + $depenseBanque;
@@ -149,6 +157,7 @@ class DashboardController extends AbstractController
                     'recette_banque' => $recetteBanque,
                     'depense_espece' => $depenseEspece,
                     'depense_banque' => $depenseBanque,
+                    'frais_bancaires' => $fraisBancaires,
                     'total_recette' => $totalRecette,
                     'total_depense' => $totalDepense,
                     'caisse' => $caisseValue

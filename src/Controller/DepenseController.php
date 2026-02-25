@@ -42,13 +42,17 @@ class DepenseController extends AbstractController
                         'PRODUITS_ENTRETIEN' => 0,
                         'GROS_ŒUVRES_ENTRETIEN' => 0,
                         'FRAIS_JURIDIQUE' => 0,
+                        'FRAIS_BANQUE' => 0,
                         'DIVERS' => 0,
                     ];
                 }
 
                 // Map the expense type to the corresponding category and add the amount
-                $type = $depense->getType(); // Adjust this method based on your Depense entity
-                $montant = $depense->getMontant(); // Adjust this method based on your Depense entity
+                $type = $depense->getType();
+                $montant = $depense->getMontant();
+                if (!isset($depensesByYear[$year][$month][$type])) {
+                    $depensesByYear[$year][$month][$type] = 0;
+                }
                 $depensesByYear[$year][$month][$type] += $montant;
             }
         }

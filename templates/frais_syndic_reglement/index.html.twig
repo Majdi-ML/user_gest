@@ -386,6 +386,40 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de confirmation de suppression -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border: 3px solid #ef4444;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Confirmer la suppression
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="bi bi-trash-fill" style="font-size: 4rem; color: #ef4444;"></i>
+                    </div>
+                    <h5 class="mb-3" style="color: #1f2937;">Aucun mois sélectionné</h5>
+                    <p style="font-size: 1.1rem; color: #6b7280;">
+                        Voulez-vous supprimer complètement ce règlement ?
+                    </p>
+                    <div class="alert alert-warning mt-3 mb-0" style="background-color: #fef3c7; border-color: #fbbf24; color: #92400e;">
+                        <i class="bi bi-info-circle-fill"></i> Cette action est irréversible
+                    </div>
+                </div>
+                <div class="modal-footer" style="background-color: #f9fafb;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="bi bi-trash-fill"></i> Oui, supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -873,13 +907,32 @@
                     selectedMonths.push(parseInt($(this).data('month')));
                 });
                 
-                if (selectedMonths.length === 0) {
-                    alert('Veuillez sélectionner au moins un mois.');
+                // Permettre 0 mois (suppression du règlement)
+                if (selectedMonths.length === 0 && currentMode === 'edit') {
+                    // Afficher le modal de confirmation au lieu du confirm natif
+                    $('#confirmDeleteModal').modal('show');
                     return;
                 }
                 
+                // Sinon, continuer avec la sauvegarde normale
+                processSave();
+            });
+
+            // Bouton de confirmation de suppression dans le modal
+            $('#confirmDeleteBtn').click(function() {
+                $('#confirmDeleteModal').modal('hide');
+                processSave();
+            });
+
+            // Fonction commune pour traiter la sauvegarde
+            function processSave() {
+                const selectedMonths = [];
+                $('.month-checkbox.checked').each(function() {
+                    selectedMonths.push(parseInt($(this).data('month')));
+                });
+                
                 const fraisId = $('#modal-frais-syndic').val();
-                if (!fraisId) {
+                if (!fraisId && selectedMonths.length > 0) {
                     alert('Veuillez sélectionner un montant mensuel.');
                     return;
                 }
@@ -887,7 +940,8 @@
                 const naturePaiement = $('#modal-nature-paiement-top').val();
                 const montantTotal = parseFloat($('#modal-montant-total').val());
                 
-                if (!montantTotal || montantTotal <= 0) {
+                // Validation du montant seulement si des mois sont sélectionnés
+                if (selectedMonths.length > 0 && (!montantTotal || montantTotal <= 0)) {
                     alert('Veuillez spécifier un montant valide. Le montant total doit être supérieur à 0.');
                     return;
                 }
@@ -909,7 +963,7 @@
                 console.log('Saving data:', data);
                 
                 // Show loading
-                $(this).prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Enregistrement...');
+                $('#saveReglementBtn').prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Enregistrement...');
                 
                 // AJAX save
                 $.ajax({
@@ -937,7 +991,7 @@
                         $('#saveReglementBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Appliquer');
                     }
                 });
-            });
+            }
 
             function collectVisibleData() {
                 const activeYear = $('#yearTabs .nav-link.active').text();
