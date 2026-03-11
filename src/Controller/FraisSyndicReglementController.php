@@ -256,19 +256,34 @@ public function new(
             $reglement->setNaturePaiement($fraisSyndicReglement->getNaturePaiement());
             $reglement->setUser($user);
 
-            // Réinitialiser TOUS les mois à false (permet la suppression de mois)
-            foreach ($monthFields as $month) {
-                $setter = 'set' . $month;
-                $reglement->$setter(false);
-            }
-
-            // Mettre à jour uniquement les mois sélectionnés et calculer le total
+            // Si c'est un règlement existant, préserver les mois déjà payés
             $montantMensuel = $fraisSyndicReglement->getFrais()->getMontant();
-            $total = 0;
-            foreach ($selectedMonths as $month) {
-                $setter = 'set' . $month;
-                $reglement->$setter(true);
-                $total += $montantMensuel;
+            if ($existingReglement) {
+                // Ajouter les nouveaux mois sélectionnés sans toucher aux mois déjà payés
+                foreach ($selectedMonths as $month) {
+                    $setter = 'set' . $month;
+                    $reglement->$setter(true);
+                }
+                // Recalculer le total en comptant tous les mois à true
+                $total = 0;
+                foreach ($monthFields as $month) {
+                    $getter = 'is' . $month;
+                    if ($reglement->$getter()) {
+                        $total += $montantMensuel;
+                    }
+                }
+            } else {
+                // Nouveau règlement : initialiser tous les mois à false puis activer les sélectionnés
+                foreach ($monthFields as $month) {
+                    $setter = 'set' . $month;
+                    $reglement->$setter(false);
+                }
+                $total = 0;
+                foreach ($selectedMonths as $month) {
+                    $setter = 'set' . $month;
+                    $reglement->$setter(true);
+                    $total += $montantMensuel;
+                }
             }
             $reglement->setTotale($total);
 
@@ -531,39 +546,32 @@ public function new(
                         $reglement->$setter(false);
                     }
                 } else {
-                    // Reset existing months
-                    $monthFields = [
-                        'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
-                        'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
-                    ];
-                    foreach ($monthFields as $month) {
-                        $setter = 'set' . $month;
-                        $reglement->$setter(false);
-                    }
+                    // Règlement existant en mode create : ne PAS réinitialiser les mois
+                    // Les mois déjà payés seront préservés
                 }
             }
-            
+
             // Set nature paiement
             $reglement->setNaturePaiement($naturePaiement);
-            
+
             // Set user
             $user = $security->getUser();
             $reglement->setUser($user);
-            
+
             // Get frais by ID
             $frais = $entityManager->getRepository(\App\Entity\FraisSyndic::class)->find($fraisId);
             if (!$frais) {
                 return new JsonResponse(['success' => false, 'message' => 'Montant mensuel non trouvé'], 404);
             }
             $reglement->setFrais($frais);
-            
+
             $monthNames = [
-                1 => 'Janvier', 2 => 'Fevrier', 3 => 'Mars', 4 => 'Avril', 
-                5 => 'Mai', 6 => 'Juin', 7 => 'Juillet', 8 => 'Aout', 
+                1 => 'Janvier', 2 => 'Fevrier', 3 => 'Mars', 4 => 'Avril',
+                5 => 'Mai', 6 => 'Juin', 7 => 'Juillet', 8 => 'Aout',
                 9 => 'Septembre', 10 => 'Octobre', 11 => 'Novembre', 12 => 'Decembre'
             ];
-            
-            // Set selected months
+
+            // Set selected months (ajout sur les mois existants, sans écraser)
             foreach ($months as $monthNum) {
                 if (isset($monthNames[$monthNum])) {
                     $monthName = $monthNames[$monthNum];
@@ -571,9 +579,21 @@ public function new(
                     $reglement->$setter(true);
                 }
             }
-            
-            // Use provided montant instead of calculating
-            $reglement->setTotale($montantTotal);
+
+            // Recalculer le total basé sur tous les mois payés (existants + nouveaux)
+            $montantMensuel = $frais->getMontant();
+            $totalRecalcule = 0;
+            $allMonthFields = [
+                'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
+                'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'
+            ];
+            foreach ($allMonthFields as $month) {
+                $getter = 'is' . $month;
+                if ($reglement->$getter()) {
+                    $totalRecalcule += $montantMensuel;
+                }
+            }
+            $reglement->setTotale($totalRecalcule);
             
             $entityManager->persist($reglement);
             $entityManager->flush();

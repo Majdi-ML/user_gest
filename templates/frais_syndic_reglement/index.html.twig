@@ -5,381 +5,530 @@
 {% block css %}
     {{ parent() }}
     {% include '_modern_index_styles.html.twig' %}
-    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
     <style>
-        .filter-row th { padding: 8px 3px !important; vertical-align: top; }
-        .filter-container { display: flex; gap: 5px; align-items: center; margin-bottom: 10px; }
-        .filter-select { width: 100%; min-width: 120px; }
-        .filter-input { width: 100%; min-width: 150px; }
-        .btn-add-condition { margin-top: 5px; }
-        .date-filter { display: none; }
-        .logic-operator { font-weight: bold; margin: 0 10px; }
-        .export-buttons { margin-bottom: 20px; }
-        .nav-tabs { margin-bottom: 10px; }
-        .paid-month { color: #10b981; font-weight: 600; }
-        .unpaid-month { color: #ef4444; font-weight: 600; }
-        .table-responsive { overflow-x: auto; }
-        .table { font-size: 0.78rem; }
-        .table thead th { padding: 6px 4px !important; font-size: 0.72rem; text-align: center; white-space: nowrap; }
-        .table tbody td { padding: 5px 4px !important; text-align: center; vertical-align: middle; }
-        .table tbody td:first-child, .table tbody td:nth-child(2) { text-align: left; white-space: nowrap; }
-        .month-btn { font-size: 0.8rem; padding: 2px 6px; }
-        .table-footer { font-weight: bold; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); }
-        .table-footer td { padding: 6px 4px !important; }
-        .table .table-actions .btn { padding: 2px 8px; font-size: 0.75rem; }
-        .table .badge { font-size: 0.7rem; }
-        .sortable { cursor: pointer; }
-        .sortable::after { content: ''; display: inline-block; width: 0; height: 0; margin-left: 5px; border-left: 5px solid transparent; border-right: 5px solid transparent; }
-        .sortable.asc::after { border-bottom: 5px solid #7c3aed; }
-        .sortable.desc::after { border-top: 5px solid #7c3aed; }
-        .nav-tabs .nav-link.active { 
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); 
+        /* ===== Stats Cards ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .stat-icon.purple { background: #f3e8ff; color: #7c3aed; }
+        .stat-icon.green { background: #d1fae5; color: #059669; }
+        .stat-icon.blue { background: #dbeafe; color: #2563eb; }
+        .stat-icon.amber { background: #fef3c7; color: #d97706; }
+        .stat-info .stat-value { font-size: 1.5rem; font-weight: 700; color: #1f2937; line-height: 1; }
+        .stat-info .stat-label { font-size: 0.78rem; color: #6b7280; margin-top: 4px; }
+
+        /* ===== Filter Card ===== */
+        .filter-card {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .filter-card .filter-header {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 14px 20px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .filter-card .filter-header h6 { margin: 0; font-weight: 700; color: #374151; font-size: 0.9rem; }
+        .filter-body { padding: 20px; }
+        .filter-container {
+            display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+            padding: 10px 14px; background: #faf5ff; border-radius: 10px;
+            border: 1px solid #f3e8ff; transition: all 0.2s;
+        }
+        .filter-container:hover { border-color: #d8b4fe; }
+        .filter-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+        /* ===== Toolbar ===== */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .toolbar .btn { border-radius: 10px; font-weight: 600; font-size: 0.82rem; padding: 8px 16px; }
+
+        /* ===== Year Tabs ===== */
+        .year-tabs { margin-bottom: 0; border-bottom: none; gap: 4px; }
+        .year-tabs .nav-link {
+            color: #6b7280; border: 2px solid transparent;
+            border-radius: 10px 10px 0 0; padding: 10px 24px;
+            font-weight: 600; font-size: 0.88rem;
+            transition: all 0.2s;
+        }
+        .year-tabs .nav-link:hover { color: #7c3aed; background: #faf5ff; border-color: #e5e7eb; }
+        .year-tabs .nav-link.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white; border-color: #7c3aed;
+            box-shadow: 0 -2px 10px rgba(124,58,237,0.2);
+        }
+
+        /* ===== Table ===== */
+        .table-card {
+            background: white;
+            border-radius: 0 14px 14px 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .table { font-size: 0.82rem; margin-bottom: 0; }
+        .table thead th {
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
             color: white;
-            border-color: #7c3aed;
+            padding: 12px 8px !important;
+            font-size: 0.75rem;
+            text-align: center;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-weight: 600;
+            border: none;
         }
-        .nav-tabs .nav-link { color: #7c3aed; border-color: #e5e7eb; }
-        .nav-tabs .nav-link:hover { border-color: #7c3aed; background-color: #f3e8ff; }
-        
-        /* Modal styles */
-        .modal-fullscreen-custom {
-            max-width: 95%;
-            width: 95%;
-            height: 90vh;
+        .table tbody td {
+            padding: 10px 6px !important;
+            text-align: center;
+            vertical-align: middle;
+            border-color: #f3f4f6;
         }
-        .modal-table-container {
-            overflow-x: auto;
+        .table tbody td:first-child,
+        .table tbody td:nth-child(2) { text-align: left; white-space: nowrap; font-weight: 500; }
+        .table tbody tr { transition: all 0.15s; }
+        .table tbody tr:hover { background: #faf5ff; }
+
+        /* Month indicators */
+        .month-paid {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 26px; height: 26px; border-radius: 8px;
+            font-size: 0.7rem; font-weight: 700;
         }
-        .modal-table {
-            width: 100%;
-            font-size: 0.9rem;
+        .month-paid.yes { background: #d1fae5; color: #059669; }
+        .month-paid.no { background: #fee2e2; color: #ef4444; }
+
+        /* Total cell */
+        .total-cell {
+            background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
+            font-weight: 700; color: #7c3aed; border-radius: 8px;
+            padding: 4px 8px !important; display: inline-block;
         }
+
+        /* Footer */
+        .table-footer {
+            font-weight: 700;
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+        }
+        .table-footer td { padding: 12px 8px !important; border-top: 2px solid #7c3aed !important; }
+
+        /* Action buttons */
+        .table .btn-action {
+            padding: 5px 12px; border-radius: 8px;
+            font-size: 0.75rem; font-weight: 600;
+            border: none; transition: all 0.2s;
+        }
+        .btn-action.edit { background: #fef3c7; color: #92400e; }
+        .btn-action.edit:hover { background: #fbbf24; color: #451a03; transform: translateY(-1px); }
+        .btn-action.create { background: #d1fae5; color: #065f46; }
+        .btn-action.create:hover { background: #10b981; color: white; transform: translateY(-1px); }
+
+        .sortable { cursor: pointer; position: relative; }
+        .sortable::after {
+            content: ''; display: inline-block; width: 0; height: 0; margin-left: 5px;
+            border-left: 4px solid transparent; border-right: 4px solid transparent;
+            vertical-align: middle; opacity: 0.5;
+        }
+        .sortable.asc::after { border-bottom: 5px solid white; opacity: 1; }
+        .sortable.desc::after { border-top: 5px solid white; opacity: 1; }
+
+        /* ===== Modal styles ===== */
+        .modal-fullscreen-custom { max-width: 90%; width: 90%; }
+        .modal-table-container { overflow-x: auto; }
+        .modal-table { width: 100%; font-size: 0.95rem; }
         .modal-table th {
             background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-            color: white;
-            padding: 12px 8px;
-            text-align: center;
-            vertical-align: middle;
+            color: white; padding: 14px 10px; text-align: center; vertical-align: middle;
         }
         .modal-table td {
-            padding: 12px 8px;
-            text-align: center;
-            vertical-align: middle;
+            padding: 14px 10px; text-align: center; vertical-align: middle;
             border: 1px solid #e5e7eb;
         }
         .month-checkbox {
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            font-size: 1.8rem;
-            border: 2px solid #d1d5db;
-            border-radius: 8px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            user-select: none;
+            width: 44px; height: 44px; cursor: pointer; font-size: 1.6rem;
+            border: 2px solid #d1d5db; border-radius: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: all 0.25s ease; user-select: none;
         }
-        .month-checkbox.checked {
-            background-color: #d1fae5;
-            border-color: #10b981;
-        }
-        .month-checkbox.unchecked {
-            background-color: #fee2e2;
-            border-color: #ef4444;
-        }
-        .month-checkbox:hover {
-            transform: scale(1.1);
-            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
-        }
+        .month-checkbox.checked { background: #d1fae5; border-color: #10b981; box-shadow: 0 2px 8px rgba(16,185,129,0.2); }
+        .month-checkbox.unchecked { background: #fee2e2; border-color: #ef4444; }
+        .month-checkbox:hover { transform: scale(1.12); box-shadow: 0 4px 12px rgba(124,58,237,0.25); }
+
         .modal-controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            padding: 15px;
+            display: flex; gap: 16px; margin-bottom: 20px; padding: 16px 20px;
             background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-            border-radius: 10px;
-            border: 1px solid #e5e7eb;
+            border-radius: 12px; border: 1px solid #e5e7eb; flex-wrap: wrap; align-items: flex-end;
         }
-        .modal-controls .btn-group {
-            display: flex;
-            gap: 10px;
-        }
+        .modal-controls .btn-group { display: flex; gap: 8px; }
         .montant-display {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #7c3aed;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 1.1rem; font-weight: 600; color: #7c3aed;
         }
         .montant-input {
-            width: 150px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #7c3aed;
-            border: 2px solid #7c3aed;
-            border-radius: 8px;
-            padding: 8px 12px;
+            width: 140px; font-size: 1.1rem; font-weight: 700; color: #7c3aed;
+            border: 2px solid #7c3aed; border-radius: 10px; padding: 8px 12px;
+            background: #f3e8ff;
         }
-        .montant-input:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+        .montant-input:focus { outline: none; box-shadow: 0 0 0 3px rgba(124,58,237,0.2); }
+
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .modal-controls { flex-direction: column; }
+        }
+        @media (max-width: 576px) {
+            .stats-row { grid-template-columns: 1fr; }
         }
     </style>
 {% endblock %}
 
 {% block body %}
 <div class="container-fluid p-4">
-    <div class="page-header">
-        <div class="page-header-content">
-            <div>
-                <h1><i class="bi bi-cash-coin"></i> Cotisation Syndic</h1>
-                <p class="page-subtitle">Gestion des règlements mensuels</p>
-            </div>
-            <div class="page-header-actions">
-                <a href="{{ path('app_frais_syndic_reglement_new') }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Nouveau Règlement
-                </a>
-            </div>
+    <!-- Header -->
+    <div class="page-header" style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+            <h1><i class="bi bi-cash-coin"></i> Cotisation Syndic</h1>
+            <p class="mb-0 mt-1" style="opacity: 0.9; font-size: 0.95rem;">Gestion des reglements mensuels par appartement</p>
         </div>
+        <a href="{{ path('app_frais_syndic_reglement_new') }}" class="btn btn-light" style="border-radius: 12px; font-weight: 600; padding: 10px 22px; color: #7c3aed;">
+            <i class="bi bi-plus-circle-fill"></i> Nouveau Reglement
+        </a>
     </div>
 
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0">Filtres Avancés</h5>
-        </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="filterLogic" value="AND" checked>
-                    <label class="form-check-label" for="filterLogicAnd">Toutes les conditions</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="filterLogic" id="filterLogicOr" value="OR">
-                    <label class="form-check-label" for="filterLogicOr">Au moins une condition (OR)</label>
-                </div>
-            </div>
-            
-            <div id="filterBuilder"></div>
-            <button id="addFilterBtn" class="btn btn-primary btn-sm btn-add-condition mt-2">
-                <i class="bi bi-plus"></i> Ajouter une condition
-            </button>
-            <button id="applyFiltersBtn" class="btn btn-success btn-sm mt-2">
-                <i class="bi bi-funnel"></i> Appliquer les filtres
-            </button>
-            <button id="resetFiltersBtn" class="btn btn-danger btn-sm mt-2">
-                <i class="bi bi-x-circle"></i> Réinitialiser
-            </button>
-        </div>
-    </div>
-
-    <div class="export-buttons text-end">
-        <button id="exportPdfBtn" class="btn btn-danger btn-sm me-2">
-            <i class="bi bi-file-pdf"></i> Exporter en PDF
-        </button>
-        <button id="exportExcelBtn" class="btn btn-success btn-sm">
-            <i class="bi bi-file-excel"></i> Exporter en Excel
-        </button>
-    </div>
-
-    <ul class="nav nav-tabs" id="yearTabs" role="tablist">
-        {% for year, yearData in dataByYear|sort %}
-            <li class="nav-item" role="presentation">
-                <button class="nav-link {% if loop.first %}active{% endif %}" id="year-{{ year }}-tab" data-bs-toggle="tab" data-bs-target="#year-{{ year }}" type="button" role="tab" aria-controls="year-{{ year }}" aria-selected="{{ loop.first ? 'true' : 'false' }}">{{ year }}</button>
-            </li>
+    <!-- Stats -->
+    {% set totalApparts = 0 %}
+    {% set totalPaid = 0 %}
+    {% set totalUnpaid = 0 %}
+    {% set grandTotal = 0 %}
+    {% for year, yearData in dataByYear %}
+        {% for appartement, data in yearData %}
+            {% set totalApparts = totalApparts + 1 %}
+            {% set grandTotal = grandTotal + (data.details.montant|default(0)) %}
+            {% for month in 1..12 %}
+                {% if data.months[month] is defined and data.months[month] == 'Oui' %}
+                    {% set totalPaid = totalPaid + 1 %}
+                {% else %}
+                    {% set totalUnpaid = totalUnpaid + 1 %}
+                {% endif %}
+            {% endfor %}
         {% endfor %}
-    </ul>
+    {% endfor %}
 
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-building-fill"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ totalApparts }}</div>
+                <div class="stat-label">Lignes reglement</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ totalPaid }}</div>
+                <div class="stat-label">Mois payes</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon amber"><i class="bi bi-exclamation-circle-fill"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ totalUnpaid }}</div>
+                <div class="stat-label">Mois impayes</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-wallet2"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ grandTotal }} <small style="font-size: 0.7rem; font-weight: 400;">TND</small></div>
+                <div class="stat-label">Total global</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Card (collapsible) -->
+    <div class="filter-card">
+        <div class="filter-header" data-bs-toggle="collapse" data-bs-target="#filterCollapse">
+            <h6><i class="bi bi-funnel-fill" style="color: #7c3aed;"></i> Filtres Avances</h6>
+            <i class="bi bi-chevron-down" style="color: #9ca3af; transition: transform 0.3s;"></i>
+        </div>
+        <div class="collapse" id="filterCollapse">
+            <div class="filter-body">
+                <div class="mb-3">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="filterLogic" value="AND" checked>
+                        <label class="form-check-label" style="font-size: 0.85rem;">Toutes les conditions (ET)</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="filterLogic" id="filterLogicOr" value="OR">
+                        <label class="form-check-label" for="filterLogicOr" style="font-size: 0.85rem;">Au moins une (OU)</label>
+                    </div>
+                </div>
+                <div id="filterBuilder"></div>
+                <div class="filter-actions">
+                    <button id="addFilterBtn" class="btn btn-sm" style="background: #f3e8ff; color: #7c3aed; border: 1px solid #d8b4fe; border-radius: 8px; font-weight: 600;">
+                        <i class="bi bi-plus"></i> Condition
+                    </button>
+                    <button id="applyFiltersBtn" class="btn btn-sm" style="background: #7c3aed; color: white; border-radius: 8px; font-weight: 600;">
+                        <i class="bi bi-funnel-fill"></i> Appliquer
+                    </button>
+                    <button id="resetFiltersBtn" class="btn btn-sm" style="background: #fee2e2; color: #ef4444; border-radius: 8px; font-weight: 600;">
+                        <i class="bi bi-x-circle"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <ul class="nav year-tabs" id="yearTabs" role="tablist">
+            {% for year, yearData in dataByYear|sort %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if loop.first %}active{% endif %}" id="year-{{ year }}-tab" data-bs-toggle="tab" data-bs-target="#year-{{ year }}" type="button" role="tab" aria-controls="year-{{ year }}" aria-selected="{{ loop.first ? 'true' : 'false' }}">
+                        {{ year }}
+                    </button>
+                </li>
+            {% endfor %}
+        </ul>
+        <div style="display: flex; gap: 8px;">
+            <button id="exportPdfBtn" class="btn" style="background: #fee2e2; color: #dc2626; border-radius: 10px; font-weight: 600; font-size: 0.82rem; padding: 8px 14px;">
+                <i class="bi bi-file-pdf-fill"></i> PDF
+            </button>
+            <button id="exportExcelBtn" class="btn" style="background: #d1fae5; color: #059669; border-radius: 10px; font-weight: 600; font-size: 0.82rem; padding: 8px 14px;">
+                <i class="bi bi-file-earmark-excel-fill"></i> Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- Tables -->
     <div class="tab-content" id="yearTabContent">
         {% for year, yearData in dataByYear|sort %}
             <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="year-{{ year }}" role="tabpanel" aria-labelledby="year-{{ year }}-tab">
-                <div class="table-responsive">
-                    <table id="fraisSyndicReglementsTable-{{ year }}" class="table table-bordered table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="sortable" data-sort="appartement">Appt</th>
-                                <th class="sortable" data-sort="nom">Propriétaire</th>
-                                <th>An.</th>
-                                <th>J</th>
-                                <th>F</th>
-                                <th>M</th>
-                                <th>A</th>
-                                <th>M</th>
-                                <th>Jn</th>
-                                <th>Jl</th>
-                                <th>Ao</th>
-                                <th>S</th>
-                                <th>O</th>
-                                <th>N</th>
-                                <th>D</th>
-                                <th>Total</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for appartement, data in yearData %}
-                                <tr data-nom="{{ data.nom }}"
-                                    data-appartement="{{ data.appartement }}"
-                                    data-proprietaire="{{ data.proprietaire }}"
-                                    data-annee="{{ year }}"
-                                    data-details="{{ data.details|json_encode|escape('html_attr') }}"
-                                    data-appartement-id="{{ data.appartementId }}">
-                                    <td>{{ data.appartement }}</td>
-                                    <td>{{ data.nom }}</td>
-                                    <td>{{ year }}</td>
-                                    {% for month in 1..12 %}
-                                        {% set isPaid = data.months[month] is defined and data.months[month] == 'Oui' %}
-                                        <td class="text-center {% if isPaid %}paid-month{% else %}unpaid-month{% endif %}">
-                                            {{ isPaid ? '✅' : '❌' }}
-                                        </td>
-                                    {% endfor %}
-                                    <td class="text-center">
-    {{ data.details.montant|default(0) }} TND
-</td>
-                                    <td class="table-actions">
-                                        {% if data.details.id is defined %}
-                                            <button class="btn btn-warning btn-open-modal" 
-                                                data-id="{{ data.details.id }}"
-                                                data-appartement-id="{{ data.appartementId }}"
-                                                data-annee="{{ year }}"
-                                                data-mode="edit">
-                                                <i class="bi bi-pencil-fill"></i> Modifier
-                                            </button>
-                                        {% else %}
-                                            <button class="btn btn-success btn-open-modal" 
-                                                data-appartement-id="{{ data.appartementId }}"
-                                                data-annee="{{ year }}"
-                                                data-mode="create">
-                                                <i class="bi bi-plus-circle"></i> Créer
-                                            </button>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% else %}
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table id="fraisSyndicReglementsTable-{{ year }}" class="table table-hover align-middle">
+                            <thead>
                                 <tr>
-                                    <td colspan="17" class="text-center">Aucun règlement trouvé pour {{ year }}.</td>
+                                    <th class="sortable" data-sort="appartement">Appt</th>
+                                    <th class="sortable" data-sort="nom">Proprietaire</th>
+                                    <th>An.</th>
+                                    <th>Jan</th>
+                                    <th>Fev</th>
+                                    <th>Mar</th>
+                                    <th>Avr</th>
+                                    <th>Mai</th>
+                                    <th>Jun</th>
+                                    <th>Jul</th>
+                                    <th>Aou</th>
+                                    <th>Sep</th>
+                                    <th>Oct</th>
+                                    <th>Nov</th>
+                                    <th>Dec</th>
+                                    <th>Total</th>
+                                    <th>Actions</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot class="table-footer">
-                            <tr>
-                                <td colspan="15" class="text-end">Total pour {{ year }} :</td>
-<td class="text-center">
-    {% set yearTotal = 0 %}
-    {% for appartement, data in yearData %}
-        {% set yearTotal = yearTotal + (data.details.montant|default(0)) %}
-    {% endfor %}
-    {{ yearTotal }} TND
-</td>
-<td></td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {% for appartement, data in yearData %}
+                                    <tr data-nom="{{ data.nom }}"
+                                        data-appartement="{{ data.appartement }}"
+                                        data-proprietaire="{{ data.proprietaire }}"
+                                        data-annee="{{ year }}"
+                                        data-details="{{ data.details|json_encode|escape('html_attr') }}"
+                                        data-appartement-id="{{ data.appartementId }}">
+                                        <td><strong>{{ data.appartement }}</strong></td>
+                                        <td>{{ data.nom }}</td>
+                                        <td><span style="color: #6b7280;">{{ year }}</span></td>
+                                        {% for month in 1..12 %}
+                                            {% set isPaid = data.months[month] is defined and data.months[month] == 'Oui' %}
+                                            <td>
+                                                <span class="month-paid {{ isPaid ? 'yes' : 'no' }}">
+                                                    {{ isPaid ? '✓' : '✗' }}
+                                                </span>
+                                            </td>
+                                        {% endfor %}
+                                        <td>
+                                            <span class="total-cell">{{ data.details.montant|default(0) }}</span>
+                                        </td>
+                                        <td>
+                                            {% if data.details.id is defined %}
+                                                <button class="btn btn-action edit btn-open-modal"
+                                                    data-id="{{ data.details.id }}"
+                                                    data-appartement-id="{{ data.appartementId }}"
+                                                    data-annee="{{ year }}"
+                                                    data-mode="edit">
+                                                    <i class="bi bi-pencil-fill"></i> Modifier
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-action create btn-open-modal"
+                                                    data-appartement-id="{{ data.appartementId }}"
+                                                    data-annee="{{ year }}"
+                                                    data-mode="create">
+                                                    <i class="bi bi-plus-circle"></i> Creer
+                                                </button>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="17" class="text-center py-4" style="color: #9ca3af;">
+                                            <i class="bi bi-inbox" style="font-size: 2rem; display: block; margin-bottom: 8px;"></i>
+                                            Aucun reglement trouve pour {{ year }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-footer">
+                                <tr>
+                                    <td colspan="15" class="text-end" style="font-size: 0.88rem;">Total {{ year }} :</td>
+                                    <td class="text-center">
+                                        {% set yearTotal = 0 %}
+                                        {% for appartement, data in yearData %}
+                                            {% set yearTotal = yearTotal + (data.details.montant|default(0)) %}
+                                        {% endfor %}
+                                        <span class="total-cell" style="font-size: 0.95rem;">{{ yearTotal }} TND</span>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
             </div>
         {% endfor %}
     </div>
-    
-    <!-- Modal de modification/création -->
+
+    <!-- Modal de modification/creation -->
     <div class="modal fade" id="reglementModal" tabindex="-1" aria-labelledby="reglementModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-fullscreen-custom modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: white;">
-                    <h5 class="modal-title" id="reglementModalLabel">
-                        <i class="bi bi-pencil-square"></i> <span id="modalTitle">Modifier Règlement</span>
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); color: white; padding: 18px 24px;">
+                    <h5 class="modal-title" id="reglementModalLabel" style="font-weight: 700;">
+                        <i class="bi bi-pencil-square"></i> <span id="modalTitle">Modifier Reglement</span>
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" style="padding: 24px;">
                     <div class="modal-controls">
                         <div class="btn-group">
-                            <button type="button" class="btn btn-success" id="selectAllMonthsBtn">
-                                <i class="bi bi-check-all"></i> Tout sélectionner
+                            <button type="button" class="btn btn-sm" id="selectAllMonthsBtn" style="background: #d1fae5; color: #065f46; border-radius: 8px; font-weight: 600;">
+                                <i class="bi bi-check-all"></i> Tout selectionner
                             </button>
-                            <button type="button" class="btn btn-danger" id="deselectAllMonthsBtn">
-                                <i class="bi bi-x-lg"></i> Tout désélectionner
+                            <button type="button" class="btn btn-sm" id="deselectAllMonthsBtn" style="background: #fee2e2; color: #991b1b; border-radius: 8px; font-weight: 600;">
+                                <i class="bi bi-x-lg"></i> Tout deselectionner
                             </button>
                         </div>
-                        
-                        <div style="display: flex; gap: 15px; align-items: center;">
+
+                        <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
                             <div>
-                                <label for="modal-frais-syndic" class="mb-1" style="font-weight: 600; color: #374151;">Montant Mensuel:</label>
-                                <select id="modal-frais-syndic" class="form-select" style="width: 200px; border: 2px solid #7c3aed;">
-                                    <option value="">Sélectionner...</option>
+                                <label for="modal-frais-syndic" class="mb-1" style="font-weight: 600; color: #374151; font-size: 0.85rem;">Montant Mensuel</label>
+                                <select id="modal-frais-syndic" class="form-select form-select-sm" style="width: 180px; border: 2px solid #7c3aed; border-radius: 8px;">
+                                    <option value="">Selectionner...</option>
                                 </select>
                             </div>
-                            
                             <div>
-                                <label for="modal-nature-paiement-top" class="mb-1" style="font-weight: 600; color: #374151;">Nature de Paiement:</label>
-                                <select id="modal-nature-paiement-top" class="form-select" style="width: 180px; border: 2px solid #7c3aed;">
-                                    <option value="espece">Espèce</option>
+                                <label for="modal-nature-paiement-top" class="mb-1" style="font-weight: 600; color: #374151; font-size: 0.85rem;">Nature Paiement</label>
+                                <select id="modal-nature-paiement-top" class="form-select form-select-sm" style="width: 160px; border: 2px solid #7c3aed; border-radius: 8px;">
+                                    <option value="espece">Espece</option>
                                     <option value="bancaire">Bancaire</option>
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="montant-display ms-auto">
-                            <label for="modal-montant-total" class="mb-0" style="font-size: 1.2rem;"><strong>Montant Total:</strong></label>
-                            <input type="number" id="modal-montant-total" class="montant-input" step="0.01" min="0" value="0" readonly style="background-color: #f3e8ff; font-weight: bold; font-size: 1.2rem;">
-                            <span style="font-size: 1.2rem; font-weight: bold;">TND</span>
+                            <div style="text-align: right;">
+                                <label for="modal-montant-total" class="mb-1" style="font-size: 0.85rem; display: block;"><strong>Montant Total</strong></label>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <input type="number" id="modal-montant-total" class="montant-input" step="0.01" min="0" value="0" readonly>
+                                    <span style="font-size: 1rem; font-weight: 700;">TND</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
                     <div class="modal-table-container">
-                        <table class="modal-table table table-bordered">
+                        <table class="modal-table table table-bordered" style="border-radius: 12px; overflow: hidden;">
                             <thead>
                                 <tr>
                                     <th>Appartement</th>
-                                    <th>Propriétaire</th>
-                                    <th>Année</th>
+                                    <th>Proprietaire</th>
+                                    <th>Annee</th>
                                     <th>Jan</th>
-                                    <th>Fév</th>
+                                    <th>Fev</th>
                                     <th>Mar</th>
                                     <th>Avr</th>
                                     <th>Mai</th>
                                     <th>Juin</th>
                                     <th>Juil</th>
-                                    <th>Août</th>
+                                    <th>Aout</th>
                                     <th>Sep</th>
                                     <th>Oct</th>
                                     <th>Nov</th>
-                                    <th>Déc</th>
+                                    <th>Dec</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td id="modal-appartement">-</td>
+                                    <td id="modal-appartement" style="font-weight: 600;">-</td>
                                     <td id="modal-proprietaire">-</td>
                                     <td id="modal-annee">-</td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="1">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="2">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="3">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="4">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="5">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="6">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="7">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="8">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="9">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="10">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="11">❌</div></td>
-                                    <td class="text-center"><div class="month-checkbox unchecked" data-month="12">❌</div></td>
+                                    {% for m in 1..12 %}
+                                        <td class="text-center"><div class="month-checkbox unchecked" data-month="{{ m }}">&#10060;</div></td>
+                                    {% endfor %}
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div class="alert alert-info mt-3">
-                        <i class="bi bi-info-circle"></i> <strong>Instructions:</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>Sélectionnez le <strong>Montant Mensuel</strong> et la <strong>Nature de Paiement</strong> en haut</li>
-                            <li>Cliquez sur les icônes pour cocher/décocher les mois payés</li>
-                            <li>Le montant total est calculé automatiquement: <strong>Nombre de mois cochés × Montant mensuel</strong></li>
-                        </ul>
+
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px 18px; margin-top: 16px; font-size: 0.85rem; color: #1e40af;">
+                        <i class="bi bi-info-circle-fill"></i>
+                        Cliquez sur les icones pour cocher/decocher les mois. Le montant total = mois coches x montant mensuel.
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                <div class="modal-footer" style="padding: 16px 24px; border-top: 2px solid #f3f4f6;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;">
                         <i class="bi bi-x-circle"></i> Annuler
                     </button>
-                    <button type="button" class="btn btn-primary" id="saveReglementBtn">
+                    <button type="button" class="btn btn-primary" id="saveReglementBtn" style="border-radius: 10px; font-weight: 600; background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%); border: none; padding: 10px 24px;">
                         <i class="bi bi-check-circle"></i> Appliquer
                     </button>
                 </div>
@@ -390,7 +539,7 @@
     <!-- Modal de confirmation de suppression -->
     <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border: 3px solid #ef4444;">
+            <div class="modal-content" style="border: 3px solid #ef4444; border-radius: 16px; overflow: hidden;">
                 <div class="modal-header" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;">
                     <h5 class="modal-title" id="confirmDeleteModalLabel">
                         <i class="bi bi-exclamation-triangle-fill"></i> Confirmer la suppression
@@ -401,19 +550,19 @@
                     <div class="mb-3">
                         <i class="bi bi-trash-fill" style="font-size: 4rem; color: #ef4444;"></i>
                     </div>
-                    <h5 class="mb-3" style="color: #1f2937;">Aucun mois sélectionné</h5>
-                    <p style="font-size: 1.1rem; color: #6b7280;">
-                        Voulez-vous supprimer complètement ce règlement ?
+                    <h5 class="mb-3" style="color: #1f2937;">Aucun mois selectionne</h5>
+                    <p style="font-size: 1.05rem; color: #6b7280;">
+                        Voulez-vous supprimer completement ce reglement ?
                     </p>
-                    <div class="alert alert-warning mt-3 mb-0" style="background-color: #fef3c7; border-color: #fbbf24; color: #92400e;">
-                        <i class="bi bi-info-circle-fill"></i> Cette action est irréversible
+                    <div style="background: #fef3c7; border: 1px solid #fbbf24; color: #92400e; border-radius: 10px; padding: 12px; margin-top: 16px; font-size: 0.88rem;">
+                        <i class="bi bi-info-circle-fill"></i> Cette action est irreversible
                     </div>
                 </div>
                 <div class="modal-footer" style="background-color: #f9fafb;">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 10px;">
                         <i class="bi bi-x-circle"></i> Annuler
                     </button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn" style="border-radius: 10px; font-weight: 600;">
                         <i class="bi bi-trash-fill"></i> Oui, supprimer
                     </button>
                 </div>
@@ -445,8 +594,6 @@
 {% block js %}
     {{ parent() }}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -454,19 +601,20 @@
         $(document).ready(function() {
             $('[data-bs-toggle="tooltip"]').tooltip();
 
+            // ==================== FILTERS ====================
             const columnData = {
                 nom: { type: 'text', display: 'Nom' },
                 appartement: { type: 'text', display: 'Appartement' },
-                proprietaire: { type: 'text', display: 'Propriétaire' },
-                annee: { type: 'number', display: 'Année' },
+                proprietaire: { type: 'text', display: 'Proprietaire' },
+                annee: { type: 'number', display: 'Annee' },
                 montant: { type: 'number', display: 'Montant' },
                 'nature-paiement': { type: 'text', display: 'Nature Paiement' },
                 utilisateur: { type: 'text', display: 'Utilisateur' }
             };
-            
+
             const textOperators = [
-                { id: 'equals', text: 'Égal à' },
-                { id: 'not_equals', text: 'Différent de' },
+                { id: 'equals', text: 'Egal a' },
+                { id: 'not_equals', text: 'Different de' },
                 { id: 'contains', text: 'Contient' },
                 { id: 'not_contains', text: 'Ne contient pas' },
                 { id: 'starts_with', text: 'Commence par' },
@@ -474,71 +622,71 @@
                 { id: 'empty', text: 'Est vide' },
                 { id: 'not_empty', text: "N'est pas vide" }
             ];
-            
+
             const numberOperators = [
-                { id: 'equals', text: 'Égal à (=)' },
-                { id: 'not_equals', text: 'Différent de (!=)' },
-                { id: 'greater', text: 'Supérieur à (>)' },
-                { id: 'greater_equal', text: 'Supérieur ou égal (>=)' },
-                { id: 'less', text: 'Inférieur à (<)' },
-                { id: 'less_equal', text: 'Inférieur ou égal (<=)' },
+                { id: 'equals', text: 'Egal a (=)' },
+                { id: 'not_equals', text: 'Different de (!=)' },
+                { id: 'greater', text: 'Superieur a (>)' },
+                { id: 'greater_equal', text: 'Superieur ou egal (>=)' },
+                { id: 'less', text: 'Inferieur a (<)' },
+                { id: 'less_equal', text: 'Inferieur ou egal (<=)' },
                 { id: 'empty', text: 'Est vide' },
                 { id: 'not_empty', text: "N'est pas vide" }
             ];
-            
+
             function addFilter() {
                 const filterId = Date.now();
                 const filterHtml = `
                 <div class="filter-container" data-filter-id="${filterId}">
-                    <select class="form-select form-select-sm filter-column" style="width: 150px;">
-                        ${Object.keys(columnData).map(col => 
+                    <select class="form-select form-select-sm filter-column" style="width: 140px; border-radius: 8px;">
+                        ${Object.keys(columnData).map(col =>
                             `<option value="${col}">${columnData[col].display}</option>`
                         ).join('')}
                     </select>
-                    <select class="form-select form-select-sm filter-operator" style="width: 180px;">
+                    <select class="form-select form-select-sm filter-operator" style="width: 170px; border-radius: 8px;">
                         ${textOperators.map(op => `<option value="${op.id}">${op.text}</option>`).join('')}
                     </select>
-                    <input type="text" class="form-control form-control-sm filter-value" placeholder="Valeur" style="display: none;">
-                    <input type="number" class="form-control form-control-sm filter-value-number number-filter" placeholder="Valeur numérique" style="display: none;">
-                    <button class="btn btn-danger btn-sm remove-filter" type="button">
+                    <input type="text" class="form-control form-control-sm filter-value" placeholder="Valeur" style="display: none; border-radius: 8px;">
+                    <input type="number" class="form-control form-control-sm filter-value-number number-filter" placeholder="Valeur" style="display: none; border-radius: 8px;">
+                    <button class="btn btn-sm remove-filter" type="button" style="background: #fee2e2; color: #ef4444; border-radius: 8px;">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
                 `;
                 $('#filterBuilder').append(filterHtml);
-                
+
                 $(`[data-filter-id="${filterId}"] .filter-column`).change(function() {
                     updateFilterInputs(filterId);
                 }).trigger('change');
-                
+
                 $(`[data-filter-id="${filterId}"] .filter-operator`).change(function() {
                     updateFilterInputs(filterId);
                 });
             }
-            
+
             function updateFilterInputs(filterId) {
                 const container = $(`[data-filter-id="${filterId}"]`);
                 const column = container.find('.filter-column').val();
                 const operator = container.find('.filter-operator').val();
                 const columnType = columnData[column].type;
-                
+
                 let operators;
                 if (columnType === 'number') operators = numberOperators;
                 else operators = textOperators;
-                
+
                 const operatorSelect = container.find('.filter-operator');
                 const currentOperator = operatorSelect.val();
                 operatorSelect.empty();
                 operators.forEach(op => {
                     operatorSelect.append(`<option value="${op.id}">${op.text}</option>`);
                 });
-                
+
                 if (operators.some(op => op.id === currentOperator)) {
                     operatorSelect.val(currentOperator);
                 }
-                
+
                 container.find('.filter-value, .filter-value-number').hide();
-                
+
                 if (operator === 'empty' || operator === 'not_empty') {
                 } else {
                     if (columnType === 'number') {
@@ -548,81 +696,73 @@
                     }
                 }
             }
-            
+
             addFilter();
-            
             $('#addFilterBtn').click(addFilter);
-            
+
             $('#filterBuilder').on('click', '.remove-filter', function() {
                 $(this).closest('.filter-container').remove();
             });
-            
+
             $('#applyFiltersBtn').click(function() {
                 const filters = [];
                 const logic = $('input[name="filterLogic"]:checked').val();
-                
+
                 $('.filter-container').each(function() {
                     const column = $(this).find('.filter-column').val();
                     const operator = $(this).find('.filter-operator').val();
                     let value1;
-                    
+
                     if (operator === 'empty' || operator === 'not_empty') {
                         filters.push({ column, operator, logic });
                         return;
                     }
-                    
+
                     if (columnData[column].type === 'number') {
                         value1 = $(this).find('.filter-value-number').val();
                     } else {
                         value1 = $(this).find('.filter-value').val();
                     }
                     if (!value1) return;
-                    
+
                     filters.push({ column, operator, value1, logic });
                 });
-                
+
                 applyFilters(filters, logic);
             });
-            
+
             $('#resetFiltersBtn').click(function() {
                 $('#filterBuilder').empty();
                 addFilter();
                 $('.tab-pane table tbody tr').show();
                 $('.tab-pane table tfoot').show();
             });
-            
+
             function applyFilters(filters, logic) {
                 if (filters.length === 0) {
                     $('.tab-pane table tbody tr').show();
                     $('.tab-pane table tfoot').show();
                     return;
                 }
-                
+
                 $('.tab-pane').each(function() {
                     const year = $(this).attr('id').replace('year-', '');
-                    const yearData = fraisSyndicReglementsDataByYear[year] || [];
-                    
                     let anyRowVisible = false;
                     $(this).find('tbody tr').each(function() {
                         const row = $(this);
-                        const rowNom = row.data('nom');
-                        const rowAppartement = row.data('appartement');
-                        const rowProprietaire = row.data('proprietaire');
-                        const rowAnnee = row.data('annee');
                         let details;
                         try {
                             details = JSON.parse(row.data('details'));
                         } catch (e) {
-                            console.error('Invalid JSON in data-details:', row.data('details'));
                             details = [];
                         }
                         let matchResults = [];
-                        
+
                         filters.forEach(filter => {
                             const column = filter.column;
                             const operator = filter.operator;
                             let matches = false;
-                            
+
                             if (['nom', 'appartement', 'proprietaire', 'annee'].includes(column)) {
                                 let value = row.data(column);
                                 if (value === '' || value === null || value === undefined) {
@@ -632,7 +772,7 @@
                                     matchResults.push(matches);
                                     return;
                                 }
-                                
+
                                 if (column === 'annee') {
                                     value = parseFloat(value);
                                     const filterValue = parseFloat(filter.value1);
@@ -659,16 +799,15 @@
                                 matchResults.push(matches);
                                 return;
                             }
-                            
-                            let detailMatches = details.map(detail => {
+
+                            let detailMatches = details.map ? details.map(detail => {
                                 let value = detail[column];
                                 if (value === '' || value === null || value === undefined) {
                                     if (operator === 'empty') return true;
                                     else if (operator === 'not_empty') return false;
                                     else return false;
                                 }
-                                
-                                if (columnData[column].type === 'number') {
+                                if (columnData[column] && columnData[column].type === 'number') {
                                     value = parseFloat(value);
                                     const filterValue = parseFloat(filter.value1);
                                     switch(operator) {
@@ -694,35 +833,35 @@
                                     }
                                 }
                                 return false;
-                            });
-                            
+                            }) : [];
+
                             matches = detailMatches.some(m => m);
                             matchResults.push(matches);
                         });
-                        
+
                         let shouldShow;
                         if (logic === 'AND') {
                             shouldShow = matchResults.length > 0 && matchResults.every(m => m);
                         } else {
                             shouldShow = matchResults.some(m => m);
                         }
-                        
+
                         row.toggle(shouldShow);
                         if (shouldShow) anyRowVisible = true;
                     });
-                    
+
                     $(this).find('tfoot').toggle(anyRowVisible);
                 });
             }
 
-            // Modal Management
+            // ==================== MODAL MANAGEMENT ====================
             let currentReglementId = null;
             let currentAppartementId = null;
             let currentAnnee = null;
             let currentMode = 'create';
-            let defaultMontantMensuel = 0; // Montant par défaut par mois
-            let fraisSyndicList = []; // Liste de tous les frais syndic
-            
+            let defaultMontantMensuel = 0;
+            let fraisSyndicList = [];
+
             // Load all FraisSyndic on page load
             $.ajax({
                 url: '{{ path("app_frais_syndic_reglement_get_all_frais") }}',
@@ -730,15 +869,12 @@
                 success: function(response) {
                     if (response.success && response.frais) {
                         fraisSyndicList = response.frais;
-                        // Populate select
                         const select = $('#modal-frais-syndic');
                         select.empty();
-                        select.append('<option value="">Sélectionner un montant...</option>');
+                        select.append('<option value="">Selectionner un montant...</option>');
                         response.frais.forEach(function(frais) {
                             select.append(`<option value="${frais.id}">${frais.montant} TND</option>`);
                         });
-                        
-                        // Set first as default if exists
                         if (response.frais.length > 0) {
                             defaultMontantMensuel = parseFloat(response.frais[0].montant);
                         }
@@ -748,8 +884,7 @@
                     console.error('Erreur lors du chargement des frais syndic');
                 }
             });
-            
-            // When FraisSyndic selection changes
+
             $('#modal-frais-syndic').change(function() {
                 const selectedId = $(this).val();
                 if (selectedId) {
@@ -760,104 +895,82 @@
                     }
                 }
             });
-            
-            // Calculate and update total amount: number of checked months × monthly amount
+
             function updateTotalMontant() {
                 const checkedCount = $('.month-checkbox.checked').length;
                 const total = checkedCount * defaultMontantMensuel;
                 $('#modal-montant-total').val(total.toFixed(2));
             }
-            
+
             // Toggle month checkbox
             $(document).on('click', '.month-checkbox', function() {
                 const isChecked = $(this).hasClass('checked');
-                
                 if (isChecked) {
-                    $(this).removeClass('checked').addClass('unchecked');
-                    $(this).html('❌');
+                    $(this).removeClass('checked').addClass('unchecked').html('&#10060;');
                 } else {
-                    $(this).removeClass('unchecked').addClass('checked');
-                    $(this).html('✅');
+                    $(this).removeClass('unchecked').addClass('checked').html('&#9989;');
                 }
-                
                 updateTotalMontant();
             });
-            
-            // Select all months
+
             $('#selectAllMonthsBtn').click(function() {
                 $('.month-checkbox').each(function() {
-                    $(this).removeClass('unchecked').addClass('checked');
-                    $(this).html('✅');
+                    $(this).removeClass('unchecked').addClass('checked').html('&#9989;');
                 });
                 updateTotalMontant();
             });
-            
-            // Deselect all months
+
             $('#deselectAllMonthsBtn').click(function() {
                 $('.month-checkbox').each(function() {
-                    $(this).removeClass('checked').addClass('unchecked');
-                    $(this).html('❌');
+                    $(this).removeClass('checked').addClass('unchecked').html('&#10060;');
                 });
                 updateTotalMontant();
             });
-            
+
             // Open modal
             $(document).on('click', '.btn-open-modal', function() {
                 const mode = $(this).data('mode');
                 const appartementId = $(this).data('appartement-id');
                 const annee = $(this).data('annee');
                 const reglementId = $(this).data('id');
-                
-                console.log('Opening modal:', { mode, appartementId, annee, reglementId });
-                
+
                 currentMode = mode;
                 currentAppartementId = appartementId;
                 currentAnnee = annee;
                 currentReglementId = reglementId;
-                
-                // Update modal title
+
                 if (mode === 'create') {
-                    $('#modalTitle').html('<i class="bi bi-plus-circle"></i> Créer un Règlement');
+                    $('#modalTitle').html('<i class="bi bi-plus-circle"></i> Creer un Reglement');
                 } else {
-                    $('#modalTitle').html('<i class="bi bi-pencil-square"></i> Modifier le Règlement');
+                    $('#modalTitle').html('<i class="bi bi-pencil-square"></i> Modifier le Reglement');
                 }
-                
-                // Find row data
+
                 const row = $(this).closest('tr');
                 const appartement = row.find('td:eq(0)').text();
                 const proprietaire = row.find('td:eq(1)').text();
-                
-                // Fill modal fields
+
                 $('#modal-appartement').text(appartement);
                 $('#modal-proprietaire').text(proprietaire);
                 $('#modal-annee').text(annee);
-                
-                // Reset all month checkboxes
+
+                // Reset checkboxes
                 $('.month-checkbox').each(function() {
-                    $(this).removeClass('checked').addClass('unchecked');
-                    $(this).html('❌');
+                    $(this).removeClass('checked').addClass('unchecked').html('&#10060;');
                 });
-                
-                // Reset selects and montant total
+
                 $('#modal-frais-syndic').val('');
                 $('#modal-nature-paiement-top').val('espece');
                 $('#modal-montant-total').val('0');
-                
-                // If editing, load existing data via AJAX
+
                 if (mode === 'edit' && reglementId) {
                     $.ajax({
                         url: '{{ path("app_frais_syndic_reglement_get_ajax", {id: "__ID__"}) }}'.replace('__ID__', reglementId),
                         method: 'GET',
                         success: function(response) {
                             if (response.success) {
-                                console.log('Reglement data loaded:', response);
-                                
-                                // Set nature paiement
                                 if (response.naturePaiement) {
                                     $('#modal-nature-paiement-top').val(response.naturePaiement);
                                 }
-                                
-                                // Set FraisSyndic
                                 if (response.fraisId) {
                                     $('#modal-frais-syndic').val(response.fraisId);
                                     const selectedFrais = fraisSyndicList.find(f => f.id == response.fraisId);
@@ -865,87 +978,71 @@
                                         defaultMontantMensuel = parseFloat(selectedFrais.montant);
                                     }
                                 }
-                                
-                                // Load paid months
                                 if (response.paidMonths && response.paidMonths.length > 0) {
                                     response.paidMonths.forEach(function(monthNum) {
                                         const checkbox = $(`.month-checkbox[data-month="${monthNum}"]`);
-                                        checkbox.removeClass('unchecked').addClass('checked');
-                                        checkbox.html('✅');
+                                        checkbox.removeClass('unchecked').addClass('checked').html('&#9989;');
                                     });
                                 }
-                                
-                                // Update total montant
                                 updateTotalMontant();
                             } else {
-                                alert('Erreur lors du chargement des données: ' + response.message);
+                                Swal.fire({ icon: 'error', title: 'Erreur', text: 'Erreur lors du chargement: ' + response.message, confirmButtonColor: '#7c3aed' });
                             }
                         },
                         error: function() {
-                            alert('Erreur lors du chargement des données du règlement');
+                            Swal.fire({ icon: 'error', title: 'Erreur', text: 'Erreur lors du chargement des donnees du reglement', confirmButtonColor: '#7c3aed' });
                         }
                     });
                 } else {
-                    // For create mode, select first FraisSyndic if available
                     if (fraisSyndicList.length > 0) {
                         $('#modal-frais-syndic').val(fraisSyndicList[0].id);
                         defaultMontantMensuel = parseFloat(fraisSyndicList[0].montant);
                     }
-                    
-                    // Update total montant
                     updateTotalMontant();
                 }
-                
-                // Show modal
+
                 $('#reglementModal').modal('show');
             });
-            
-            // Save reglement
+
+            // Save
             $('#saveReglementBtn').click(function() {
                 const selectedMonths = [];
                 $('.month-checkbox.checked').each(function() {
                     selectedMonths.push(parseInt($(this).data('month')));
                 });
-                
-                // Permettre 0 mois (suppression du règlement)
+
                 if (selectedMonths.length === 0 && currentMode === 'edit') {
-                    // Afficher le modal de confirmation au lieu du confirm natif
                     $('#confirmDeleteModal').modal('show');
                     return;
                 }
-                
-                // Sinon, continuer avec la sauvegarde normale
                 processSave();
             });
 
-            // Bouton de confirmation de suppression dans le modal
             $('#confirmDeleteBtn').click(function() {
                 $('#confirmDeleteModal').modal('hide');
                 processSave();
             });
 
-            // Fonction commune pour traiter la sauvegarde
             function processSave() {
                 const selectedMonths = [];
                 $('.month-checkbox.checked').each(function() {
                     selectedMonths.push(parseInt($(this).data('month')));
                 });
-                
+
                 const fraisId = $('#modal-frais-syndic').val();
                 if (!fraisId && selectedMonths.length > 0) {
-                    alert('Veuillez sélectionner un montant mensuel.');
+                    Swal.fire({ icon: 'warning', title: 'Attention', text: 'Veuillez selectionner un montant mensuel.', confirmButtonColor: '#7c3aed' });
                     return;
                 }
-                
+
                 const naturePaiement = $('#modal-nature-paiement-top').val();
                 const montantTotal = parseFloat($('#modal-montant-total').val());
-                
-                // Validation du montant seulement si des mois sont sélectionnés
+
                 if (selectedMonths.length > 0 && (!montantTotal || montantTotal <= 0)) {
-                    alert('Veuillez spécifier un montant valide. Le montant total doit être supérieur à 0.');
+                    Swal.fire({ icon: 'warning', title: 'Attention', text: 'Veuillez specifier un montant valide.', confirmButtonColor: '#7c3aed' });
                     return;
                 }
-                
+
                 const data = {
                     appartementId: currentAppartementId,
                     annee: currentAnnee,
@@ -955,17 +1052,13 @@
                     fraisId: fraisId,
                     mode: currentMode
                 };
-                
+
                 if (currentMode === 'edit' && currentReglementId) {
                     data.id = currentReglementId;
                 }
-                
-                console.log('Saving data:', data);
-                
-                // Show loading
+
                 $('#saveReglementBtn').prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Enregistrement...');
-                
-                // AJAX save
+
                 $.ajax({
                     url: '{{ path("app_frais_syndic_reglement_save_ajax") }}',
                     method: 'POST',
@@ -974,9 +1067,25 @@
                     success: function(response) {
                         if (response.success) {
                             $('#reglementModal').modal('hide');
-                            location.reload(); // Reload to see changes
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Succes',
+                                text: response.message || 'Reglement enregistre avec succes',
+                                confirmButtonColor: '#7c3aed',
+                                timer: 2000,
+                                timerProgressBar: true,
+                                showConfirmButton: true,
+                                confirmButtonText: 'OK'
+                            }).then(function() {
+                                location.reload();
+                            });
                         } else {
-                            alert('Erreur: ' + (response.message || 'Erreur inconnue'));
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Erreur',
+                                text: response.message || 'Erreur inconnue',
+                                confirmButtonColor: '#7c3aed'
+                            });
                         }
                     },
                     error: function(xhr) {
@@ -985,7 +1094,12 @@
                             const response = JSON.parse(xhr.responseText);
                             errorMsg = response.message || errorMsg;
                         } catch (e) {}
-                        alert(errorMsg);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erreur',
+                            text: errorMsg,
+                            confirmButtonColor: '#7c3aed'
+                        });
                     },
                     complete: function() {
                         $('#saveReglementBtn').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Appliquer');
@@ -993,22 +1107,23 @@
                 });
             }
 
+            // ==================== EXPORT ====================
             function collectVisibleData() {
-                const activeYear = $('#yearTabs .nav-link.active').text();
+                const activeYear = $('#yearTabs .nav-link.active').text().trim();
                 const table = $(`#fraisSyndicReglementsTable-${activeYear}`);
-                
+
                 const headers = [];
                 table.find('thead th').each(function() {
-                    headers.push($(this).text());
+                    headers.push($(this).text().trim());
                 });
-                
+
                 const data = [];
                 table.find('tbody tr:visible').each(function() {
                     const rowData = {};
                     $(this).find('td').each(function(index) {
                         const header = headers[index];
-                        if (['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'].includes(header)) {
-                            rowData[header] = $(this).text().trim() === '✅' ? 'Oui' : 'Non';
+                        if (['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'].includes(header)) {
+                            rowData[header] = $(this).text().trim() === '✓' ? 'Oui' : 'Non';
                         } else if (header === 'Actions') {
                             rowData[header] = '';
                         } else {
@@ -1017,8 +1132,7 @@
                     });
                     data.push(rowData);
                 });
-                
-                // Add total row for export
+
                 const totalRow = {};
                 headers.forEach(header => {
                     if (header === 'Total') {
@@ -1030,134 +1144,73 @@
                                 if (details && details.montant) {
                                     yearTotal += parseFloat(details.montant || 0);
                                 }
-                            } catch (e) {
-                                console.error('Invalid JSON in collectVisibleData:', $(this).data('details'));
-                            }
+                            } catch (e) {}
                         });
                         totalRow[header] = yearTotal.toFixed(2) + ' TND';
-                    } else if (['Appartement', 'Propriétaire', 'Année', 'Actions'].includes(header)) {
-                        totalRow[header] = header === 'Appartement' ? 'Total' : '';
+                    } else if (['Appt', 'Proprietaire', 'An.', 'Actions'].includes(header)) {
+                        totalRow[header] = header === 'Appt' ? 'Total' : '';
                     } else {
                         totalRow[header] = '';
                     }
                 });
                 data.push(totalRow);
-                
-                return {
-                    year: activeYear,
-                    headers: headers,
-                    data: data
-                };
+
+                return { year: activeYear, headers: headers, data: data };
             }
 
             $('#exportPdfBtn').click(function() {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'landscape',
-                    unit: 'mm'
-                });
-                
+                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm' });
+
                 const { year, headers, data } = collectVisibleData();
-                
+
                 doc.setFontSize(12);
-                doc.text(`Cotisation Syndic - Année ${year}`, 14, 10);
-                
+                doc.text(`Cotisation Syndic - Annee ${year}`, 14, 10);
                 const exportDate = new Date().toLocaleDateString('fr-FR');
                 doc.setFontSize(8);
-                doc.text(`Exporté le: ${exportDate}`, doc.internal.pageSize.width - 40, 10);
-                
+                doc.text(`Exporte le: ${exportDate}`, doc.internal.pageSize.width - 40, 10);
+
                 const tableData = data.map(row => headers.map(header => row[header]));
-                
-                const options = {
-                    startY: 15,
-                    margin: { top: 15 },
-                    headStyles: {
-                        fillColor: [51, 122, 183],
-                        textColor: 255,
-                        fontSize: 8
-                    },
-                    bodyStyles: {
-                        fontSize: 7,
-                        cellPadding: 2
-                    },
-                    columnStyles: {
-                        0: { cellWidth: 20 },
-                        1: { cellWidth: 30 },
-                        2: { cellWidth: 15 },
-                        3: { cellWidth: 10 },
-                        4: { cellWidth: 10 },
-                        5: { cellWidth: 10 },
-                        6: { cellWidth: 10 },
-                        7: { cellWidth: 10 },
-                        8: { cellWidth: 10 },
-                        9: { cellWidth: 10 },
-                        10: { cellWidth: 10 },
-                        11: { cellWidth: 10 },
-                        12: { cellWidth: 10 },
-                        13: { cellWidth: 10 },
-                        14: { cellWidth: 10 },
-                        15: { cellWidth: 15 },
-                        16: { cellWidth: 25 }
-                    },
-                    styles: {
-                        overflow: 'linebreak',
-                        fontSize: 7
-                    },
-                    footStyles: {
-                        fillColor: [200, 200, 200],
-                        textColor: 0,
-                        fontSize: 7,
-                        fontStyle: 'bold'
-                    }
-                };
-                
+
                 doc.autoTable({
                     head: [headers],
                     body: tableData,
-                    ...options
+                    startY: 15,
+                    margin: { top: 15 },
+                    headStyles: { fillColor: [124, 58, 237], textColor: 255, fontSize: 7 },
+                    bodyStyles: { fontSize: 7, cellPadding: 2 },
+                    styles: { overflow: 'linebreak', fontSize: 7 },
+                    footStyles: { fillColor: [200, 200, 200], textColor: 0, fontSize: 7, fontStyle: 'bold' }
                 });
-                
-                doc.save(`frais-syndic-${year}.pdf`);
+
+                doc.save(`cotisation-syndic-${year}.pdf`);
             });
 
             $('#exportExcelBtn').click(function() {
                 const { year, headers, data } = collectVisibleData();
-                
                 const wb = XLSX.utils.book_new();
-                
-                const wsData = [
-                    headers,
-                    ...data.map(row => headers.map(header => row[header]))
-                ];
-                
+                const wsData = [headers, ...data.map(row => headers.map(header => row[header]))];
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
-                
-                XLSX.utils.book_append_sheet(wb, ws, `Cotisation Syndic ${year}`);
-                
-                XLSX.writeFile(wb, `frais-syndic-${year}.xlsx`);
+                XLSX.utils.book_append_sheet(wb, ws, `Cotisation ${year}`);
+                XLSX.writeFile(wb, `cotisation-syndic-${year}.xlsx`);
             });
 
-            // Sorting functionality
+            // ==================== SORTING ====================
             $('.sortable').click(function() {
                 const table = $(this).closest('table');
                 const column = $(this).data('sort');
                 const isAsc = $(this).hasClass('asc');
-                
-                // Reset all sort indicators
+
                 table.find('.sortable').removeClass('asc desc');
-                
-                // Set new sort indicator
                 $(this).addClass(isAsc ? 'desc' : 'asc');
-                
+
                 const sortOrder = isAsc ? -1 : 1;
-                
                 const rows = table.find('tbody tr').get();
                 rows.sort(function(a, b) {
                     const aValue = $(a).data(column).toString().toLowerCase();
                     const bValue = $(b).data(column).toString().toLowerCase();
                     return aValue.localeCompare(bValue) * sortOrder;
                 });
-                
                 table.find('tbody').empty().append(rows);
             });
         });

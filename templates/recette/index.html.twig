@@ -17,15 +17,7 @@
         <p class="mb-0 mt-2" style="opacity: 0.9;">Gestion des recettes et revenus</p>
     </div>
 
-    <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="d-flex gap-2">
-            <button id="exportPdfBtn" class="btn btn-danger btn-sm">
-                <i class="bi bi-file-earmark-pdf-fill"></i> Exporter PDF
-            </button>
-            <button id="exportExcelBtn" class="btn btn-success btn-sm">
-                <i class="bi bi-file-earmark-excel-fill"></i> Exporter Excel
-            </button>
-        </div>
+    <div class="action-bar" style="display: flex; justify-content: flex-end; align-items: center;">
         <a href="{{ path('app_recette_new') }}" class="btn btn-primary">
             <i class="bi bi-plus-circle-fill"></i> Nouvelle Recette
         </a>
@@ -54,6 +46,14 @@
                  id="year-{{ year }}" 
                  role="tabpanel" 
                  aria-labelledby="year-{{ year }}-tab">
+                <div class="d-flex justify-content-end gap-2 mb-2">
+                    <button class="btn btn-danger btn-sm btn-export-pdf" data-target="recettesTable-{{ year }}" data-title="Récapitulatif Recettes {{ year }}">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                    </button>
+                    <button class="btn btn-success btn-sm btn-export-excel" data-target="recettesTable-{{ year }}" data-title="Recap_Recettes_{{ year }}">
+                        <i class="bi bi-file-earmark-excel-fill"></i> Excel
+                    </button>
+                </div>
                 <div class="table-card">
                     <div class="table-responsive">
                         <table class="table table-modern" id="recettesTable-{{ year }}">
@@ -114,9 +114,17 @@
                 </div>
 
                 <h3 class="mt-4 mb-3"><i class="bi bi-list-ul"></i> Détails des recettes {{ year }}</h3>
+                <div class="d-flex justify-content-end gap-2 mb-2">
+                    <button class="btn btn-danger btn-sm btn-export-pdf" data-target="detailTable-{{ year }}" data-title="Détails Recettes {{ year }}">
+                        <i class="bi bi-file-earmark-pdf-fill"></i> PDF
+                    </button>
+                    <button class="btn btn-success btn-sm btn-export-excel" data-target="detailTable-{{ year }}" data-title="Details_Recettes_{{ year }}">
+                        <i class="bi bi-file-earmark-excel-fill"></i> Excel
+                    </button>
+                </div>
                 <div class="table-card">
                     <div class="table-responsive">
-                        <table class="table table-modern">
+                        <table class="table table-modern" id="detailTable-{{ year }}">
                             <thead>
                                 <tr>
                                     <th><i class="bi bi-hash"></i> ID</th>
@@ -165,120 +173,137 @@
 </div>
 {% endblock %}
 
-{% block javascripts %}
+{% block js %}
     {{ parent() }}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
-            function getActiveYear() {
-                return $('#yearTabs .nav-link.active').text().trim();
+
+            // ========== GENERIC: Collect table data ==========
+            function collectTableData(tableId) {
+                const table = document.getElementById(tableId);
+                if (!table) return { headers: [], data: [] };
+
+                const headers = [];
+                const headerRow = table.querySelector('thead tr:last-child') || table.querySelector('thead tr');
+                if (headerRow) {
+                    headerRow.querySelectorAll('th').forEach(th => {
+                        headers.push(th.textContent.trim());
+                    });
+                }
+
+                // If we got empty headers from a sub-row, use first row
+                if (headers.every(h => h === '')) {
+                    headers.length = 0;
+                    const firstRow = table.querySelector('thead tr:first-child');
+                    if (firstRow) {
+                        firstRow.querySelectorAll('th').forEach(th => {
+                            const colspan = parseInt(th.getAttribute('colspan')) || 1;
+                            const text = th.textContent.trim();
+                            for (let i = 0; i < colspan; i++) {
+                                headers.push(text + (colspan > 1 ? ` (${i+1})` : ''));
+                            }
+                        });
+                    }
+                }
+
+                const data = [];
+                table.querySelectorAll('tbody tr').forEach(tr => {
+                    const row = [];
+                    tr.querySelectorAll('td').forEach(td => {
+                        row.push(td.textContent.trim());
+                    });
+                    if (row.length > 0) data.push(row);
+                });
+
+                return { headers, data };
             }
 
-            function collectSummaryData() {
-                const year = getActiveYear();
-                const table = $(`#year-${year} table.table-modern`).first();
-                const headers = ['Mois', 'Cotisation Espèce', 'Cotisation Bancaire', 'Autre Espèce', 'Autre Bancaire', 'Total'];
-                const data = [];
+            // ========== PDF Export ==========
+            $(document).on('click', '.btn-export-pdf', function() {
+                const tableId = $(this).data('target');
+                const title = $(this).data('title') || 'Export';
+                const { headers, data } = collectTableData(tableId);
 
-                table.find('tbody tr').each(function() {
-                    const cells = $(this).find('td');
-                    if (cells.length >= 6) {
-                        data.push({
-                            'Mois': cells.eq(0).text().trim(),
-                            'Cotisation Espèce': cells.eq(1).text().trim(),
-                            'Cotisation Bancaire': cells.eq(2).text().trim(),
-                            'Autre Espèce': cells.eq(3).text().trim(),
-                            'Autre Bancaire': cells.eq(4).text().trim(),
-                            'Total': cells.eq(5).text().trim()
-                        });
+                if (data.length === 0) {
+                    alert('Aucune donnée à exporter.');
+                    return;
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: 'landscape' });
+
+                doc.setFontSize(16);
+                doc.text(title, 14, 15);
+
+                // For recap tables with merged header, build proper headers
+                let headRows;
+                if (tableId.startsWith('recettesTable-')) {
+                    headRows = [
+                        [{ content: 'Mois', rowSpan: 2 }, { content: 'Cotisation Syndic', colSpan: 2 }, { content: 'Autre revenu', colSpan: 2 }, { content: 'Total', rowSpan: 2 }],
+                        ['Espèce', 'Bancaire', 'Espèce', 'Bancaire']
+                    ];
+                } else {
+                    headRows = [headers];
+                }
+
+                doc.autoTable({
+                    head: headRows,
+                    body: data,
+                    startY: 25,
+                    theme: 'striped',
+                    headStyles: { fillColor: [124, 58, 237], fontSize: 9 },
+                    styles: { fontSize: 8 },
+                    didParseCell: function(hookData) {
+                        // Bold the last column (Total / Actions removed)
+                        if (hookData.section === 'body') {
+                            const lastCol = hookData.row.cells.length - 1;
+                            if (hookData.column.index === lastCol) {
+                                hookData.cell.styles.fontStyle = 'bold';
+                            }
+                        }
                     }
                 });
 
-                return { year, headers, data };
-            }
-
-            function collectDetailData() {
-                const year = getActiveYear();
-                const tables = $(`#year-${year} table.table-modern`);
-                const detailTable = tables.length > 1 ? tables.eq(1) : null;
-                const headers = ['ID', 'Montant', 'Date', 'Type', 'Nature', 'Description'];
-                const data = [];
-
-                if (detailTable) {
-                    detailTable.find('tbody tr').each(function() {
-                        const cells = $(this).find('td');
-                        if (cells.length >= 6) {
-                            data.push({
-                                'ID': cells.eq(0).text().trim(),
-                                'Montant': cells.eq(1).text().trim(),
-                                'Date': cells.eq(2).text().trim(),
-                                'Type': cells.eq(3).text().trim(),
-                                'Nature': cells.eq(4).text().trim(),
-                                'Description': cells.eq(5).text().trim()
-                            });
-                        }
-                    });
-                }
-
-                return { year, headers, data };
-            }
-
-            $('#exportPdfBtn').click(function() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({ orientation: 'landscape' });
-                
-                const summary = collectSummaryData();
-                const detail = collectDetailData();
-
-                doc.setFontSize(16);
-                doc.text(`Recettes - Année ${summary.year}`, 14, 15);
-
-                doc.setFontSize(12);
-                doc.text('Récapitulatif mensuel', 14, 25);
-                doc.autoTable({
-                    head: [summary.headers],
-                    body: summary.data.map(row => summary.headers.map(h => row[h])),
-                    startY: 30,
-                    theme: 'striped',
-                    headStyles: { fillColor: [102, 126, 234] },
-                    styles: { fontSize: 9 }
-                });
-
-                if (detail.data.length > 0) {
-                    const finalY = doc.lastAutoTable.finalY + 10;
-                    doc.setFontSize(12);
-                    doc.text(`Détails des recettes ${detail.year}`, 14, finalY);
-                    doc.autoTable({
-                        head: [detail.headers],
-                        body: detail.data.map(row => detail.headers.map(h => row[h])),
-                        startY: finalY + 5,
-                        theme: 'striped',
-                        headStyles: { fillColor: [40, 167, 69] },
-                        styles: { fontSize: 9 }
-                    });
-                }
-
-                doc.save(`recettes_${summary.year}.pdf`);
+                doc.save(title.replace(/\s+/g, '_') + '.pdf');
             });
 
-            $('#exportExcelBtn').click(function() {
-                const summary = collectSummaryData();
-                const detail = collectDetailData();
+            // ========== Excel Export ==========
+            $(document).on('click', '.btn-export-excel', function() {
+                const tableId = $(this).data('target');
+                const title = $(this).data('title') || 'Export';
+                const { headers, data } = collectTableData(tableId);
 
+                if (data.length === 0) {
+                    alert('Aucune donnée à exporter.');
+                    return;
+                }
+
+                // For recap tables, use descriptive headers
+                let excelHeaders;
+                if (tableId.startsWith('recettesTable-')) {
+                    excelHeaders = ['Mois', 'Cotisation Espèce', 'Cotisation Bancaire', 'Autre Espèce', 'Autre Bancaire', 'Total'];
+                } else if (tableId.startsWith('detailTable-')) {
+                    excelHeaders = ['ID', 'Montant', 'Date', 'Type', 'Nature', 'Description'];
+                } else {
+                    excelHeaders = headers;
+                }
+
+                const sheetData = [excelHeaders, ...data];
                 const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(sheetData);
 
-                const wsSummary = XLSX.utils.json_to_sheet(summary.data, { header: summary.headers });
-                XLSX.utils.book_append_sheet(wb, wsSummary, `Recap ${summary.year}`);
+                // Auto-size columns
+                ws['!cols'] = excelHeaders.map((h, i) => ({
+                    wch: Math.max(h.length, ...data.map(r => (r[i] || '').length)) + 2
+                }));
 
-                if (detail.data.length > 0) {
-                    const wsDetail = XLSX.utils.json_to_sheet(detail.data, { header: detail.headers });
-                    XLSX.utils.book_append_sheet(wb, wsDetail, `Details ${detail.year}`);
-                }
-
-                XLSX.writeFile(wb, `recettes_${summary.year}.xlsx`);
+                XLSX.utils.book_append_sheet(wb, ws, title.substring(0, 31));
+                XLSX.writeFile(wb, title.replace(/\s+/g, '_') + '.xlsx');
             });
+
         });
     </script>
 {% endblock %}
